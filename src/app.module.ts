@@ -1,6 +1,4 @@
 import {Module} from '@nestjs/common';
-import {AppController} from './app.controller';
-import {AppService} from './app.service';
 import {AuthorizationModule} from './authorization/authorization.module';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {readFileSync} from 'fs';
@@ -38,7 +36,5 @@ import {Offer} from './entities/Offer';
     }),
     OffersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

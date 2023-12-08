@@ -1,7 +1,9 @@
 import {Controller, Get, Query} from '@nestjs/common';
 import {SearchOffersDto} from './dto';
 import {OffersService} from './offers.service';
+import {ApiTags} from '@nestjs/swagger';
 
+@ApiTags('offer')
 @Controller('offers')
 export class OffersController {
   constructor(private offersService: OffersService) {}
