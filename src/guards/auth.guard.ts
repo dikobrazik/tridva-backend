@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {JwtService} from '@nestjs/jwt';
-import {Request} from 'express';
+import {SignatureContent} from 'src/shared/types';
+import {extractTokenFromHeader} from 'src/shared/utils/extractTokenFromHeader';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -17,25 +18,22 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request);
+    const token = extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
     }
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.getOrThrow('SC'),
-      });
-      // 💡 We're assigning the payload to the request object here
-      // so that we can access it in our route handlers
-      request['user'] = payload;
+      const payload = await this.jwtService.verifyAsync<SignatureContent>(
+        token,
+        {
+          secret: this.configService.getOrThrow('SC'),
+        },
+      );
+
+      request['userId'] = payload.userId;
     } catch {
       throw new UnauthorizedException();
     }
     return true;
-  }
-
-  private extractTokenFromHeader(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === 'Bearer' ? token : undefined;
   }
 }

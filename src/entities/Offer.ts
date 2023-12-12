@@ -11,6 +11,6 @@ export class Offer {
   @Column()
   description: string;
 
-  @Column()
-  cost: string;
+  @Column({type: 'decimal'})
+  cost: number;
 }

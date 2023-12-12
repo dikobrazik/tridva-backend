@@ -6,6 +6,9 @@ import {User} from './entities/User';
 import {ConfigModule, ConfigService} from '@nestjs/config';
 import {OffersModule} from './offers/offers.module';
 import {Offer} from './entities/Offer';
+import {ReviewsModule} from './reviews/reviews.module';
+import {SeedService} from './seed/seed.service';
+import {Review} from './entities/Review';
 
 @Module({
   imports: [
@@ -23,10 +26,9 @@ import {Offer} from './entities/Offer';
         ssl: {
           ca: readFileSync('/Users/d/Downloads/RootCA.pem'),
         },
-        dropSchema: true,
         synchronize: true,
         logging: true,
-        entities: [User, Offer],
+        entities: [User, Offer, Review],
         subscribers: [],
         migrations: [],
       }),
@@ -35,6 +37,8 @@ import {Offer} from './entities/Offer';
       isGlobal: true,
     }),
     OffersModule,
+    ReviewsModule,
   ],
+  providers: [SeedService],
 })
 export class AppModule {}
