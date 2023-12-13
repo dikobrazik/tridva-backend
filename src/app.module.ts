@@ -9,8 +9,7 @@ import {Offer} from './entities/Offer';
 import {ReviewsModule} from './reviews/reviews.module';
 import {SeedService} from './seed/seed.service';
 import {Review} from './entities/Review';
-import { CategoriesModule } from './categories/categories.module';
-import { CategoryModule } from './category/category.module';
+import {CategoryModule} from './category/category.module';
 
 @Module({
   imports: [
@@ -40,7 +39,6 @@ import { CategoryModule } from './category/category.module';
     }),
     OffersModule,
     ReviewsModule,
-    CategoriesModule,
     CategoryModule,
   ],
   providers: [SeedService],
