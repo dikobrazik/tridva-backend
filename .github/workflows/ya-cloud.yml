@@ -82,8 +82,8 @@ jobs:
           host: ${{ secrets.YC_HOST }}
           username: ${{ secrets.YC_USERNAME }}
           key: ${{ secrets.ID_RSA }}
-          source: 'configs/yc/docker-compose.yaml'
-          target: '~/backend/docker-compose.yaml'
+          source: 'configs/yc/*'
+          target: '~/backend'
 
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@v1.0.0
