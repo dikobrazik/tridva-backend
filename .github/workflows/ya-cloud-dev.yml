@@ -1,8 +1,8 @@
-name: Docker Image CI
+name: Dev Docker Image CI
 
 on:
   push:
-    branches: ['main']
+    branches: ['dev']
   workflow_dispatch:
     inputs:
       reason:
@@ -11,8 +11,8 @@ on:
         default: 'just for fun'
 
 env:
-  BACKEND_IMAGE: cr.yandex/${{ secrets.YA_REGISTRY }}/tridva-api-dev:${{ github.sha }}
-  NGINX_IMAGE: cr.yandex/${{ secrets.YA_REGISTRY }}/tridva-nginx-dev:${{ github.sha }}
+  BACKEND_IMAGE: cr.yandex/${{ secrets.YA_REGISTRY }}/tridva-api:${{ github.sha }}
+  NGINX_IMAGE: cr.yandex/${{ secrets.YA_REGISTRY }}/tridva-nginx:${{ github.sha }}
 
 jobs:
   build-backend:
@@ -82,13 +82,21 @@ jobs:
           host: ${{ secrets.YC_HOST }}
           username: ${{ secrets.YC_USERNAME }}
           key: ${{ secrets.ID_RSA }}
-          source: 'configs/yc/docker-compose.yaml'
-          target: '~/backend/docker-compose.yaml'
+          source: 'configs/yc/*'
+          target: '~/backend-dev'
 
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          BACKEND_IMAGE: ${{ env.BACKEND_IMAGE }}
+          NGINX_IMAGE: ${{ env.NGINX_IMAGE }}
         with:
           host: ${{ secrets.YC_HOST }}
           username: ${{ secrets.YC_USERNAME }}
           key: ${{ secrets.ID_RSA }}
-          script: cd ~/backend && docker compose pull && docker compose up
+          envs: BACKEND_IMAGE, NGINX_IMAGE
+          script: |
+            cd ~/backend-dev && 
+            docker compose -f configs/yc/docker-compose.yaml stop && 
+            docker compose -f configs/yc/docker-compose.yaml pull && 
+            docker compose -f configs/yc/docker-compose.yaml up
