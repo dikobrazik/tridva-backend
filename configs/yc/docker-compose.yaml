@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   nginx:
-    image: ${env.NGINX_IMAGE}
+    image: {{env.NGINX_IMAGE}}
     ports:
       - '80:80'
       - '443:443'
@@ -14,5 +14,5 @@ services:
       - backend
 
   backend:
-    image: ${env.BACKEND_IMAGE}
+    image: {{env.BACKEND_IMAGE}}
     restart: always

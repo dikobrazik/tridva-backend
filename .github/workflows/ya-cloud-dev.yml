@@ -76,6 +76,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Replace images from env
+        run: |
+          sed 's/{{env.BACKEND_IMAGE}}/${{ env.BACKEND_IMAGE }}/g' configs/yc/docker-compose.yaml | sed 's/{{env.NGINX_IMAGE}}/${{ env.NGINX_IMAGE }}/g' > configs/yc/docker-compose.yaml
+
       - name: Copy docker-compose
         uses: appleboy/scp-action@master
         with:
