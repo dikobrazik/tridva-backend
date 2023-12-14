@@ -1,18 +1,21 @@
 version: '3.7'
 
 services:
-  nginx:
-    image: cr.yandex/crpkv40doqi2snrfmq1e/tridva-nginx
-    ports:
-      - '80:80'
-      - '443:443'
-    restart: always
-    # environment:
-    #   NGINX_CERT: {{env.NGINX_CERT}}
-    #   NGINX_CERT_KEY: {{env.NGINX_CERT_KEY}}
-    depends_on:
-      - backend
+  # nginx:
+  #   image: cr.yandex/crpkv40doqi2snrfmq1e/tridva-nginx
+  #   ports:
+  #     - '80:80'
+  #     - '443:443'
+  #   restart: always
+  #   environment:
+  #     NGINX_CERT: {{env.NGINX_CERT}}
+  #     NGINX_CERT_KEY: {{env.NGINX_CERT_KEY}}
+  #   depends_on:
+  #     - backend
 
   backend:
     image: cr.yandex/crpkv40doqi2snrfmq1e/tridva-api
+    ports:
+      - '80:80'
+      - '443:443'
     restart: always
