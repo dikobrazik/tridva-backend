@@ -82,7 +82,7 @@ jobs:
           host: ${{ secrets.YC_HOST }}
           username: ${{ secrets.YC_USERNAME }}
           key: ${{ secrets.ID_RSA }}
-          source: 'configs/yc/*'
+          source: 'configs/yc/docker-compose.yaml'
           target: '~/backend'
 
       - name: executing remote ssh commands using password
@@ -91,4 +91,4 @@ jobs:
           host: ${{ secrets.YC_HOST }}
           username: ${{ secrets.YC_USERNAME }}
           key: ${{ secrets.ID_RSA }}
-          script: cd ~/backend && docker compose pull && docker compose up
+          script: cd ~/backend && docker compose -f configs/yc/docker-compose.yaml pull && docker compose -f configs/yc/docker-compose.yaml up
