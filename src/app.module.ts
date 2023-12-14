@@ -1,7 +1,7 @@
 import {Module} from '@nestjs/common';
 import {AuthorizationModule} from './authorization/authorization.module';
 import {TypeOrmModule} from '@nestjs/typeorm';
-import {readFileSync, readdirSync} from 'fs';
+import {readFileSync} from 'fs';
 import {User} from './entities/User';
 import {ConfigModule, ConfigService} from '@nestjs/config';
 import {OffersModule} from './offers/offers.module';
@@ -13,8 +13,6 @@ import {CategoryModule} from './category/category.module';
 import {Category} from './entities/Category';
 import {cwd} from 'process';
 import {join} from 'path';
-
-console.error(readdirSync('.'));
 
 @Module({
   imports: [
