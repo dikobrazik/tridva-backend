@@ -7,9 +7,9 @@ services:
       - '80:80'
       - '443:443'
     restart: always
-    environment:
-      NGINX_CERT: /etc/ssl/certs/nginx-selfsigned.crt
-      NGINX_CERT_KEY: /etc/ssl/private/nginx-selfsigned.key
+    volumes:
+      - /etc/ssl/certs/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt
+      - /etc/ssl/private/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key
     depends_on:
       - backend
 
