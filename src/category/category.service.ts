@@ -8,7 +8,7 @@ export class CategoryService {
   @InjectRepository(Category)
   private categoryRepository: Repository<Category>;
 
-  getCategoriesList() {
-    return this.categoryRepository.find();
+  getCategoriesList(level: number) {
+    return this.categoryRepository.find({where: {level: String(level)}});
   }
 }

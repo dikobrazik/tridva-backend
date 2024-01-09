@@ -18,21 +18,22 @@ export class PullerService {
 
     await this.signIn();
 
-    const isDev = this.configService.getOrThrow('SIMA_PHONE');
+    const isDev = this.configService.getOrThrow('IS_DEV');
 
     if (!isDev) {
-        this.fillCategories();
+      this.fillCategories();
     }
   }
 
   async signIn() {
     const token = await axios('/signin', {
-        method: 'POST',
-        data: {
-            phone: this.configService.getOrThrow('SIMA_PHONE'),
-            password: this.configService.getOrThrow('SIMA_PASS')
-          , "regulation": true},
-    }).then(r => r.data.token);
+      method: 'POST',
+      data: {
+        phone: this.configService.getOrThrow('SIMA_PHONE'),
+        password: this.configService.getOrThrow('SIMA_PASS'),
+        regulation: true,
+      },
+    }).then((r) => r.data.token);
 
     axios.defaults.headers.Authorization = token;
   }
@@ -41,18 +42,21 @@ export class PullerService {
     const allCategories = [];
 
     for (let i = 1; ; i++) {
-        const categories = await axios(`/category?p=${i}`).then(r => r.data) as SimaCategory[];
+      const categories = (await axios(`/category?p=${i}`).then(
+        (r) => r.data,
+      )) as SimaCategory[];
 
-        if (categories.length === 0) break;
+      if (categories.length === 0) break;
 
-        allCategories.push(categories.map((category) => ({
-            id: category.id,
-            name: category.name,
-            level: category.level,
-        })))
+      allCategories.push(
+        ...categories.map((category) => ({
+          id: category.id,
+          name: category.name,
+          level: category.level,
+        })),
+      );
     }
 
-    await this.categoryRepository.clear();
-    await this.categoryRepository.insert(allCategories)
+    await this.categoryRepository.upsert(allCategories, ['id']);
   }
 }
