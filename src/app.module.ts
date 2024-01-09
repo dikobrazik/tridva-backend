@@ -13,6 +13,7 @@ import {CategoryModule} from './category/category.module';
 import {Category} from './entities/Category';
 import {cwd} from 'process';
 import {join} from 'path';
+import {PullerModule} from './puller/puller.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import {join} from 'path';
     OffersModule,
     ReviewsModule,
     CategoryModule,
+    PullerModule,
   ],
   providers: [SeedService],
 })
