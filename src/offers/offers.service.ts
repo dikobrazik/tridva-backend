@@ -30,17 +30,17 @@ export class OffersService {
       this.offerRepository.insert({
         title: 'Offer 1',
         description: 'Offer 1',
-        cost: 100,
+        price: 100,
       }),
       this.offerRepository.insert({
         title: 'Offer 2',
         description: 'Offer 2',
-        cost: 200,
+        price: 200,
       }),
       this.offerRepository.insert({
         title: 'Offer 3',
         description: 'Offer 3',
-        cost: 300,
+        price: 300,
       }),
     ]);
   }

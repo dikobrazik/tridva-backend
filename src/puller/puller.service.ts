@@ -4,12 +4,15 @@ import axios from 'axios';
 import {Category} from 'src/entities/Category';
 import {Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
-import {SimaCategory} from './types';
+import {SimaCategory, SimaOffer, SimaOfferCategory} from './types';
+import {Offer} from 'src/entities/Offer';
 
 @Injectable()
 export class PullerService {
   @InjectRepository(Category)
   private categoryRepository: Repository<Category>;
+  @InjectRepository(Offer)
+  private offerRepository: Repository<Offer>;
 
   constructor(private configService: ConfigService) {}
 
@@ -22,6 +25,7 @@ export class PullerService {
 
     if (!isDev) {
       this.fillCategories();
+      this.fillOffers();
     }
   }
 
@@ -58,5 +62,49 @@ export class PullerService {
     }
 
     await this.categoryRepository.upsert(allCategories, ['id']);
+  }
+
+  async fillOffers() {
+    const offersCategories = await this.getOffersCategories();
+
+    const allOffers: Offer[] = [];
+
+    for (let i = 1; i < 1000; i++) {
+      const offers = (await axios(`/item?p=${i}`).then(
+        (r) => r.data,
+      )) as SimaOffer[];
+
+      if (offers.length === 0) break;
+
+      allOffers.push(
+        ...offers.map((offer) => ({
+          id: offer.id,
+          title: offer.name,
+          description: offer.description,
+          price: offer.price,
+          categoryId: offersCategories[offer.id]
+        })),
+      );
+    }
+
+    await this.offerRepository.upsert(allOffers, ['id']);
+  }
+
+  async getOffersCategories() {
+    const offersCategoriesMap: Record<string, number> = {};
+
+    for (let i = 1; i < 2; i++) {
+      const offerCategories = (await axios(`/item?p=${i}`).then(
+        (r) => r.data,
+      )) as SimaOfferCategory[];
+
+      if (offerCategories.length === 0) break;
+
+      for (const offerCategory of offerCategories) {
+        offersCategoriesMap[offerCategory.item_id] = offerCategory.category_id;
+      }
+    }
+
+    return offersCategoriesMap;
   }
 }

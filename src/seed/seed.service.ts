@@ -10,8 +10,8 @@ export class SeedService {
   ) {}
 
   public async seed() {
-    console.log(await this.authService.signUp('user1', 'useruser'));
+    // console.log(await this.authService.signUp('user1', 'useruser'));
 
-    await this.offersService.seed();
+    // await this.offersService.seed();
   }
 }

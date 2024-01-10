@@ -13,7 +13,7 @@ export class Offer {
   description: string;
 
   @Column({type: 'decimal'})
-  cost: number;
+  price: number;
 
   @ManyToOne(() => Category)
   categoryId: number;
