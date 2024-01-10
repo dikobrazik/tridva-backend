@@ -7,6 +7,35 @@ import {ConfigService} from '@nestjs/config';
 import {SimaCategory, SimaOffer, SimaOfferCategory} from './types';
 import {Offer} from 'src/entities/Offer';
 
+interface ISimaApi {
+  loadOffers: (page: number) => Promise<SimaOffer[]>;
+  loadCategories: (page: number) => Promise<SimaCategory[]>;
+  loadOffersCategories: (page: number) => Promise<SimaOfferCategory[]>;
+}
+
+class SimaApi implements ISimaApi {
+  public loadOffers: ISimaApi['loadOffers'];
+  public loadCategories: ISimaApi['loadCategories'];
+  public loadOffersCategories: ISimaApi['loadOffersCategories'];
+
+  constructor() {
+    this.loadOffers = this.loader<SimaOffer>('item');
+    this.loadCategories = this.loader<SimaCategory>('category');
+    this.loadOffersCategories = this.loader<SimaOfferCategory>('item-category');
+  }
+
+  private loader<E>(entity: string) {
+    const load = (page: number): Promise<E[]> =>
+      axios(`/${entity}?p=${page}`)
+        .then((r) => r.data)
+        .catch(() =>
+          new Promise((r) => setTimeout(r, 10_000)).then(() => load(page)),
+        );
+
+    return load;
+  }
+}
+
 @Injectable()
 export class PullerService {
   @InjectRepository(Category)
@@ -14,7 +43,11 @@ export class PullerService {
   @InjectRepository(Offer)
   private offerRepository: Repository<Offer>;
 
-  constructor(private configService: ConfigService) {}
+  private simaApi: SimaApi;
+
+  constructor(private configService: ConfigService) {
+    this.simaApi = new SimaApi();
+  }
 
   async pull() {
     axios.defaults.baseURL = this.configService.getOrThrow('SIMA_URL');
@@ -43,60 +76,52 @@ export class PullerService {
   }
 
   async fillCategories() {
-    const allCategories = [];
+    if ((await this.categoryRepository.find()).length) return;
 
     for (let i = 1; ; i++) {
-      const categories = (await axios(`/category?p=${i}`).then(
-        (r) => r.data,
-      )) as SimaCategory[];
+      const categories = await this.simaApi.loadCategories(i);
 
       if (categories.length === 0) break;
 
-      allCategories.push(
-        ...categories.map((category) => ({
+      await this.categoryRepository.upsert(
+        categories.map((category) => ({
           id: category.id,
           name: category.name,
-          level: category.level,
+          level: String(category.level),
         })),
+        ['id'],
       );
     }
-
-    await this.categoryRepository.upsert(allCategories, ['id']);
   }
 
   async fillOffers() {
+    if ((await this.offerRepository.find()).length) return;
+
     const offersCategories = await this.getOffersCategories();
 
-    const allOffers: Offer[] = [];
-
-    for (let i = 1; i < 1000; i++) {
-      const offers = (await axios(`/item?p=${i}`).then(
-        (r) => r.data,
-      )) as SimaOffer[];
+    for (let i = 1; i < 100; i++) {
+      const offers = await this.simaApi.loadOffers(i);
 
       if (offers.length === 0) break;
 
-      allOffers.push(
-        ...offers.map((offer) => ({
+      await this.offerRepository.upsert(
+        offers.map((offer) => ({
           id: offer.id,
           title: offer.name,
           description: offer.description,
           price: offer.price,
-          categoryId: offersCategories[offer.id]
+          categoryId: offersCategories[offer.id],
         })),
+        ['id'],
       );
     }
-
-    await this.offerRepository.upsert(allOffers, ['id']);
   }
 
   async getOffersCategories() {
     const offersCategoriesMap: Record<string, number> = {};
 
-    for (let i = 1; i < 2; i++) {
-      const offerCategories = (await axios(`/item?p=${i}`).then(
-        (r) => r.data,
-      )) as SimaOfferCategory[];
+    for (let i = 1; ; i++) {
+      const offerCategories = await this.simaApi.loadOffersCategories(i);
 
       if (offerCategories.length === 0) break;
 
