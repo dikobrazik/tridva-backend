@@ -18,7 +18,7 @@ export class PullerService {
 
     await this.signIn();
 
-    const isDev = this.configService.getOrThrow('IS_DEV');
+    const isDev = this.configService.get('IS_DEV');
 
     if (!isDev) {
       this.fillCategories();
