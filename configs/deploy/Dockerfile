@@ -1,24 +1,20 @@
 # Base image
 FROM node:20
 
-RUN corepack enable
-RUN corepack prepare pnpm@7.4.1 --activate
-
 # Create app directory
 WORKDIR /usr/src/app
 
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
-COPY package.json ./
-COPY pnpm-lock.yaml ./
+COPY package*.json ./
 
 # Install app dependencies
-RUN pnpm install
+RUN npm install
 
 # Bundle app source
 COPY . .
 
 # Creates a "dist" folder with the production build
-RUN pnpm run build
+RUN npm run build
 
 # Start the server using the production build
 CMD [ "node", "dist/main.js" ]
