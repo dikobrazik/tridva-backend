@@ -2,7 +2,7 @@
 FROM node:20
 
 RUN corepack enable
-RUN corepack prepare pnpm@7.18.0 --activate
+RUN corepack prepare pnpm@7.4.1 --activate
 
 # Create app directory
 WORKDIR /usr/src/app
