@@ -1,4 +1,5 @@
 import {ApiProperty} from '@nestjs/swagger';
+import {Type} from 'class-transformer';
 import {IsInt, IsNotEmpty, MinLength} from 'class-validator';
 
 export class CreateReviewDto {
@@ -16,5 +17,6 @@ export class GetReviewsDto {
   @ApiProperty()
   @IsInt()
   @IsNotEmpty()
+  @Type(() => Number)
   offerId: number;
 }
