@@ -15,6 +15,12 @@ async function bootstrap() {
 
   app.get(PullerService).pull();
 
+  app.enableCors({
+    origin: ['http://localhost:3000', 'http://158.160.12.140'],
+    methods: ['GET', 'POST', 'DELETE'],
+    credentials: true,
+  });
+
   await app.listen(80);
 }
 
