@@ -95,4 +95,4 @@ jobs:
             cd ~/backend && 
             docker compose -f configs/yc/docker-compose.yaml stop && 
             docker compose -f configs/yc/docker-compose.yaml pull && 
-            docker compose -f configs/yc/docker-compose.yaml up
+            docker compose -f configs/yc/docker-compose.yaml up -d
