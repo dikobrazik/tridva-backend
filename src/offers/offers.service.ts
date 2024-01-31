@@ -11,37 +11,24 @@ export class OffersService {
   @InjectRepository(Offer)
   private offerRepository: Repository<Offer>;
 
-  getOffersList(
+  async getOffersList(
     search: string,
     page: number = DEFAULT_PAGE,
     pageSize: number = DEFAULT_PAGE_SIZE,
   ) {
     const where = search ? {title: Like(`%${search}%`)} : undefined;
 
-    return this.offerRepository.find({
+    const offers = await this.offerRepository.find({
       skip: (page - 1) * pageSize,
       take: pageSize,
       where,
     });
-  }
 
-  seed() {
-    return Promise.all([
-      this.offerRepository.insert({
-        title: 'Offer 1',
-        description: 'Offer 1',
-        price: 100,
-      }),
-      this.offerRepository.insert({
-        title: 'Offer 2',
-        description: 'Offer 2',
-        price: 200,
-      }),
-      this.offerRepository.insert({
-        title: 'Offer 3',
-        description: 'Offer 3',
-        price: 300,
-      }),
-    ]);
+    console.log(offers);
+
+    return offers.map((offer) => ({
+      ...offer,
+      photos: offer.photos ? offer.photos.split('|') : undefined,
+    }));
   }
 }
