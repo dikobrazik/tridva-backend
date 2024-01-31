@@ -57,10 +57,7 @@ export class PullerService {
 
     await this.signIn();
 
-    const isDev = this.configService.get('IS_DEV');
-    const isDebug = this.configService.get('DEBUG_PULLER');
-
-    if (!isDev || isDebug) {
+    if (!this.isDev || this.isDebug) {
       this.fillCategories();
       this.fillOffers();
     }
@@ -80,11 +77,9 @@ export class PullerService {
   }
 
   async fillCategories() {
-    const isDebug = this.configService.get('DEBUG_PULLER');
+    if ((await this.categoryRepository.find()).length && !this.isDebug) return;
 
-    if ((await this.categoryRepository.find()).length && !isDebug) return;
-
-    const iterations = isDebug ? 2 : Number.MAX_SAFE_INTEGER;
+    const iterations = this.isDebug ? 2 : Number.MAX_SAFE_INTEGER;
 
     for (let i = 1; i < iterations; i++) {
       const categories = await this.simaApi.loadCategories(i);
@@ -103,41 +98,39 @@ export class PullerService {
   }
 
   async fillOffers() {
-    const isDebug = this.configService.get('DEBUG_PULLER');
-
-    if ((await this.offerRepository.find()).length && !isDebug) return;
+    if ((await this.offerRepository.find()).length && !this.isDebug) return;
 
     const initialPage = 12343;
-    const iterations = isDebug ? initialPage + 1 : initialPage + 50;
+    const iterations = this.isDebug ? initialPage + 1 : initialPage + 50;
 
     const offersCategories = await this.getOffersCategories();
 
     for (let i = initialPage; i < iterations; i++) {
-      const offers = await this.simaApi.loadOffers(i);
+      const offers = (await this.simaApi.loadOffers(i)).filter((offer) =>
+        Boolean(offersCategories[offer.id]),
+      );
 
       if (offers.length === 0) break;
 
       await this.offerRepository.upsert(
-        offers
-          .filter((offer) => Boolean(offersCategories[offer.id]))
-          .map((offer) => {
-            const result = {
-              id: offer.id,
-              title: offer.name,
-              description: offer.description,
-              price: offer.price,
-              categoryId: offersCategories[offer.id],
-              photos: null,
-            };
+        offers.map((offer) => {
+          const result = {
+            id: offer.id,
+            title: offer.name,
+            description: offer.description,
+            price: offer.price,
+            categoryId: offersCategories[offer.id],
+            photos: null,
+          };
 
-            if (offer.agg_photos?.length) {
-              result.photos = offer.agg_photos
-                .map((index) => `${offer.base_photo_url}${index}`)
-                .join('|');
-            }
+          if (offer.agg_photos?.length) {
+            result.photos = offer.agg_photos
+              .map((index) => `${offer.base_photo_url}${index}`)
+              .join('|');
+          }
 
-            return result;
-          }),
+          return result;
+        }),
         ['id'],
       );
     }
@@ -146,9 +139,7 @@ export class PullerService {
   async getOffersCategories() {
     const offersCategoriesMap: Record<string, number> = {};
 
-    const isDebug = this.configService.get('DEBUG_PULLER');
-
-    const iterations = isDebug ? 2 : Number.MAX_SAFE_INTEGER;
+    const iterations = this.isDebug ? 100 : Number.MAX_SAFE_INTEGER;
 
     for (let i = 1; i < iterations; i++) {
       const offerCategories = await this.simaApi.loadOffersCategories(i);
@@ -161,5 +152,13 @@ export class PullerService {
     }
 
     return offersCategoriesMap;
+  }
+
+  private get isDebug() {
+    return this.configService.get('DEBUG_PULLER') === 'true';
+  }
+
+  private get isDev() {
+    return this.configService.get('IS_DEV') === 'true';
   }
 }
