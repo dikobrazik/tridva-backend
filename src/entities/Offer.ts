@@ -1,4 +1,10 @@
-import {Column, Entity, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import {Category} from './Category';
 
 @Entity()
@@ -19,5 +25,9 @@ export class Offer {
   price: number;
 
   @ManyToOne(() => Category)
+  @JoinColumn({name: 'categoryId'})
+  category: Category;
+
+  @Column()
   categoryId: number;
 }

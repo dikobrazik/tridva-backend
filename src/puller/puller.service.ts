@@ -2,7 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
 import {Category} from 'src/entities/Category';
-import {Repository} from 'typeorm';
+import {In, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {SimaCategory, SimaOffer, SimaOfferCategory} from './types';
 import {Offer} from 'src/entities/Offer';
@@ -99,19 +99,20 @@ export class PullerService {
 
     const offersCategories = await this.getOffersCategories();
 
-    for (let i = 12343; i < 12443; i++) {
+    for (let i = 12343; i < 12400; i++) {
       const offers = await this.simaApi.loadOffers(i);
 
       if (offers.length === 0) break;
 
       await this.offerRepository.upsert(
         offers.map((offer) => {
-          const result: Offer = {
+          const result = {
             id: offer.id,
             title: offer.name,
             description: offer.description,
             price: offer.price,
             categoryId: offersCategories[offer.id],
+            photos: null,
           };
 
           if (offer.agg_photos?.length) {

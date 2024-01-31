@@ -20,4 +20,10 @@ export class SearchOffersDto {
   @Min(1)
   @Type(() => Number)
   pageSize?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  category?: number;
 }

@@ -15,16 +15,16 @@ export class OffersService {
     search: string,
     page: number = DEFAULT_PAGE,
     pageSize: number = DEFAULT_PAGE_SIZE,
+    categoryId?: number,
   ) {
-    const where = search ? {title: Like(`%${search}%`)} : undefined;
-
     const offers = await this.offerRepository.find({
       skip: (page - 1) * pageSize,
       take: pageSize,
-      where,
+      where: {
+        title: search ? Like(`%${search}%`) : undefined,
+        categoryId,
+      },
     });
-
-    console.log(offers);
 
     return offers.map((offer) => ({
       ...offer,

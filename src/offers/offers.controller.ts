@@ -10,10 +10,12 @@ export class OffersController {
 
   @Get()
   search(@Query() query: SearchOffersDto) {
+    console.log(query);
     return this.offersService.getOffersList(
       query.search,
       query.page,
       query.pageSize,
+      query.category,
     );
   }
 }
