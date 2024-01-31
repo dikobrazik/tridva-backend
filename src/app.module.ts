@@ -32,7 +32,7 @@ import {PullerModule} from './puller/puller.module';
           ca: readFileSync(join(cwd(), 'db.pem')),
         },
         synchronize: true,
-        logging: configService.getOrThrow('IS_DEV') === 'true',
+        logging: configService.get('IS_DEV') === 'true',
         entities: [User, Offer, Review, Category],
         subscribers: [],
         migrations: [],
