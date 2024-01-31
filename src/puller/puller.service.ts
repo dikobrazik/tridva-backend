@@ -99,19 +99,29 @@ export class PullerService {
 
     const offersCategories = await this.getOffersCategories();
 
-    for (let i = 1; i < 100; i++) {
+    for (let i = 12343; i < 12443; i++) {
       const offers = await this.simaApi.loadOffers(i);
 
       if (offers.length === 0) break;
 
       await this.offerRepository.upsert(
-        offers.map((offer) => ({
-          id: offer.id,
-          title: offer.name,
-          description: offer.description,
-          price: offer.price,
-          categoryId: offersCategories[offer.id],
-        })),
+        offers.map((offer) => {
+          const result: Offer = {
+            id: offer.id,
+            title: offer.name,
+            description: offer.description,
+            price: offer.price,
+            categoryId: offersCategories[offer.id],
+          };
+
+          if (offer.agg_photos?.length) {
+            result.photos = offer.agg_photos
+              .map((index) => `${offer.base_photo_url}${index}`)
+              .join('|');
+          }
+
+          return result;
+        }),
         ['id'],
       );
     }

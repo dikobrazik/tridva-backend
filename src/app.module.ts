@@ -31,6 +31,7 @@ import {PullerModule} from './puller/puller.module';
         ssl: {
           ca: readFileSync(join(cwd(), 'db.pem')),
         },
+        dropSchema: true,
         synchronize: true,
         logging: true,
         entities: [User, Offer, Review, Category],

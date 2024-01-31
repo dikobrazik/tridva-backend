@@ -12,6 +12,9 @@ export class Offer {
   @Column()
   description: string;
 
+  @Column({nullable: true})
+  photos?: string;
+
   @Column({type: 'decimal'})
   price: number;
 

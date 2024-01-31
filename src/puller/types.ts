@@ -36,6 +36,7 @@ export type SimaOffer = {
   country_id: number;
   unit_id: number;
   nested_unit_id: number;
+  agg_photos?: number[];
   base_photo_url: string;
   minimum_order_quantity: number;
   min_qty: number;
@@ -52,10 +53,10 @@ export type SimaOffer = {
   is_protected: boolean;
   wholesale?: any;
   vat: number;
-}
+};
 
 export type SimaOfferCategory = {
   id: number;
   item_id: number;
   category_id: number;
-}
+};
