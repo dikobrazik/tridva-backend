@@ -2,7 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
 import {Category} from 'src/entities/Category';
-import {In, Repository} from 'typeorm';
+import {Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {SimaCategory, SimaOffer, SimaOfferCategory} from './types';
 import {Offer} from 'src/entities/Offer';
@@ -25,12 +25,15 @@ class SimaApi implements ISimaApi {
   }
 
   private loader<E>(entity: string) {
-    const load = (page: number): Promise<E[]> =>
-      axios(`/${entity}?p=${page}`)
+    const load = (page: number): Promise<E[]> => {
+      if (page % 10 === 0) console.log(`Loading ${entity} page ${page}...`);
+
+      return axios(`/${entity}?p=${page}`)
         .then((r) => r.data)
         .catch(() =>
           new Promise((r) => setTimeout(r, 10_000)).then(() => load(page)),
         );
+    };
 
     return load;
   }
@@ -55,8 +58,9 @@ export class PullerService {
     await this.signIn();
 
     const isDev = this.configService.get('IS_DEV');
+    const isDebug = this.configService.get('DEBUG_PULLER');
 
-    if (!isDev) {
+    if (!isDev || isDebug) {
       this.fillCategories();
       this.fillOffers();
     }
@@ -76,9 +80,13 @@ export class PullerService {
   }
 
   async fillCategories() {
-    if ((await this.categoryRepository.find()).length) return;
+    const isDebug = this.configService.get('DEBUG_PULLER');
 
-    for (let i = 1; ; i++) {
+    if ((await this.categoryRepository.find()).length && !isDebug) return;
+
+    const iterations = isDebug ? 2 : Number.MAX_SAFE_INTEGER;
+
+    for (let i = 1; i < iterations; i++) {
       const categories = await this.simaApi.loadCategories(i);
 
       if (categories.length === 0) break;
@@ -95,34 +103,41 @@ export class PullerService {
   }
 
   async fillOffers() {
-    if ((await this.offerRepository.find()).length) return;
+    const isDebug = this.configService.get('DEBUG_PULLER');
+
+    if ((await this.offerRepository.find()).length && !isDebug) return;
+
+    const initialPage = 12343;
+    const iterations = isDebug ? initialPage + 1 : initialPage + 50;
 
     const offersCategories = await this.getOffersCategories();
 
-    for (let i = 12343; i < 12400; i++) {
+    for (let i = initialPage; i < iterations; i++) {
       const offers = await this.simaApi.loadOffers(i);
 
       if (offers.length === 0) break;
 
       await this.offerRepository.upsert(
-        offers.map((offer) => {
-          const result = {
-            id: offer.id,
-            title: offer.name,
-            description: offer.description,
-            price: offer.price,
-            categoryId: offersCategories[offer.id],
-            photos: null,
-          };
+        offers
+          .filter((offer) => Boolean(offersCategories[offer.id]))
+          .map((offer) => {
+            const result = {
+              id: offer.id,
+              title: offer.name,
+              description: offer.description,
+              price: offer.price,
+              categoryId: offersCategories[offer.id],
+              photos: null,
+            };
 
-          if (offer.agg_photos?.length) {
-            result.photos = offer.agg_photos
-              .map((index) => `${offer.base_photo_url}${index}`)
-              .join('|');
-          }
+            if (offer.agg_photos?.length) {
+              result.photos = offer.agg_photos
+                .map((index) => `${offer.base_photo_url}${index}`)
+                .join('|');
+            }
 
-          return result;
-        }),
+            return result;
+          }),
         ['id'],
       );
     }
@@ -131,7 +146,11 @@ export class PullerService {
   async getOffersCategories() {
     const offersCategoriesMap: Record<string, number> = {};
 
-    for (let i = 1; ; i++) {
+    const isDebug = this.configService.get('DEBUG_PULLER');
+
+    const iterations = isDebug ? 2 : Number.MAX_SAFE_INTEGER;
+
+    for (let i = 1; i < iterations; i++) {
       const offerCategories = await this.simaApi.loadOffersCategories(i);
 
       if (offerCategories.length === 0) break;
