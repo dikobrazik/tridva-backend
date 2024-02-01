@@ -11,4 +11,8 @@ export class CategoryService {
   getCategoriesList(level: number) {
     return this.categoryRepository.find({where: {level: String(level)}});
   }
+
+  getCategoryById(categoryId: number) {
+    return this.categoryRepository.findOne({where: {id: Number(categoryId)}});
+  }
 }

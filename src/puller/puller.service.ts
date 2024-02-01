@@ -112,27 +112,29 @@ export class PullerService {
 
       if (offers.length === 0) break;
 
-      await this.offerRepository.upsert(
-        offers.map((offer) => {
-          const result = {
-            id: offer.id,
-            title: offer.name,
-            description: offer.description,
-            price: offer.price,
-            categoryId: offersCategories[offer.id],
-            photos: null,
-          };
+      try {
+        await this.offerRepository.upsert(
+          offers.map((offer) => {
+            const result = {
+              id: offer.id,
+              title: offer.name,
+              description: offer.description,
+              price: offer.price,
+              categoryId: offersCategories[offer.id],
+              photos: null,
+            };
 
-          if (offer.agg_photos?.length) {
-            result.photos = offer.agg_photos
-              .map((index) => `${offer.base_photo_url}${index}`)
-              .join('|');
-          }
+            if (offer.agg_photos?.length) {
+              result.photos = offer.agg_photos
+                .map((index) => `${offer.base_photo_url}${index}`)
+                .join('|');
+            }
 
-          return result;
-        }),
-        ['id'],
-      );
+            return result;
+          }),
+          ['id'],
+        );
+      } catch {}
     }
   }
 

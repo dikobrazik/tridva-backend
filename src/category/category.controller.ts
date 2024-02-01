@@ -1,6 +1,7 @@
-import {Controller, Get, Query} from '@nestjs/common';
+import {Controller, Get, NotFoundException, Param, Query} from '@nestjs/common';
 import {CategoryService} from './category.service';
 import {ApiTags} from '@nestjs/swagger';
+import {FindOneParams} from 'src/dtos/category';
 
 @ApiTags('Categories')
 @Controller('categories')
@@ -10,5 +11,16 @@ export class CategoryController {
   @Get()
   getCategoriesList(@Query('level') level: number = 1) {
     return this.categoryService.getCategoriesList(level);
+  }
+
+  @Get(':id')
+  async getCategoryById(@Param() params: FindOneParams) {
+    const category = await this.categoryService.getCategoryById(params.id);
+
+    if (!category) {
+      throw new NotFoundException();
+    }
+
+    return category;
   }
 }
