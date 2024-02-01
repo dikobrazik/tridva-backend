@@ -58,8 +58,8 @@ export class PullerService {
     await this.signIn();
 
     if (!this.isDev || this.isDebug) {
-      this.fillCategories();
-      this.fillOffers();
+      await this.fillCategories();
+      await this.fillOffers();
     }
   }
 
