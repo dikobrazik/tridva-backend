@@ -31,4 +31,13 @@ export class OffersService {
       photos: offer.photos ? offer.photos.split('|') : undefined,
     }));
   }
+
+  getOffersTotal(search: string, categoryId?: number) {
+    return this.offerRepository.count({
+      where: {
+        title: search ? Like(`%${search}%`) : undefined,
+        categoryId,
+      },
+    });
+  }
 }

@@ -27,3 +27,15 @@ export class SearchOffersDto {
   @Type(() => Number)
   category?: number;
 }
+
+export class OffersTotalDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  search?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  category?: number;
+}

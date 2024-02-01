@@ -1,5 +1,5 @@
 import {Controller, Get, Query} from '@nestjs/common';
-import {SearchOffersDto} from './dto';
+import {OffersTotalDto, SearchOffersDto} from './dto';
 import {OffersService} from './offers.service';
 import {ApiTags} from '@nestjs/swagger';
 
@@ -16,5 +16,10 @@ export class OffersController {
       query.pageSize,
       query.category,
     );
+  }
+
+  @Get('total')
+  total(@Query() query: OffersTotalDto) {
+    return this.offersService.getOffersTotal(query.search, query.category);
   }
 }

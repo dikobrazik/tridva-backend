@@ -26,7 +26,7 @@ class SimaApi implements ISimaApi {
 
   private loader<E>(entity: string) {
     const load = (page: number): Promise<E[]> => {
-      if (page % 10 === 0) console.log(`Loading ${entity} page ${page}...`);
+      if (page % 10000 === 0) console.log(`Loading ${entity} page ${page}...`);
 
       return axios(`/${entity}?p=${page}`)
         .then((r) => r.data)
@@ -100,41 +100,44 @@ export class PullerService {
   async fillOffers() {
     if ((await this.offerRepository.find()).length && !this.isDebug) return;
 
-    const initialPage = 12343;
-    const iterations = this.isDebug ? initialPage + 1 : initialPage + 50;
+    const initialPages = [12343, 23002, 37213, 58922, 70932];
 
-    const offersCategories = await this.getOffersCategories();
+    for (const initialPage of initialPages) {
+      const iterations = this.isDebug ? initialPage + 1 : initialPage + 200;
 
-    for (let i = initialPage; i < iterations; i++) {
-      const offers = (await this.simaApi.loadOffers(i)).filter((offer) =>
-        Boolean(offersCategories[offer.id]),
-      );
+      const offersCategories = await this.getOffersCategories();
 
-      if (offers.length === 0) break;
-
-      try {
-        await this.offerRepository.upsert(
-          offers.map((offer) => {
-            const result = {
-              id: offer.id,
-              title: offer.name,
-              description: offer.description,
-              price: offer.price,
-              categoryId: offersCategories[offer.id],
-              photos: null,
-            };
-
-            if (offer.agg_photos?.length) {
-              result.photos = offer.agg_photos
-                .map((index) => `${offer.base_photo_url}${index}`)
-                .join('|');
-            }
-
-            return result;
-          }),
-          ['id'],
+      for (let i = initialPage; i < iterations; i++) {
+        const offers = (await this.simaApi.loadOffers(i)).filter((offer) =>
+          Boolean(offersCategories[offer.id]),
         );
-      } catch {}
+
+        if (offers.length === 0) break;
+
+        try {
+          await this.offerRepository.upsert(
+            offers.map((offer) => {
+              const result = {
+                id: offer.id,
+                title: offer.name,
+                description: offer.description,
+                price: offer.price,
+                categoryId: offersCategories[offer.id],
+                photos: null,
+              };
+
+              if (offer.agg_photos?.length) {
+                result.photos = offer.agg_photos
+                  .map((index) => `${offer.base_photo_url}${index}`)
+                  .join('|');
+              }
+
+              return result;
+            }),
+            ['id'],
+          );
+        } catch {}
+      }
     }
   }
 
