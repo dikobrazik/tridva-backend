@@ -18,13 +18,13 @@ export class OffersController {
     );
   }
 
-  @Get(':id')
-  getOffer(@Param() params: SearchOfferDto) {
-    return this.offersService.getOfferById(params.id);
-  }
-
   @Get('total')
   getOffersTotalCount(@Query() query: OffersTotalDto) {
     return this.offersService.getOffersTotal(query.search, query.category);
+  }
+
+  @Get(':id')
+  getOffer(@Param() params: SearchOfferDto) {
+    return this.offersService.getOfferById(params.id);
   }
 }
