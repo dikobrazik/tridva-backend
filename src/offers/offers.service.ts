@@ -35,10 +35,27 @@ export class OffersService {
       },
     });
 
-    return offers.map((offer) => ({
-      ...offer,
-      photos: offer.photos ? offer.photos.split('|') : undefined,
-    }));
+    return offers.map(this.prepareOffer);
+  }
+
+  async getOfferById(offerId: Offer['id']) {
+    const offer = await this.offerRepository.findOne({
+      where: {
+        id: offerId,
+      },
+    });
+
+    return this.prepareOffer(offer);
+  }
+
+  private prepareOffer(offer: Offer) {
+    if (offer.photos) {
+      return {
+        ...offer,
+        photos: offer.photos.split('|'),
+      };
+    }
+    return offer;
   }
 
   async getOffersTotal(search?: string, categoryId?: number) {

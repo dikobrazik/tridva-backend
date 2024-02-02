@@ -39,3 +39,9 @@ export class OffersTotalDto {
   @Type(() => Number)
   category?: number;
 }
+
+export class SearchOfferDto {
+  @Min(1)
+  @Type(() => Number)
+  id: number;
+}

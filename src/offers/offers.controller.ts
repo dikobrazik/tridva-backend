@@ -1,5 +1,5 @@
-import {Controller, Get, Query} from '@nestjs/common';
-import {OffersTotalDto, SearchOffersDto} from './dto';
+import {Controller, Get, Param, Query} from '@nestjs/common';
+import {OffersTotalDto, SearchOfferDto, SearchOffersDto} from './dto';
 import {OffersService} from './offers.service';
 import {ApiTags} from '@nestjs/swagger';
 
@@ -9,7 +9,7 @@ export class OffersController {
   constructor(private offersService: OffersService) {}
 
   @Get()
-  search(@Query() query: SearchOffersDto) {
+  getOffers(@Query() query: SearchOffersDto) {
     return this.offersService.getOffersList(
       query.search,
       query.page,
@@ -18,8 +18,13 @@ export class OffersController {
     );
   }
 
+  @Get(':id')
+  getOffer(@Param() params: SearchOfferDto) {
+    return this.offersService.getOfferById(params.id);
+  }
+
   @Get('total')
-  total(@Query() query: OffersTotalDto) {
+  getOffersTotalCount(@Query() query: OffersTotalDto) {
     return this.offersService.getOffersTotal(query.search, query.category);
   }
 }
