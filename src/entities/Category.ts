@@ -10,4 +10,16 @@ export class Category {
 
   @Column()
   level: string;
+
+  @Column({nullable: true})
+  path: string;
+
+  @Column({type: 'boolean', nullable: true})
+  isLeaf: boolean;
+
+  @Column({type: 'boolean', nullable: true})
+  isAdult: boolean;
+
+  @Column({nullable: true})
+  icon: string;
 }

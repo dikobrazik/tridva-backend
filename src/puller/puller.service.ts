@@ -91,6 +91,10 @@ export class PullerService {
           id: category.id,
           name: category.name,
           level: String(category.level),
+          path: category.path,
+          isAdult: category.is_adult,
+          isLeaf: category.is_leaf,
+          icon: category.icon,
         })),
         ['id'],
       );

@@ -7,7 +7,6 @@ import {ConfigModule, ConfigService} from '@nestjs/config';
 import {OffersModule} from './offers/offers.module';
 import {Offer} from './entities/Offer';
 import {ReviewsModule} from './reviews/reviews.module';
-import {SeedService} from './seed/seed.service';
 import {Review} from './entities/Review';
 import {CategoryModule} from './category/category.module';
 import {Category} from './entities/Category';
@@ -46,6 +45,6 @@ import {PullerModule} from './puller/puller.module';
     CategoryModule,
     PullerModule,
   ],
-  providers: [SeedService],
+  providers: [],
 })
 export class AppModule {}

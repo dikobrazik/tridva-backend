@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Category} from 'src/entities/Category';
-import {Repository} from 'typeorm';
+import {Like, Repository} from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -14,5 +14,16 @@ export class CategoryService {
 
   getCategoryById(categoryId: number) {
     return this.categoryRepository.findOne({where: {id: Number(categoryId)}});
+  }
+
+  async getCategoryChildrenIds(categoryId: Category['id']) {
+    const categories = await this.categoryRepository.find({
+      select: ['id'],
+      where: {
+        path: Like(`${categoryId}.%`),
+      },
+    });
+
+    return categories.map((category) => category.id).concat(categoryId);
   }
 }
