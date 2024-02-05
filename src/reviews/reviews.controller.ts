@@ -1,30 +1,39 @@
-import {Body, Controller, Get, Post, Request, UseGuards} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {ReviewsService} from './reviews.service';
 import {AuthorizedRequest} from 'src/shared/types';
-import {CreateReviewDto, GetReviewsDto} from './dto';
+import {CreateReviewDto, GetReviewsDto, GetReviewsTotalDto} from './dto';
 import {AuthGuard} from 'src/guards/auth.guard';
 import {ApiTags} from '@nestjs/swagger';
 
 @ApiTags('reviews')
 @Controller('reviews')
-@UseGuards(AuthGuard)
 export class ReviewsController {
   constructor(private reviewsService: ReviewsService) {}
 
-  @Post('/create')
+  @UseGuards(AuthGuard)
+  @Post()
   public createReview(
     @Request() request: AuthorizedRequest,
     @Body() body: CreateReviewDto,
   ) {
-    return this.reviewsService.createReview(
-      request.userId,
-      body.offerId,
-      body.text,
-    );
+    return this.reviewsService.createReview(request.userId, body);
   }
 
-  @Get()
-  public getReviews(@Body() body: GetReviewsDto) {
-    return this.reviewsService.getReviews(body.offerId);
+  @Get(':offerId')
+  public getReviews(@Param() params: GetReviewsDto) {
+    return this.reviewsService.getReviews(params);
+  }
+
+  @Get(':offerId/total')
+  public getReviewCount(@Param() params: GetReviewsTotalDto) {
+    return this.reviewsService.getReviewsCount(params.offerId);
   }
 }

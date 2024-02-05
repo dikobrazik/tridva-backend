@@ -2,7 +2,9 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import {User} from './User';
@@ -13,13 +15,20 @@ export class Review {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User)
+  @OneToOne(() => User)
   authorId: number;
 
   @Column()
   text: string;
 
+  @Column({type: 'int'})
+  rating: number;
+
   @ManyToOne(() => Offer)
+  @JoinColumn({name: 'offerId'})
+  offer: number;
+
+  @Column()
   offerId: number;
 
   @CreateDateColumn()

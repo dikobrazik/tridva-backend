@@ -1,12 +1,9 @@
 import {Inject, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {CategoryService} from 'src/category/category.service';
-import {Category} from 'src/entities/Category';
+import {getPaginationFields} from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
 import {FindOptionsWhere, In, Like, Repository} from 'typeorm';
-
-const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
 
 @Injectable()
 export class OffersService {
@@ -18,13 +15,12 @@ export class OffersService {
 
   async getOffersList(
     search: string,
-    page: number = DEFAULT_PAGE,
-    pageSize: number = DEFAULT_PAGE_SIZE,
+    page: number,
+    pageSize: number,
     categoryId?: number,
   ) {
     const offers = await this.offerRepository.find({
-      skip: (page - 1) * pageSize,
-      take: pageSize,
+      ...getPaginationFields(page, pageSize),
       where: await this.getOffersListWhere(search, categoryId),
     });
 

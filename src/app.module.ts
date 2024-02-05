@@ -13,6 +13,7 @@ import {Category} from './entities/Category';
 import {cwd} from 'process';
 import {join} from 'path';
 import {PullerModule} from './puller/puller.module';
+import { GroupsModule } from './groups/groups.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import {PullerModule} from './puller/puller.module';
     ReviewsModule,
     CategoryModule,
     PullerModule,
+    GroupsModule,
   ],
   providers: [],
 })
