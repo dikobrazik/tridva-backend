@@ -1,20 +1,20 @@
 import {Body, Controller, Post} from '@nestjs/common';
 import {AuthorizationService} from './authorization.service';
-import {UserDto} from 'src/dtos/user';
 import {ApiTags} from '@nestjs/swagger';
+import {CheckCodeDto, GetCodeDto} from './dtos';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthorizationController {
   constructor(private authService: AuthorizationService) {}
 
-  @Post('/sign-in')
-  signIn(@Body() signInDto: UserDto) {
-    return this.authService.signIn(signInDto.username, signInDto.password);
+  @Post('/get-code')
+  getCode(@Body() getCodeBody: GetCodeDto) {
+    return this.authService.sendCode(getCodeBody.phone);
   }
 
-  @Post('/sign-up')
-  register(@Body() signInDto: UserDto) {
-    return this.authService.signUp(signInDto.username, signInDto.password);
+  @Post('/check-code')
+  signIn(@Body() payload: CheckCodeDto) {
+    return this.authService.signInOrUp(payload);
   }
 }

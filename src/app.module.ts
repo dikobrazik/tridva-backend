@@ -13,7 +13,8 @@ import {Category} from './entities/Category';
 import {cwd} from 'process';
 import {join} from 'path';
 import {PullerModule} from './puller/puller.module';
-import { GroupsModule } from './groups/groups.module';
+import {GroupsModule} from './groups/groups.module';
+import {Profile} from './entities/Profile';
 
 @Module({
   imports: [
@@ -33,7 +34,7 @@ import { GroupsModule } from './groups/groups.module';
         },
         synchronize: true,
         logging: configService.get('IS_DEV') === 'true',
-        entities: [User, Offer, Review, Category],
+        entities: [User, Offer, Review, Category, Profile],
         subscribers: [],
         migrations: [],
       }),

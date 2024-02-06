@@ -14,7 +14,7 @@ export class ReviewsService {
     return this.reviewRepository.insert({
       offerId: review.offerId,
       text: review.text,
-      authorId,
+      author: {id: authorId},
       rating: review.rating,
     });
   }

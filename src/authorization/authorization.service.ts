@@ -4,6 +4,7 @@ import {InjectRepository} from '@nestjs/typeorm';
 import {User} from 'src/entities/User';
 import {SignatureContent} from 'src/shared/types';
 import {Repository} from 'typeorm';
+import {CheckCodeDto} from './dtos';
 
 @Injectable()
 export class AuthorizationService {
@@ -12,27 +13,22 @@ export class AuthorizationService {
 
   constructor(private jwtService: JwtService) {}
 
-  async signIn(username: string, password: string) {
-    const user = await this.userRepository.findOne({where: {username}});
+  async sendCode(phone: string) {}
 
-    if (user?.password !== password) {
-      throw new UnauthorizedException();
-    }
-
-    return {
-      access_token: await this.jwtService.signAsync({
-        userId: user.id,
-      } as SignatureContent),
-    };
-  }
-
-  async signUp(username: string, password: string) {
-    const {
-      identifiers: [{id: userId}],
-    } = await this.userRepository.insert({
-      username,
-      password,
+  async signInOrUp({phone, code}: CheckCodeDto) {
+    let user = await this.userRepository.findOne({
+      where: {phone},
     });
+
+    let userId = user?.id;
+
+    if (!userId) {
+      const insertResult = await this.userRepository.insert({
+        phone,
+      });
+
+      userId = insertResult.identifiers[0].id;
+    }
 
     return {
       access_token: await this.jwtService.signAsync({

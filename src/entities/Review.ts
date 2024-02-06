@@ -4,7 +4,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import {User} from './User';
@@ -15,8 +14,9 @@ export class Review {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User)
-  authorId: number;
+  @ManyToOne(() => User)
+  @JoinColumn()
+  author: User;
 
   @Column()
   text: string;

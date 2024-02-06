@@ -4,6 +4,7 @@ import {
   IsInt,
   IsNotEmpty,
   IsOptional,
+  IsString,
   Max,
   Min,
   MinLength,
@@ -11,8 +12,7 @@ import {
 
 export class CreateReviewDto {
   @ApiProperty()
-  @IsNotEmpty()
-  @MinLength(10)
+  @IsString()
   text: string;
 
   @ApiProperty()
