@@ -26,6 +26,19 @@ export class ReviewsService {
     });
   }
 
+  public getReviewsAvg(offerId: number) {
+    return this.reviewRepository
+      .createQueryBuilder('reviews')
+      .select('AVG(reviews.rating)', 'avgRating')
+      .where(`reviews.offerId = ${offerId}`)
+      .getRawOne()
+      .then((value) => {
+        return value.avgRating === null
+          ? 0
+          : parseFloat(value.avgRating).toFixed(2);
+      });
+  }
+
   public getReviewsCount(offerId: number) {
     return this.reviewRepository.count({
       where: {offerId},

@@ -36,4 +36,9 @@ export class ReviewsController {
   public getReviewCount(@Param() params: GetReviewsTotalDto) {
     return this.reviewsService.getReviewsCount(params.offerId);
   }
+
+  @Get(':offerId/average')
+  public getReviewAverage(@Param() params: GetReviewsTotalDto) {
+    return this.reviewsService.getReviewsAvg(params.offerId);
+  }
 }
