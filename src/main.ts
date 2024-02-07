@@ -16,7 +16,11 @@ async function bootstrap() {
   app.get(PullerService).pull().catch(console.log);
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://158.160.12.140'],
+    origin: [
+      'http://localhost:3000',
+      'http://158.160.12.140',
+      'http://tridva.store',
+    ],
     methods: ['GET', 'POST', 'DELETE'],
     credentials: true,
   });
