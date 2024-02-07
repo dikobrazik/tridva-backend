@@ -26,7 +26,7 @@ export class CreateGroupOrderDto {
   offerId: number;
 }
 
-export class JoinGroupOrderDto {
+export class JoinGroupParamsDto {
   @ApiProperty()
   @IsInt()
   @Min(1)

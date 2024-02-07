@@ -15,6 +15,8 @@ import {join} from 'path';
 import {PullerModule} from './puller/puller.module';
 import {GroupsModule} from './groups/groups.module';
 import {Profile} from './entities/Profile';
+import {Group} from './entities/Group';
+import {GroupParticipant} from './entities/GroupParticipant';
 
 @Module({
   imports: [
@@ -34,7 +36,15 @@ import {Profile} from './entities/Profile';
         },
         synchronize: true,
         logging: configService.get('IS_DEV') === 'true',
-        entities: [User, Offer, Review, Category, Profile],
+        entities: [
+          User,
+          Offer,
+          Review,
+          Category,
+          Profile,
+          Group,
+          GroupParticipant,
+        ],
         subscribers: [],
         migrations: [],
       }),

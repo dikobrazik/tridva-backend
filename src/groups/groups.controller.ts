@@ -2,9 +2,9 @@ import {
   Body,
   Controller,
   Get,
+  Inject,
   Param,
   Post,
-  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -12,39 +12,42 @@ import {
   CreateGroupOrderDto,
   GetGroupsDto,
   GetGroupsTotalDto,
-  JoinGroupOrderDto,
+  JoinGroupParamsDto,
 } from './dto';
-import {Paginable} from 'src/shared/dto/pagination';
 import {AuthorizedRequest} from 'src/shared/types';
 import {AuthGuard} from 'src/guards/auth.guard';
+import {GroupsService} from './groups.service';
 
 @Controller('groups')
 export class GroupsController {
+  @Inject(GroupsService)
+  private groupsService: GroupsService;
+
   @UseGuards(AuthGuard)
   @Post()
   createOfferGroup(
     @Request() request: AuthorizedRequest,
     @Body() body: CreateGroupOrderDto,
   ) {
-    return [];
+    this.groupsService.createGroup(body.offerId, request.userId);
   }
 
   @UseGuards(AuthGuard)
-  @Post()
+  @Post(':groupId/join')
   joinOfferGroup(
     @Request() request: AuthorizedRequest,
-    @Body() body: JoinGroupOrderDto,
+    @Param() params: JoinGroupParamsDto,
   ) {
-    return [];
+    return this.groupsService.joinGroup(params.groupId, request.userId);
   }
 
   @Get(':offerId')
-  getOfferGroups(@Param() params: GetGroupsDto, @Query() query: Paginable) {
-    return [];
+  getOfferGroups(@Param() params: GetGroupsDto) {
+    return this.groupsService.getOfferGroups(params.offerId);
   }
 
   @Get(':offerId/total')
-  getOfferGroupsTotal(@Query() params: GetGroupsTotalDto) {
-    return 2;
+  getOfferGroupsTotal(@Param() params: GetGroupsTotalDto) {
+    return this.groupsService.getOfferGroupsCount(params.offerId);
   }
 }
