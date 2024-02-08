@@ -4,6 +4,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  VirtualColumn,
 } from 'typeorm';
 import {Category} from './Category';
 
@@ -30,4 +31,16 @@ export class Offer {
 
   @Column()
   categoryId: number;
+
+  @VirtualColumn({
+    query: (alias) =>
+      `SELECT COUNT(*) FROM "review" WHERE "offerId" = ${alias}.id`,
+  })
+  reviewsCount: number;
+
+  @VirtualColumn({
+    query: (alias) =>
+      `SELECT AVG(rating) FROM "review" WHERE "offerId" = ${alias}.id`,
+  })
+  rating: number;
 }
