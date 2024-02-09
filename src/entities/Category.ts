@@ -1,4 +1,4 @@
-import {Column, Entity, PrimaryColumn} from 'typeorm';
+import {Column, Entity, PrimaryColumn, VirtualColumn} from 'typeorm';
 
 @Entity()
 export class Category {
@@ -19,6 +19,12 @@ export class Category {
 
   @Column({type: 'boolean', nullable: true})
   isAdult: boolean;
+
+  @VirtualColumn({
+    query: (alias) =>
+      `SELECT COUNT(*) FROM OFFER WHERE "categoryId" IN(SELECT category.id FROM category WHERE path LIKE ${alias}.id || '%')`,
+  })
+  offersCount: number;
 
   @Column({nullable: true})
   icon: string;
