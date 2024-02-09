@@ -96,4 +96,4 @@ jobs:
             docker compose -f configs/yc/docker-compose.yaml stop && 
             docker compose -f configs/yc/docker-compose.yaml pull && 
             docker compose -f configs/yc/docker-compose.yaml up -d &&
-            docker system prune -f &&
+            docker system prune -f
