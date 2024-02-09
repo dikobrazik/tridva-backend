@@ -52,10 +52,4 @@ export class GroupsService {
       where: {offer: {id: offerId}},
     });
   }
-
-  public getOfferGroupsCount(offerId: number) {
-    return this.groupRepository.count({
-      where: {offer: {id: offerId}},
-    });
-  }
 }

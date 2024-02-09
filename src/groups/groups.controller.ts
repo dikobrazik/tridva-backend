@@ -45,9 +45,4 @@ export class GroupsController {
   getOfferGroups(@Param() params: GetGroupsDto) {
     return this.groupsService.getOfferGroups(params.offerId);
   }
-
-  @Get(':offerId/total')
-  getOfferGroupsTotal(@Param() params: GetGroupsTotalDto) {
-    return this.groupsService.getOfferGroupsCount(params.offerId);
-  }
 }

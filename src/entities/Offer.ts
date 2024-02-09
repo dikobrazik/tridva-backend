@@ -40,6 +40,12 @@ export class Offer {
 
   @VirtualColumn({
     query: (alias) =>
+      `SELECT COUNT(*) FROM "group" WHERE "offerId" = ${alias}.id`,
+  })
+  groupsCount: number;
+
+  @VirtualColumn({
+    query: (alias) =>
       `SELECT AVG(rating) FROM "review" WHERE "offerId" = ${alias}.id`,
   })
   rating: number;
