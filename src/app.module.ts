@@ -17,6 +17,7 @@ import {GroupsModule} from './groups/groups.module';
 import {Profile} from './entities/Profile';
 import {Group} from './entities/Group';
 import {GroupParticipant} from './entities/GroupParticipant';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import {GroupParticipant} from './entities/GroupParticipant';
     CategoryModule,
     PullerModule,
     GroupsModule,
+    ProfileModule,
   ],
   providers: [],
 })

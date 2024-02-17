@@ -22,6 +22,11 @@ export class ReviewsService {
   public getReviews(params: GetReviewsDto) {
     return this.reviewRepository.find({
       ...getPaginationFields(params.page, params.pageSize),
+      relations: {
+        author: {
+          profile: true,
+        },
+      },
       where: {offerId: params.offerId},
     });
   }
