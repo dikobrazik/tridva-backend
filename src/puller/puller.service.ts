@@ -53,14 +53,13 @@ export class PullerService {
   }
 
   async pull() {
+    if (this.isDev && !this.isDebug) return;
+
     axios.defaults.baseURL = this.configService.getOrThrow('SIMA_URL');
 
     await this.signIn();
-
-    if (!this.isDev || this.isDebug) {
-      await this.fillCategories();
-      await this.fillOffers();
-    }
+    await this.fillCategories();
+    await this.fillOffers();
   }
 
   async signIn() {

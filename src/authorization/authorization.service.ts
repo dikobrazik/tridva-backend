@@ -5,11 +5,14 @@ import {User} from 'src/entities/User';
 import {SignatureContent} from 'src/shared/types';
 import {Repository} from 'typeorm';
 import {CheckCodeDto} from './dtos';
+import {Profile} from 'src/entities/Profile';
 
 @Injectable()
 export class AuthorizationService {
   @InjectRepository(User)
   private userRepository: Repository<User>;
+  @InjectRepository(Profile)
+  private profileRepository: Repository<Profile>;
 
   constructor(private jwtService: JwtService) {}
 
@@ -23,8 +26,12 @@ export class AuthorizationService {
     let userId = user?.id;
 
     if (!userId) {
+      const {
+        identifiers: [{id: profileId}],
+      } = await this.profileRepository.insert({});
       const insertResult = await this.userRepository.insert({
         phone,
+        profile: {id: profileId},
       });
 
       userId = insertResult.identifiers[0].id;

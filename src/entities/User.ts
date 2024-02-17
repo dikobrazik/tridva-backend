@@ -15,7 +15,7 @@ export class User {
   @Column()
   phone: string;
 
-  @OneToOne(() => Profile)
+  @OneToOne(() => Profile, {cascade: true})
   @JoinColumn()
   profile: Profile;
 }

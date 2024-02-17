@@ -20,15 +20,22 @@ export class ReviewsService {
   }
 
   public getReviews(params: GetReviewsDto) {
-    return this.reviewRepository.find({
-      ...getPaginationFields(params.page, params.pageSize),
-      relations: {
-        author: {
-          profile: true,
+    return this.reviewRepository
+      .find({
+        ...getPaginationFields(params.page, params.pageSize),
+        relations: {
+          author: {
+            profile: true,
+          },
         },
-      },
-      where: {offerId: params.offerId},
-    });
+        where: {offerId: params.offerId},
+      })
+      .then((reviews) =>
+        reviews.map(({author, ...review}) => ({
+          ...review,
+          authorName: author.profile.name,
+        })),
+      );
   }
 
   public getReviewsAvg(offerId: number) {
