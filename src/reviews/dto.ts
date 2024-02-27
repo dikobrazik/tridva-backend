@@ -18,12 +18,6 @@ export class CreateReviewDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsInt()
-  @Type(() => Number)
-  offerId: number;
-
-  @ApiProperty()
-  @IsNotEmpty()
-  @IsInt()
   @Max(5)
   @Min(1)
   @Type(() => Number)
@@ -53,6 +47,14 @@ export class GetReviewsDto {
 }
 
 export class GetReviewsTotalDto {
+  @ApiProperty()
+  @IsInt()
+  @IsNotEmpty()
+  @Type(() => Number)
+  offerId: number;
+}
+
+export class CreateReviewParamsDto {
   @ApiProperty()
   @IsInt()
   @IsNotEmpty()
