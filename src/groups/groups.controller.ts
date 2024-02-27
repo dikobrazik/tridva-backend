@@ -17,7 +17,9 @@ import {
 import {AuthorizedRequest} from 'src/shared/types';
 import {AuthGuard} from 'src/guards/auth.guard';
 import {GroupsService} from './groups.service';
+import {ApiTags} from '@nestjs/swagger';
 
+@ApiTags('groups')
 @Controller('groups')
 export class GroupsController {
   @Inject(GroupsService)
