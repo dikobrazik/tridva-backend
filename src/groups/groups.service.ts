@@ -4,9 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
+import {BasketItem} from 'src/entities/BasketItem';
 import {Group} from 'src/entities/Group';
 import {GroupParticipant} from 'src/entities/GroupParticipant';
-import {Raw, Repository} from 'typeorm';
+import {MoreThan, Raw, Repository} from 'typeorm';
 
 @Injectable()
 export class GroupsService {
@@ -16,10 +17,27 @@ export class GroupsService {
   @InjectRepository(Group)
   private groupRepository: Repository<Group>;
 
+  @InjectRepository(BasketItem)
+  private basketRepository: Repository<BasketItem>;
+
   public async createGroup(offerId: number, userId: number) {
-    this.groupRepository.insert({
+    await this.groupRepository.insert({
+      capacity: 2,
       offer: {id: offerId},
       owner: {id: userId},
+    });
+  }
+
+  public async createSingleGroup(offerId: number, userId: number) {
+    const group = await this.groupRepository.insert({
+      capacity: 1,
+      offer: {id: offerId},
+      owner: {id: userId},
+    });
+    const groupId = group.identifiers[0].id;
+    await this.basketRepository.insert({
+      user: {id: userId},
+      group: {id: groupId},
     });
   }
 
@@ -54,6 +72,7 @@ export class GroupsService {
         where: {
           offer: {id: offerId},
           participantsCount: Raw((alias) => `${alias} < capacity`),
+          capacity: MoreThan(1),
         },
         relations: {owner: {profile: true}},
       })

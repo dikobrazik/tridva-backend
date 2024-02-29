@@ -25,7 +25,7 @@ export class Group {
   })
   participantsCount: number;
 
-  @Column({type: 'int', default: 2})
+  @Column({type: 'int'})
   capacity: number;
 
   @ManyToOne(() => User)

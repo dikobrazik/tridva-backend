@@ -29,6 +29,15 @@ export class GroupsController {
   }
 
   @UseGuards(AuthGuard)
+  @Post('/single')
+  createSingleOfferGroup(
+    @Request() request: AuthorizedRequest,
+    @Body() body: CreateGroupOrderDto,
+  ) {
+    this.groupsService.createSingleGroup(body.offerId, request.userId);
+  }
+
+  @UseGuards(AuthGuard)
   @Post(':groupId/join')
   joinOfferGroup(
     @Request() request: AuthorizedRequest,
