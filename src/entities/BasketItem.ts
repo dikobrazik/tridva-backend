@@ -5,21 +5,21 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import {Offer} from './Offer';
 import {User} from './User';
+import {Group} from './Group';
 
 @Entity()
-export class CartItem {
+export class BasketItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Offer)
+  @ManyToOne(() => Group)
   @JoinColumn()
-  offer: Offer;
+  group: Group;
 
   @ManyToOne(() => User)
   @JoinColumn()
-  owner: User;
+  user: User;
 
   @CreateDateColumn()
   createdAt: number;

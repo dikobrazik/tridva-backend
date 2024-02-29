@@ -17,7 +17,9 @@ import {GroupsModule} from './groups/groups.module';
 import {Profile} from './entities/Profile';
 import {Group} from './entities/Group';
 import {GroupParticipant} from './entities/GroupParticipant';
-import { ProfileModule } from './profile/profile.module';
+import {ProfileModule} from './profile/profile.module';
+import {BasketItem} from './entities/BasketItem';
+import {BasketModule} from './basket/basket.module';
 
 @Module({
   imports: [
@@ -45,6 +47,7 @@ import { ProfileModule } from './profile/profile.module';
           Profile,
           Group,
           GroupParticipant,
+          BasketItem,
         ],
         subscribers: [],
         migrations: [],
@@ -59,7 +62,7 @@ import { ProfileModule } from './profile/profile.module';
     PullerModule,
     GroupsModule,
     ProfileModule,
+    BasketModule,
   ],
-  providers: [],
 })
 export class AppModule {}
