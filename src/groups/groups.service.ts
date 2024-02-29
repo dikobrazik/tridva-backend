@@ -6,7 +6,7 @@ import {
 import {InjectRepository} from '@nestjs/typeorm';
 import {Group} from 'src/entities/Group';
 import {GroupParticipant} from 'src/entities/GroupParticipant';
-import {Repository} from 'typeorm';
+import {Raw, Repository} from 'typeorm';
 
 @Injectable()
 export class GroupsService {
@@ -33,11 +33,12 @@ export class GroupsService {
       throw new NotFoundException();
     }
 
-    const participants = await this.groupParticipantRepository.find({
-      where: {participant: {id: userId}},
-    });
+    const userAlreadyParticipating =
+      await this.groupParticipantRepository.findOne({
+        where: {participant: {id: userId}, group: {id: groupId}},
+      });
 
-    if (participants.length > 0 || group.owner.id === userId) {
+    if (Boolean(userAlreadyParticipating) || group.owner.id === userId) {
       throw new BadRequestException();
     }
 
@@ -48,8 +49,20 @@ export class GroupsService {
   }
 
   public getOfferGroups(offerId: number) {
-    return this.groupRepository.find({
-      where: {offer: {id: offerId}},
-    });
+    return this.groupRepository
+      .find({
+        where: {
+          offer: {id: offerId},
+          participantsCount: Raw((alias) => `${alias} < capacity`),
+        },
+        relations: {owner: {profile: true}},
+      })
+      .then((groups) =>
+        groups.map(({owner, ...group}) => ({
+          ...group,
+          ownerId: owner.id,
+          ownerName: owner.profile.name,
+        })),
+      );
   }
 }

@@ -1,23 +1,17 @@
 import {
   Body,
   Controller,
-  Get,
   Inject,
   Param,
   Post,
   Request,
   UseGuards,
 } from '@nestjs/common';
-import {
-  CreateGroupOrderDto,
-  GetGroupsDto,
-  GetGroupsTotalDto,
-  JoinGroupParamsDto,
-} from './dto';
-import {AuthorizedRequest} from 'src/shared/types';
-import {AuthGuard} from 'src/guards/auth.guard';
-import {GroupsService} from './groups.service';
 import {ApiTags} from '@nestjs/swagger';
+import {AuthGuard} from 'src/guards/auth.guard';
+import {AuthorizedRequest} from 'src/shared/types';
+import {CreateGroupOrderDto, JoinGroupParamsDto} from './dto';
+import {GroupsService} from './groups.service';
 
 @ApiTags('groups')
 @Controller('groups')
@@ -41,10 +35,5 @@ export class GroupsController {
     @Param() params: JoinGroupParamsDto,
   ) {
     return this.groupsService.joinGroup(params.groupId, request.userId);
-  }
-
-  @Get(':offerId')
-  getOfferGroups(@Param() params: GetGroupsDto) {
-    return this.groupsService.getOfferGroups(params.offerId);
   }
 }

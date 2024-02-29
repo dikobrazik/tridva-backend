@@ -1,12 +1,6 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import {User} from './User';
+import {Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn} from 'typeorm';
 import {Group} from './Group';
+import {User} from './User';
 
 @Entity()
 export class GroupParticipant {
