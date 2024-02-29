@@ -4,9 +4,10 @@ import {ProfileController} from './profile.controller';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {Profile} from 'src/entities/Profile';
 import {JwtModule} from '@nestjs/jwt';
+import {User} from 'src/entities/User';
 
 @Module({
-  imports: [JwtModule, TypeOrmModule.forFeature([Profile])],
+  imports: [JwtModule, TypeOrmModule.forFeature([Profile, User])],
   providers: [ProfileService],
   controllers: [ProfileController],
 })

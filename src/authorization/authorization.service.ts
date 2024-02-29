@@ -18,6 +18,21 @@ export class AuthorizationService {
 
   async sendCode(phone: string) {}
 
+  async createAnonymous() {
+    const {
+      identifiers: [{id: profileId}],
+    } = await this.profileRepository.insert({});
+    const {
+      identifiers: [{id: userId}],
+    } = await this.userRepository.insert({profile: {id: profileId}});
+
+    return {
+      access_token: await this.jwtService.signAsync({
+        userId,
+      } as SignatureContent),
+    };
+  }
+
   async signInOrUp({phone, code}: CheckCodeDto) {
     let user = await this.userRepository.findOne({
       where: {phone},
