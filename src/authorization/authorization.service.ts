@@ -17,10 +17,10 @@ export class AuthorizationService {
 
   @Inject(ConfigService)
   private configService: ConfigService;
+  @Inject(JwtService)
+  private jwtService: JwtService;
 
-  constructor(private jwtService: JwtService) {}
-
-  async sendCode(phone: string) {}
+  async sendCode(_phone: string) {}
 
   async isAccessTokenValid(token) {
     const payload = await this.jwtService.verifyAsync<SignatureContent>(token, {
@@ -50,7 +50,7 @@ export class AuthorizationService {
   }
 
   async signInOrUp({phone, code}: CheckCodeDto) {
-    let user = await this.userRepository.findOne({
+    const user = await this.userRepository.findOne({
       where: {phone},
     });
 
