@@ -12,7 +12,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({nullable: true})
   phone: string;
 
   @OneToOne(() => Profile, {cascade: true})

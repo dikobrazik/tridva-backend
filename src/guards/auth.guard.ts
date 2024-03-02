@@ -10,7 +10,7 @@ import {JwtService} from '@nestjs/jwt';
 import {InjectRepository} from '@nestjs/typeorm';
 import {User} from 'src/entities/User';
 import {SignatureContent} from 'src/shared/types';
-import {extractTokenFromHeader} from 'src/shared/utils/extractTokenFromHeader';
+import {extractTokenFromRequest} from 'src/shared/utils/extractTokenFromHeader';
 import {Repository} from 'typeorm';
 
 @Injectable()
@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = extractTokenFromHeader(request);
+    const token = extractTokenFromRequest(request);
 
     if (!token) {
       throw new UnauthorizedException();

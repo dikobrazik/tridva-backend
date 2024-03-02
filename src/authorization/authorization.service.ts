@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import {JwtService} from '@nestjs/jwt';
 import {InjectRepository} from '@nestjs/typeorm';
 import {User} from 'src/entities/User';
@@ -6,6 +6,7 @@ import {SignatureContent} from 'src/shared/types';
 import {Repository} from 'typeorm';
 import {CheckCodeDto} from './dtos';
 import {Profile} from 'src/entities/Profile';
+import {ConfigService} from '@nestjs/config';
 
 @Injectable()
 export class AuthorizationService {
@@ -14,9 +15,24 @@ export class AuthorizationService {
   @InjectRepository(Profile)
   private profileRepository: Repository<Profile>;
 
+  @Inject(ConfigService)
+  private configService: ConfigService;
+
   constructor(private jwtService: JwtService) {}
 
   async sendCode(phone: string) {}
+
+  async isAccessTokenValid(token) {
+    const payload = await this.jwtService.verifyAsync<SignatureContent>(token, {
+      secret: this.configService.getOrThrow('SC'),
+    });
+
+    const user = await this.userRepository.findOne({
+      where: {id: payload.userId},
+    });
+
+    return Boolean(user);
+  }
 
   async createAnonymous() {
     const {

@@ -1,7 +1,8 @@
-import {Body, Controller, Inject, Post} from '@nestjs/common';
+import {Body, Controller, Inject, Post, Req, Res} from '@nestjs/common';
 import {AuthorizationService} from './authorization.service';
 import {ApiTags} from '@nestjs/swagger';
 import {CheckCodeDto, GetCodeDto} from './dtos';
+import {Request, Response} from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -10,8 +11,20 @@ export class AuthorizationController {
   private authService: AuthorizationService;
 
   @Post('/anonymous')
-  createAnonymous() {
-    return this.authService.createAnonymous();
+  async createAnonymous(
+    @Req() request: Request,
+    @Res({passthrough: true}) response: Response,
+  ) {
+    if (
+      request.cookies['token'] &&
+      this.authService.isAccessTokenValid(request.cookies['token'])
+    ) {
+      return;
+    }
+
+    const {access_token} = await this.authService.createAnonymous();
+
+    response.cookie('token', access_token);
   }
 
   @Post('/get-code')
