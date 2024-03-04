@@ -47,11 +47,12 @@ export class BasketService {
         where: {user: {id: userId}},
         relations: {group: {offer: true}},
       })
-      .then((basketItems) =>
-        basketItems.map(({id, group: {offer}}) => ({
+      .then((basketItems) => {
+        return basketItems.map(({id, group: {offer, capacity}}) => ({
           id,
+          capacity,
           offer: {...offer, photos: offer.photos?.split('|')},
-        })),
-      );
+        }));
+      });
   }
 }

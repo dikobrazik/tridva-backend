@@ -13,7 +13,7 @@ export class BasketItem {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Group)
+  @ManyToOne(() => Group, {eager: true})
   @JoinColumn()
   group: Group;
 
