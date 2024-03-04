@@ -8,39 +8,37 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
-import {AuthGuard} from 'src/guards/auth.guard';
-import {AuthorizedRequest} from 'src/shared/types';
+import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {AppRequest} from 'src/shared/types';
 import {CreateGroupOrderDto, JoinGroupParamsDto} from './dto';
 import {GroupsService} from './groups.service';
 
+@UseGuards(AuthTokenGuard)
 @ApiTags('groups')
 @Controller('groups')
 export class GroupsController {
   @Inject(GroupsService)
   private groupsService: GroupsService;
 
-  @UseGuards(AuthGuard)
   @Post()
   createOfferGroup(
-    @Request() request: AuthorizedRequest,
+    @Request() request: AppRequest,
     @Body() body: CreateGroupOrderDto,
   ) {
     this.groupsService.createGroup(body.offerId, request.userId);
   }
 
-  @UseGuards(AuthGuard)
   @Post('/single')
   createSingleOfferGroup(
-    @Request() request: AuthorizedRequest,
+    @Request() request: AppRequest,
     @Body() body: CreateGroupOrderDto,
   ) {
     this.groupsService.createSingleGroup(body.offerId, request.userId);
   }
 
-  @UseGuards(AuthGuard)
   @Post(':groupId/join')
   joinOfferGroup(
-    @Request() request: AuthorizedRequest,
+    @Request() request: AppRequest,
     @Param() params: JoinGroupParamsDto,
   ) {
     return this.groupsService.joinGroup(params.groupId, request.userId);

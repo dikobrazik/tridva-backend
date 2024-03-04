@@ -1,19 +1,21 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
+  Param,
   Put,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {BasketService} from './basket.service';
-import {AuthGuard} from 'src/guards/auth.guard';
-import {AuthorizedRequest} from 'src/shared/types';
-import {PutItemToBasketBody} from './dtos';
+import {AppRequest} from 'src/shared/types';
+import {PutItemToBasketBody, RemoveItemFromBasketBody} from './dtos';
+import {AuthTokenGuard} from 'src/guards/auth-token.guard';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthTokenGuard)
 @ApiTags('basket')
 @Controller('basket')
 export class BasketController {
@@ -21,15 +23,23 @@ export class BasketController {
   private basketService: BasketService;
 
   @Get()
-  public getBasketItems(@Request() request: AuthorizedRequest) {
+  public getBasketItems(@Request() request: AppRequest) {
     return this.basketService.getUserBasket(request.userId);
   }
 
   @Put()
   public putItemToBasket(
-    @Request() request: AuthorizedRequest,
+    @Request() request: AppRequest,
     @Body() body: PutItemToBasketBody,
   ) {
     this.basketService.addGroupToBasket(request.userId, body.groupId);
+  }
+
+  @Delete(':id')
+  public removeItemFromBasket(
+    @Request() request: AppRequest,
+    @Param() params: RemoveItemFromBasketBody,
+  ) {
+    this.basketService.removeItemFromBasket(request.userId, params.id);
   }
 }

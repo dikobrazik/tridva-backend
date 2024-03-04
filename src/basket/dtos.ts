@@ -6,3 +6,9 @@ export class PutItemToBasketBody {
   @Type(() => Number)
   groupId: number;
 }
+
+export class RemoveItemFromBasketBody {
+  @Min(1)
+  @Type(() => Number)
+  id: number;
+}

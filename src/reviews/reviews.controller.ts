@@ -8,14 +8,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {ReviewsService} from './reviews.service';
-import {AuthorizedRequest} from 'src/shared/types';
+import {AppRequest} from 'src/shared/types';
 import {
   CreateReviewDto,
   CreateReviewParamsDto,
   GetReviewsDto,
   GetReviewsTotalDto,
 } from './dto';
-import {AuthGuard} from 'src/guards/auth.guard';
+import {AuthTokenGuard} from 'src/guards/auth-token.guard';
 import {ApiTags} from '@nestjs/swagger';
 
 @ApiTags('reviews')
@@ -23,10 +23,10 @@ import {ApiTags} from '@nestjs/swagger';
 export class ReviewsController {
   constructor(private reviewsService: ReviewsService) {}
 
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthTokenGuard)
   @Post(':offerId/reviews')
   public createReview(
-    @Request() request: AuthorizedRequest,
+    @Request() request: AppRequest,
     @Body() body: CreateReviewDto,
     @Param() params: CreateReviewParamsDto,
   ) {

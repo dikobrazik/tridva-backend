@@ -1,4 +1,12 @@
-import {Body, Controller, Inject, Post, Req, Res} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Inject,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import {AuthorizationService} from './authorization.service';
 import {ApiTags} from '@nestjs/swagger';
 import {CheckCodeDto, GetCodeDto} from './dtos';
@@ -19,6 +27,7 @@ export class AuthorizationController {
       request.cookies['token'] &&
       this.authService.isAccessTokenValid(request.cookies['token'])
     ) {
+      response.statusCode = HttpStatus.NO_CONTENT;
       return;
     }
 
