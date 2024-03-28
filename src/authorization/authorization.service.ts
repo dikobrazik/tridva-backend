@@ -22,7 +22,7 @@ export class AuthorizationService {
 
   async sendCode(_phone: string) {}
 
-  async isAccessTokenValid(token) {
+  async isAccessTokenValid(token: string) {
     const payload = await this.jwtService.verifyAsync<SignatureContent>(token, {
       secret: this.configService.getOrThrow('SC'),
     });
@@ -32,6 +32,18 @@ export class AuthorizationService {
     });
 
     return Boolean(user);
+  }
+
+  async isUserAnonymous(token: string) {
+    const payload = await this.jwtService.verifyAsync<SignatureContent>(token, {
+      secret: this.configService.getOrThrow('SC'),
+    });
+
+    const user = await this.userRepository.findOne({
+      where: {id: payload.userId},
+    });
+
+    return Boolean(user.phone);
   }
 
   async createAnonymous() {

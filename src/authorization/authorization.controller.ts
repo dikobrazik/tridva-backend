@@ -18,22 +18,25 @@ export class AuthorizationController {
   @Inject(AuthorizationService)
   private authService: AuthorizationService;
 
-  @Post('/anonymous')
+  @Post('/check')
   async createAnonymous(
     @Req() request: Request,
     @Res({passthrough: true}) response: Response,
   ) {
-    if (
-      request.cookies['token'] &&
-      this.authService.isAccessTokenValid(request.cookies['token'])
-    ) {
-      response.statusCode = HttpStatus.NO_CONTENT;
-      return;
+    const token = request.cookies['token'];
+    response.statusCode = HttpStatus.OK;
+
+    if (token && await this.authService.isAccessTokenValid(token)) {
+      const isAnonymous = await this.authService.isUserAnonymous(token);
+
+      return {isAnonymous};
     }
 
     const {access_token} = await this.authService.createAnonymous();
 
     response.cookie('token', access_token);
+
+    return {isAnonymous: true};
   }
 
   @Post('/get-code')
@@ -42,7 +45,9 @@ export class AuthorizationController {
   }
 
   @Post('/check-code')
-  signIn(@Body() payload: CheckCodeDto) {
-    return this.authService.signInOrUp(payload);
+  async signIn(@Body() payload: CheckCodeDto, @Res({passthrough: true}) response: Response) {
+    const {access_token} = await this.authService.signInOrUp(payload);
+
+    response.cookie('token', access_token);
   }
 }
