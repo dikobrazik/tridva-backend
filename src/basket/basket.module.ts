@@ -11,5 +11,6 @@ import {Group} from 'src/entities/Group';
   imports: [JwtModule, TypeOrmModule.forFeature([BasketItem, Group, User])],
   providers: [BasketService],
   controllers: [BasketController],
+  exports: [BasketService],
 })
 export class BasketModule {}

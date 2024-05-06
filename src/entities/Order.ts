@@ -4,31 +4,35 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import {User} from './User';
 import {Group} from './Group';
 import {Offer} from './Offer';
+import {User} from './User';
 
 @Entity()
-export class BasketItem {
+export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Group, {eager: true, nullable: true})
+  @OneToOne(() => Group)
   @JoinColumn()
-  group: Group | null;
+  group: string | null;
 
-  @ManyToOne(() => Offer, {eager: true, nullable: true})
+  @ManyToOne(() => Offer)
   @JoinColumn()
-  offer: Offer | null;
+  offer: string | null;
 
   @ManyToOne(() => User)
   @JoinColumn()
-  user: User;
+  user: string;
 
-  @Column({type: 'int', default: 1})
-  count: number;
+  @Column()
+  pickupPointId: string;
+
+  @Column()
+  offersCount: number;
 
   @CreateDateColumn()
   createdAt: number;

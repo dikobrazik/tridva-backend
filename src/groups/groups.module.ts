@@ -4,14 +4,15 @@ import {GroupsService} from './groups.service';
 import {JwtModule} from '@nestjs/jwt';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {Group} from 'src/entities/Group';
-import {GroupParticipant} from 'src/entities/GroupParticipant';
 import {BasketItem} from 'src/entities/BasketItem';
 import {User} from 'src/entities/User';
+import {BasketModule} from 'src/basket/basket.module';
 
 @Module({
   imports: [
+    BasketModule,
     JwtModule,
-    TypeOrmModule.forFeature([User, Group, GroupParticipant, BasketItem]),
+    TypeOrmModule.forFeature([User, Group, BasketItem]),
   ],
   controllers: [GroupsController],
   providers: [GroupsService],

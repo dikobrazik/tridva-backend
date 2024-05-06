@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Inject,
-  Param,
   Post,
   Request,
   UseGuards,
@@ -10,8 +9,9 @@ import {
 import {ApiTags} from '@nestjs/swagger';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
 import {AppRequest} from 'src/shared/types';
-import {CreateGroupOrderDto, JoinGroupParamsDto} from './dto';
+import {CreateGroupOrderDto} from './dto';
 import {GroupsService} from './groups.service';
+import {BasketService} from 'src/basket/basket.service';
 
 @UseGuards(AuthTokenGuard)
 @ApiTags('groups')
@@ -20,27 +20,19 @@ export class GroupsController {
   @Inject(GroupsService)
   private groupsService: GroupsService;
 
+  @Inject(BasketService)
+  private basketService: BasketService;
+
   @Post()
-  createOfferGroup(
+  async createGroup(
     @Request() request: AppRequest,
     @Body() body: CreateGroupOrderDto,
   ) {
-    this.groupsService.createGroup(body.offerId, request.userId);
-  }
+    const groupId = await this.groupsService.createGroup(
+      body.offerId,
+      request.userId,
+    );
 
-  @Post('/single')
-  createSingleOfferGroup(
-    @Request() request: AppRequest,
-    @Body() body: CreateGroupOrderDto,
-  ) {
-    this.groupsService.createSingleGroup(body.offerId, request.userId);
-  }
-
-  @Post(':groupId/join')
-  joinOfferGroup(
-    @Request() request: AppRequest,
-    @Param() params: JoinGroupParamsDto,
-  ) {
-    return this.groupsService.joinGroup(params.groupId, request.userId);
+    await this.basketService.addGroupToBasket(request.userId, groupId);
   }
 }

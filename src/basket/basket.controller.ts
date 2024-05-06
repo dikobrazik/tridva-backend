@@ -5,6 +5,7 @@ import {
   Get,
   Inject,
   Param,
+  Post,
   Put,
   Request,
   UseGuards,
@@ -12,7 +13,12 @@ import {
 import {ApiTags} from '@nestjs/swagger';
 import {BasketService} from './basket.service';
 import {AppRequest} from 'src/shared/types';
-import {PutItemToBasketBody, RemoveItemFromBasketBody} from './dtos';
+import {
+  ChangeBasketItemCountBody,
+  PutGroupToBasketBody,
+  PutOfferToBasketBody,
+  BasketItemParams,
+} from './dtos';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
 
 @UseGuards(AuthTokenGuard)
@@ -27,18 +33,34 @@ export class BasketController {
     return this.basketService.getUserBasket(request.userId);
   }
 
-  @Put()
-  public putItemToBasket(
+  @Post('/offer')
+  public putOfferToBasket(
     @Request() request: AppRequest,
-    @Body() body: PutItemToBasketBody,
+    @Body() body: PutOfferToBasketBody,
+  ) {
+    this.basketService.addOfferToBasket(request.userId, body.offerId);
+  }
+
+  @Post('/group')
+  public putGroupToBasket(
+    @Request() request: AppRequest,
+    @Body() body: PutGroupToBasketBody,
   ) {
     this.basketService.addGroupToBasket(request.userId, body.groupId);
+  }
+
+  @Put('/:id/count')
+  public async changeBasketItemCount(
+    @Body() body: ChangeBasketItemCountBody,
+    @Param() params: BasketItemParams,
+  ) {
+    await this.basketService.changeBasketItemCount(params.id, body.count);
   }
 
   @Delete(':id')
   public removeItemFromBasket(
     @Request() request: AppRequest,
-    @Param() params: RemoveItemFromBasketBody,
+    @Param() params: BasketItemParams,
   ) {
     this.basketService.removeItemFromBasket(request.userId, params.id);
   }

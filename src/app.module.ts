@@ -16,10 +16,10 @@ import {PullerModule} from './puller/puller.module';
 import {GroupsModule} from './groups/groups.module';
 import {Profile} from './entities/Profile';
 import {Group} from './entities/Group';
-import {GroupParticipant} from './entities/GroupParticipant';
 import {ProfileModule} from './profile/profile.module';
 import {BasketItem} from './entities/BasketItem';
 import {BasketModule} from './basket/basket.module';
+import {Order} from './entities/Order';
 
 @Module({
   imports: [
@@ -46,8 +46,8 @@ import {BasketModule} from './basket/basket.module';
           Category,
           Profile,
           Group,
-          GroupParticipant,
           BasketItem,
+          Order,
         ],
         subscribers: [],
         migrations: [],

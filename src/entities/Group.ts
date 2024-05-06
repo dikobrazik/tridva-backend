@@ -21,7 +21,7 @@ export class Group {
 
   @VirtualColumn({
     query: (alias) =>
-      `SELECT COUNT(*) FROM "group_participant" WHERE "groupId" = ${alias}.id`,
+      `SELECT COUNT(*) FROM "order" WHERE "groupId" = ${alias}.id`,
   })
   participantsCount: number;
 
