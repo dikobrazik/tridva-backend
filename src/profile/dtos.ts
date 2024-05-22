@@ -1,18 +1,7 @@
-import {Type} from 'class-transformer';
-import {
-  IsDateString,
-  IsEmail,
-  IsEnum,
-  IsInt,
-  IsOptional,
-} from 'class-validator';
+import {IsDateString, IsEmail, IsEnum, IsOptional} from 'class-validator';
 import {SEX} from 'src/shared/enums/sex';
 
 export class UpdateProfileDto {
-  @IsInt()
-  @Type(() => Number)
-  id: number;
-
   @IsOptional()
   name?: string;
 

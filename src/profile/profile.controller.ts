@@ -1,18 +1,29 @@
-import {Body, Controller, Inject, Put, UseGuards} from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Inject,
+  Put,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {ApiBody} from '@nestjs/swagger';
 import {UpdateProfileDto} from './dtos';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
 import {ProfileService} from './profile.service';
+import {AppRequest} from 'src/shared/types';
 
+@UseGuards(AuthTokenGuard)
 @Controller('profile')
 export class ProfileController {
   @Inject(ProfileService)
   private profileService: ProfileService;
 
-  @UseGuards(AuthTokenGuard)
   @Put()
   @ApiBody({type: [UpdateProfileDto]})
-  updateProfile(@Body() profile: UpdateProfileDto) {
-    this.profileService.updateProfile(profile);
+  async updateProfile(
+    @Body() profile: UpdateProfileDto,
+    @Request() request: AppRequest,
+  ) {
+    await this.profileService.updateProfile(request.userId, profile);
   }
 }

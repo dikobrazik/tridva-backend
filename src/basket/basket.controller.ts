@@ -34,19 +34,19 @@ export class BasketController {
   }
 
   @Post('/offer')
-  public putOfferToBasket(
+  public async putOfferToBasket(
     @Request() request: AppRequest,
     @Body() body: PutOfferToBasketBody,
   ) {
-    this.basketService.addOfferToBasket(request.userId, body.offerId);
+    await this.basketService.addOfferToBasket(request.userId, body.offerId);
   }
 
   @Post('/group')
-  public putGroupToBasket(
+  public async putGroupToBasket(
     @Request() request: AppRequest,
     @Body() body: PutGroupToBasketBody,
   ) {
-    this.basketService.addGroupToBasket(request.userId, body.groupId);
+    await this.basketService.addGroupToBasket(request.userId, body.groupId);
   }
 
   @Put('/:id/count')

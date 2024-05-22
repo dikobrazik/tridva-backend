@@ -9,6 +9,7 @@ import {User} from 'src/entities/User';
 @Module({
   imports: [JwtModule, TypeOrmModule.forFeature([Profile, User])],
   providers: [ProfileService],
+  exports: [ProfileService],
   controllers: [ProfileController],
 })
 export class ProfileModule {}

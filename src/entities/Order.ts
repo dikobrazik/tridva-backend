@@ -11,6 +11,13 @@ import {Group} from './Group';
 import {Offer} from './Offer';
 import {User} from './User';
 
+export enum OrderStatus {
+  CREATED,
+  PROCESSED,
+  IN_DELIVERY,
+  DELIVERED,
+}
+
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn()
@@ -33,6 +40,13 @@ export class Order {
 
   @Column()
   offersCount: number;
+
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.CREATED,
+  })
+  status: OrderStatus;
 
   @CreateDateColumn()
   createdAt: number;

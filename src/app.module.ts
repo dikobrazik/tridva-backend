@@ -20,6 +20,7 @@ import {ProfileModule} from './profile/profile.module';
 import {BasketItem} from './entities/BasketItem';
 import {BasketModule} from './basket/basket.module';
 import {Order} from './entities/Order';
+import {OrdersModule} from './orders/orders.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import {Order} from './entities/Order';
     GroupsModule,
     ProfileModule,
     BasketModule,
+    OrdersModule,
   ],
 })
 export class AppModule {}

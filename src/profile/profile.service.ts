@@ -9,7 +9,14 @@ export class ProfileService {
   @InjectRepository(Profile)
   private profileRepository: Repository<Profile>;
 
-  updateProfile(profile: UpdateProfileDto) {
-    this.profileRepository.upsert(profile, ['id']);
+  async updateProfile(
+    userId: number,
+    profile: UpdateProfileDto,
+  ): Promise<void> {
+    await this.profileRepository.update({id: userId}, profile);
+  }
+
+  getProfile(userId: number): Promise<Profile> {
+    return this.profileRepository.findOne({where: {id: userId}});
   }
 }

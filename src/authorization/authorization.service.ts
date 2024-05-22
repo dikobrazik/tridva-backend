@@ -23,27 +23,23 @@ export class AuthorizationService {
   async sendCode(_phone: string) {}
 
   async isAccessTokenValid(token: string) {
-    const payload = await this.jwtService.verifyAsync<SignatureContent>(token, {
-      secret: this.configService.getOrThrow('SC'),
-    });
+    const userId = await this.parseAccessToken(token);
 
     const user = await this.userRepository.findOne({
-      where: {id: payload.userId},
+      where: {id: userId},
     });
 
     return Boolean(user);
   }
 
   async isUserAnonymous(token: string) {
-    const payload = await this.jwtService.verifyAsync<SignatureContent>(token, {
-      secret: this.configService.getOrThrow('SC'),
-    });
+    const userId = await this.parseAccessToken(token);
 
     const user = await this.userRepository.findOne({
-      where: {id: payload.userId},
+      where: {id: userId},
     });
 
-    return Boolean(user.phone);
+    return !user.phone;
   }
 
   async createAnonymous() {
@@ -85,5 +81,20 @@ export class AuthorizationService {
         userId,
       } as SignatureContent),
     };
+  }
+
+  getUser(userId: number): Promise<User> {
+    return this.userRepository.findOne({
+      where: {id: userId},
+      relations: {profile: true},
+    });
+  }
+
+  parseAccessToken(token: string): Promise<number> {
+    return this.jwtService
+      .verifyAsync<SignatureContent>(token, {
+        secret: this.configService.getOrThrow('SC'),
+      })
+      .then((result) => result.userId);
   }
 }
