@@ -36,14 +36,17 @@ export class AuthorizationController {
         return {isAnonymous, phone, profile};
       }
 
-      return {isAnonymous};
+      const {phone, profile} = await this.authService.getUser(userId);
+
+      return {isAnonymous, phone, profile};
     }
 
-    const {access_token} = await this.authService.createAnonymous();
+    const {access_token, userId} = await this.authService.createAnonymous();
+    const {phone, profile} = await this.authService.getUser(userId);
 
     response.cookie('token', access_token);
 
-    return {isAnonymous: true};
+    return {isAnonymous: true, phone, profile};
   }
 
   @Post('/get-code')

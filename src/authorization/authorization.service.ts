@@ -7,6 +7,7 @@ import {Repository} from 'typeorm';
 import {CheckCodeDto} from './dtos';
 import {Profile} from 'src/entities/Profile';
 import {ConfigService} from '@nestjs/config';
+import {getRandomName} from 'src/shared/utils/getRandomName';
 
 @Injectable()
 export class AuthorizationService {
@@ -45,12 +46,13 @@ export class AuthorizationService {
   async createAnonymous() {
     const {
       identifiers: [{id: profileId}],
-    } = await this.profileRepository.insert({});
+    } = await this.profileRepository.insert({name: getRandomName()});
     const {
       identifiers: [{id: userId}],
     } = await this.userRepository.insert({profile: {id: profileId}});
 
     return {
+      userId,
       access_token: await this.jwtService.signAsync({
         userId,
       } as SignatureContent),
