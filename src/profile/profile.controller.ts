@@ -2,7 +2,7 @@ import {
   Body,
   Controller,
   Inject,
-  Put,
+  Patch,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -18,9 +18,9 @@ export class ProfileController {
   @Inject(ProfileService)
   private profileService: ProfileService;
 
-  @Put()
+  @Patch()
   @ApiBody({type: [UpdateProfileDto]})
-  async updateProfile(
+  async patchProfile(
     @Body() profile: UpdateProfileDto,
     @Request() request: AppRequest,
   ) {

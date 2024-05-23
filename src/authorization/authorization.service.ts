@@ -59,30 +59,47 @@ export class AuthorizationService {
     };
   }
 
-  async signInOrUp({phone, code}: CheckCodeDto) {
-    const user = await this.userRepository.findOne({
+  async signInOrUp(userId: number, {phone, code}: CheckCodeDto) {
+    const existingUser = await this.userRepository.findOne({
       where: {phone},
+      relations: {profile: true},
     });
 
-    let userId = user?.id;
+    const existingUserId = existingUser?.id;
 
-    if (!userId) {
-      const {
-        identifiers: [{id: profileId}],
-      } = await this.profileRepository.insert({});
-      const insertResult = await this.userRepository.insert({
-        phone,
-        profile: {id: profileId},
+    if (existingUserId) {
+      const user = await this.userRepository.findOne({
+        where: {id: userId},
+        relations: {profile: true},
       });
 
-      userId = insertResult.identifiers[0].id;
-    }
+      await this.userRepository.update(existingUserId, {
+        phone,
+      });
 
-    return {
-      access_token: await this.jwtService.signAsync({
-        userId,
-      } as SignatureContent),
-    };
+      await Promise.all([
+        this.userRepository.delete(userId),
+        this.profileRepository.delete(user.profile.id),
+      ]);
+
+      return {
+        profile: existingUser.profile,
+        access_token: await this.jwtService.signAsync({
+          userId: existingUserId,
+        } as SignatureContent),
+      };
+    } else {
+      await this.userRepository.update(userId, {
+        phone,
+      });
+
+      return {
+        profile: {},
+        access_token: await this.jwtService.signAsync({
+          userId,
+        } as SignatureContent),
+      };
+    }
   }
 
   getUser(userId: number): Promise<User> {

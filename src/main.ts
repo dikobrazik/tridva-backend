@@ -23,7 +23,7 @@ async function bootstrap() {
       'http://158.160.12.140',
       'http://tridva.store',
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
 
