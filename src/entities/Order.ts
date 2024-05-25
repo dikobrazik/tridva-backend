@@ -10,6 +10,7 @@ import {
 import {Group} from './Group';
 import {Offer} from './Offer';
 import {User} from './User';
+import {PickupPoint} from './PickupPoint';
 
 export enum OrderStatus {
   CREATED,
@@ -35,8 +36,9 @@ export class Order {
   @JoinColumn()
   user: string;
 
-  @Column()
-  pickupPointId: string;
+  @ManyToOne(() => PickupPoint)
+  @JoinColumn()
+  pickupPoint: PickupPoint;
 
   @Column()
   offersCount: number;

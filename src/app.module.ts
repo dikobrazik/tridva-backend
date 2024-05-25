@@ -21,6 +21,9 @@ import {BasketItem} from './entities/BasketItem';
 import {BasketModule} from './basket/basket.module';
 import {Order} from './entities/Order';
 import {OrdersModule} from './orders/orders.module';
+import {City} from './entities/City';
+import {PickupPoint} from './entities/PickupPoint';
+import {GeoModule} from './geo/geo.module';
 
 @Module({
   imports: [
@@ -49,6 +52,8 @@ import {OrdersModule} from './orders/orders.module';
           Group,
           BasketItem,
           Order,
+          City,
+          PickupPoint,
         ],
         subscribers: [],
         migrations: [],
@@ -65,6 +70,7 @@ import {OrdersModule} from './orders/orders.module';
     ProfileModule,
     BasketModule,
     OrdersModule,
+    GeoModule,
   ],
 })
 export class AppModule {}
