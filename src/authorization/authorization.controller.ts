@@ -47,7 +47,7 @@ export class AuthorizationController {
     const {access_token, userId} = await this.authService.createAnonymous();
     const {phone, profile} = await this.authService.getUser(userId);
 
-    response.cookie('token', access_token, {sameSite: 'none'});
+    response.cookie('token', access_token);
 
     return {isAnonymous: true, phone, profile};
   }
