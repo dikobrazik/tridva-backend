@@ -58,6 +58,7 @@ jobs:
           username: ${{ vars.YC_USERNAME }}
           key: ${{ secrets.ID_RSA }}
           script: |
+            ls &&
             cd ~/frontend &&
             docker compose -f configs/yc/docker-compose.yaml stop && 
             docker compose -f configs/yc/docker-compose.yaml pull && 
