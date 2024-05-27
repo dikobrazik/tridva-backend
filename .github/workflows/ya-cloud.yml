@@ -24,7 +24,7 @@ jobs:
 
       - name: 'Create env file'
         run: |
-          echo "${{ secrets.ENV }}" > .env
+          echo "${{ vars.ENV }}" > .env
           echo "${{ secrets.DB_CA }}" > db.pem
 
       - name: Login to Dockerhub
