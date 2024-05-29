@@ -13,6 +13,11 @@ export class CategoryController {
     return this.categoryService.getCategoriesList(level);
   }
 
+  @Get('popular')
+  getPopularCategoriesList() {
+    return this.categoryService.getPopularCategoriesList();
+  }
+
   @Get(':id')
   async getCategoryById(@Param() params: FindOneParams) {
     const category = await this.categoryService.getCategoryById(params.id);

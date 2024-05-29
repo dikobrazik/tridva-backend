@@ -17,7 +17,7 @@ export class OffersService {
     search: string,
     page: number,
     pageSize: number,
-    categoryId?: number,
+    categoryId?: string,
   ) {
     const offers = await this.offerRepository.find({
       ...getPaginationFields(page, pageSize),
@@ -47,13 +47,13 @@ export class OffersService {
     return offer;
   }
 
-  async getOffersTotal(search?: string, categoryId?: number) {
+  async getOffersTotal(search?: string, categoryId?: string) {
     return this.offerRepository.count({
       where: await this.getOffersListWhere(search, categoryId),
     });
   }
 
-  private async getOffersListWhere(search?: string, categoryId?: number) {
+  private async getOffersListWhere(search?: string, categoryId?: string) {
     const where: FindOptionsWhere<Offer> = {};
 
     if (search) {
@@ -62,7 +62,7 @@ export class OffersService {
 
     if (categoryId) {
       const childCategories = await this.categoryService.getCategoryChildrenIds(
-        categoryId,
+        Number(categoryId),
       );
 
       where.categoryId = In(childCategories);

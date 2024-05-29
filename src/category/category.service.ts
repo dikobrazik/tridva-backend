@@ -8,6 +8,10 @@ export class CategoryService {
   @InjectRepository(Category)
   private categoryRepository: Repository<Category>;
 
+  getPopularCategoriesList() {
+    return this.categoryRepository.find({where: {level: '1'}, take: 5});
+  }
+
   getCategoriesList(level: number) {
     return this.categoryRepository.find({where: {level: String(level)}});
   }

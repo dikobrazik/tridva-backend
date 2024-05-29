@@ -12,7 +12,7 @@ export class SearchOffersDto extends Paginable {
   @IsInt()
   @Min(1)
   @Type(() => Number)
-  category?: number;
+  category?: string;
 }
 
 export class OffersTotalDto {
@@ -24,7 +24,7 @@ export class OffersTotalDto {
   @IsInt()
   @Min(1)
   @Type(() => Number)
-  category?: number;
+  category?: string;
 }
 
 export class SearchOfferDto {
