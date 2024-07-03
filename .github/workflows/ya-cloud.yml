@@ -11,7 +11,7 @@ on:
         default: 'just for fun'
 
 env:
-  BACKEND_IMAGE: cr.yandex/crpkimrjqc5g9hklf1c2
+  BACKEND_IMAGE: cr.yandex/crpkimrjqc5g9hklf1c2/tridva-api
 
 jobs:
   build-backend:
