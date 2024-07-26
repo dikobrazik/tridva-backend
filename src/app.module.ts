@@ -26,6 +26,7 @@ import {PickupPoint} from './entities/PickupPoint';
 import {GeoModule} from './geo/geo.module';
 import {Attribute} from './entities/Attribute';
 import {OfferAttribute} from './entities/OfferAttribute';
+import { AttributesModule } from './attributes/attributes.module';
 
 @Module({
   imports: [
@@ -75,6 +76,7 @@ import {OfferAttribute} from './entities/OfferAttribute';
     BasketModule,
     OrdersModule,
     GeoModule,
+    AttributesModule,
   ],
 })
 export class AppModule {}
