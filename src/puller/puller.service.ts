@@ -100,10 +100,10 @@ export class PullerService {
 
   async pull() {
     axios.defaults.baseURL = this.configService.getOrThrow('SIMA_URL');
-    await this.signIn();
-    await this.fillAttributes();
     if (this.isDev && !this.isDebug) return;
 
+    await this.signIn();
+    await this.fillAttributes();
     await this.fillCategories();
     await this.fillOffers();
   }
@@ -177,23 +177,20 @@ export class PullerService {
             attributeValue = offerAttribute[attribute.data_type_id];
           }
 
-          console.log(attribute, offerAttribute);
+          await this.attributeRepository.upsert(
+            {
+              id: attribute.id,
+              name: attribute.name,
+            },
+            ['id'],
+          );
 
-          await Promise.all([
-            this.attributeRepository.upsert(
-              {
-                id: attribute.id,
-                name: attribute.name,
-              },
-              ['id'],
-            ),
-            this.offerAttributeRepository.insert({
-              id: offerAttribute.id,
-              offerId: offerAttribute.item_id,
-              attributeId: offerAttribute.attribute_id,
-              value: attributeValue,
-            }),
-          ]);
+          await this.offerAttributeRepository.insert({
+            id: offerAttribute.id,
+            offerId: offerAttribute.item_id,
+            attributeId: offerAttribute.attribute_id,
+            value: attributeValue,
+          });
         }
       }
     }
