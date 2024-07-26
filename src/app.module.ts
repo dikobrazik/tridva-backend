@@ -24,6 +24,8 @@ import {OrdersModule} from './orders/orders.module';
 import {City} from './entities/City';
 import {PickupPoint} from './entities/PickupPoint';
 import {GeoModule} from './geo/geo.module';
+import {Attribute} from './entities/Attribute';
+import {OfferAttribute} from './entities/OfferAttribute';
 
 @Module({
   imports: [
@@ -44,6 +46,8 @@ import {GeoModule} from './geo/geo.module';
         synchronize: true,
         logging: configService.get('IS_DEV') === 'true',
         entities: [
+          Attribute,
+          OfferAttribute,
           User,
           Offer,
           Review,

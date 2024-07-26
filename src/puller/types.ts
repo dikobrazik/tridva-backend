@@ -60,3 +60,33 @@ export type SimaOfferCategory = {
   item_id: number;
   category_id: number;
 };
+
+export type SimaItemAttribute = {
+  id: number;
+  attribute_id: number;
+  item_id: number;
+  boolean_value: boolean;
+  int_value: number;
+  float_value: number;
+  datetime_value: string;
+  option_value: number;
+  numrange_value: string;
+};
+
+export type SimaAttribute = {
+  id: number;
+  name: string;
+  description: string;
+  data_type_id: number;
+  unit_id: number;
+};
+
+export type SimaOption = {
+  id: number;
+  name: string;
+};
+
+export type SimaDataType = {
+  id: number;
+  name: string;
+};
