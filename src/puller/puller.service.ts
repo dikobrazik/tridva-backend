@@ -103,9 +103,9 @@ export class PullerService {
     if (this.isDev && !this.isDebug) return;
 
     await this.signIn();
-    await this.fillAttributes();
     await this.fillCategories();
     await this.fillOffers();
+    await this.fillAttributes();
   }
 
   async signIn() {
