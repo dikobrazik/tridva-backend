@@ -100,6 +100,7 @@ export class PullerService {
 
   async pull() {
     axios.defaults.baseURL = this.configService.getOrThrow('SIMA_URL');
+
     if (this.isDev && !this.isDebug) return;
 
     await this.signIn();
