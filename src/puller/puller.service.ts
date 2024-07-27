@@ -189,7 +189,7 @@ export class PullerService {
             id: offerAttribute.id,
             offerId: offerAttribute.item_id,
             attributeId: offerAttribute.attribute_id,
-            value: attributeValue,
+            value: attributeValue || 'Empty',
           });
         }
       }

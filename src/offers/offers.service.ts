@@ -38,7 +38,7 @@ export class OffersService {
   }
 
   private prepareOffer(offer: Offer) {
-    if (offer.photos) {
+    if (offer && offer.photos) {
       return {
         ...offer,
         photos: offer.photos.split('|'),

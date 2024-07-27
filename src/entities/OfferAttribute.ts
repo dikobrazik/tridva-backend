@@ -1,16 +1,10 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import {Column, Entity, JoinColumn, ManyToOne, PrimaryColumn} from 'typeorm';
 import {Offer} from './Offer';
 import {Attribute} from './Attribute';
 
 @Entity()
 export class OfferAttribute {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn()
   id: number;
 
   @ManyToOne(() => Offer)
