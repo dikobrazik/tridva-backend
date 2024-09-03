@@ -2,7 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
 import {Category} from 'src/entities/Category';
-import {Like, Repository} from 'typeorm';
+import {Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {
   SimaAttribute,
@@ -80,8 +80,6 @@ class SimaApi implements ISimaApi {
     return load;
   }
 }
-
-const EXCLUDED_CATEGORIES_IDS = [29943];
 
 @Injectable()
 export class PullerService {
@@ -206,18 +204,11 @@ export class PullerService {
 
     const initialPages = [12343, 23002, 37213, 58922, 70932];
 
-    const excludedCagegoriesIds = await Promise.all(
-      EXCLUDED_CATEGORIES_IDS.map((excludedCategoryId) =>
-        this.categoryRepository.find({
-          where: {path: Like(`${excludedCategoryId}.%`)},
-        }),
-      ),
-    ).then((categories) =>
-      categories
-        .flat()
-        .map((category) => category.id)
-        .concat(EXCLUDED_CATEGORIES_IDS),
-    );
+    const adultCategories = await this.categoryRepository
+      .find({
+        where: {isAdult: true},
+      })
+      .then((categories) => categories.map((category) => category.id));
 
     for (const initialPage of initialPages) {
       const iterations = this.isDebug ? initialPage + 1 : initialPage + 200;
@@ -228,7 +219,7 @@ export class PullerService {
         const offers = (await this.simaApi.loadOffers(i)).filter(
           (offer) =>
             Boolean(offersCategories[offer.id]) &&
-            !excludedCagegoriesIds.includes(offersCategories[offer.id]),
+            !adultCategories.includes(offersCategories[offer.id]),
         );
 
         if (offers.length === 0) break;
