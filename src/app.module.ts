@@ -26,7 +26,7 @@ import {PickupPoint} from './entities/PickupPoint';
 import {GeoModule} from './geo/geo.module';
 import {Attribute} from './entities/Attribute';
 import {OfferAttribute} from './entities/OfferAttribute';
-import { AttributesModule } from './attributes/attributes.module';
+import {AttributesModule} from './attributes/attributes.module';
 
 @Module({
   imports: [

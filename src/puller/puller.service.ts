@@ -2,7 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
 import {Category} from 'src/entities/Category';
-import {Repository} from 'typeorm';
+import {Like, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {
   SimaAttribute,
@@ -81,6 +81,8 @@ class SimaApi implements ISimaApi {
   }
 }
 
+const EXCLUDED_CATEGORIES_IDS = [29943];
+
 @Injectable()
 export class PullerService {
   @InjectRepository(Category)
@@ -155,7 +157,6 @@ export class PullerService {
     const iterations = this.isDebug ? 2 : Number.MAX_SAFE_INTEGER;
 
     for (let i = 1; i < iterations; i++) {
-      console.log(`Loading page ${i}`);
       const loadedOfferAttributes = await this.simaApi.loadItemAttributes(i);
 
       for (const offerAttribute of loadedOfferAttributes) {
@@ -205,14 +206,29 @@ export class PullerService {
 
     const initialPages = [12343, 23002, 37213, 58922, 70932];
 
+    const excludedCagegoriesIds = await Promise.all(
+      EXCLUDED_CATEGORIES_IDS.map((excludedCategoryId) =>
+        this.categoryRepository.find({
+          where: {path: Like(`${excludedCategoryId}.%`)},
+        }),
+      ),
+    ).then((categories) =>
+      categories
+        .flat()
+        .map((category) => category.id)
+        .concat(EXCLUDED_CATEGORIES_IDS),
+    );
+
     for (const initialPage of initialPages) {
       const iterations = this.isDebug ? initialPage + 1 : initialPage + 200;
 
       const offersCategories = await this.getOffersCategories();
 
       for (let i = initialPage; i < iterations; i++) {
-        const offers = (await this.simaApi.loadOffers(i)).filter((offer) =>
-          Boolean(offersCategories[offer.id]),
+        const offers = (await this.simaApi.loadOffers(i)).filter(
+          (offer) =>
+            Boolean(offersCategories[offer.id]) &&
+            !excludedCagegoriesIds.includes(offersCategories[offer.id]),
         );
 
         if (offers.length === 0) break;
@@ -239,7 +255,9 @@ export class PullerService {
             }),
             ['id'],
           );
-        } catch {}
+        } catch {
+          console.log('something went wrong while loading offers');
+        }
       }
     }
   }
