@@ -104,9 +104,9 @@ export class PullerService {
     if (this.isDev && !this.isDebug) return;
 
     await this.signIn();
-    await this.fillCategories();
+    // await this.fillCategories();
     await this.fillOffers();
-    await this.fillAttributes();
+    // await this.fillAttributes();
   }
 
   async signIn() {
@@ -204,22 +204,12 @@ export class PullerService {
 
     const initialPages = [12343, 23002, 37213, 58922, 70932];
 
-    const adultCategories = await this.categoryRepository
-      .find({
-        where: {isAdult: true},
-      })
-      .then((categories) => categories.map((category) => category.id));
-
     for (const initialPage of initialPages) {
       const iterations = this.isDebug ? initialPage + 1 : initialPage + 200;
 
-      const offersCategories = await this.getOffersCategories();
-
       for (let i = initialPage; i < iterations; i++) {
         const offers = (await this.simaApi.loadOffers(i)).filter(
-          (offer) =>
-            Boolean(offersCategories[offer.id]) &&
-            !adultCategories.includes(offersCategories[offer.id]),
+          (offer) => offer.category_id && !offer.is_adult,
         );
 
         if (offers.length === 0) break;
@@ -232,7 +222,7 @@ export class PullerService {
                 title: offer.name,
                 description: offer.description,
                 price: offer.price,
-                categoryId: offersCategories[offer.id],
+                categoryId: offer.category_id,
                 photos: null,
               };
 
