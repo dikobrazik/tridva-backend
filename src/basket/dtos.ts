@@ -7,6 +7,12 @@ export class PutGroupToBasketBody {
   groupId: number;
 }
 
+export class GetBasketItemByOfferIdPayload {
+  @Min(1)
+  @Type(() => Number)
+  offerId: number;
+}
+
 export class PutOfferToBasketBody {
   @Min(1)
   @Type(() => Number)
@@ -14,10 +20,16 @@ export class PutOfferToBasketBody {
 }
 
 export class ChangeBasketItemCountBody {
-  @Min(1)
+  @Min(0)
   @Max(100)
   @Type(() => Number)
   count: number;
+}
+
+export class OfferCountParams {
+  @Min(1)
+  @Type(() => Number)
+  offerId: number;
 }
 
 export class BasketItemParams {

@@ -18,6 +18,8 @@ import {
   PutGroupToBasketBody,
   PutOfferToBasketBody,
   BasketItemParams,
+  OfferCountParams,
+  GetBasketItemByOfferIdPayload,
 } from './dtos';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
 
@@ -33,12 +35,23 @@ export class BasketController {
     return this.basketService.getUserBasket(request.userId);
   }
 
+  @Get('/:offerId')
+  public getBasketItemByOfferId(
+    @Request() request: AppRequest,
+    @Param() params: GetBasketItemByOfferIdPayload,
+  ) {
+    return this.basketService.getUserBasketItemByOfferId(
+      request.userId,
+      params.offerId,
+    );
+  }
+
   @Post('/offer')
-  public async putOfferToBasket(
+  public putOfferToBasket(
     @Request() request: AppRequest,
     @Body() body: PutOfferToBasketBody,
   ) {
-    await this.basketService.addOfferToBasket(request.userId, body.offerId);
+    return this.basketService.addOfferToBasket(request.userId, body.offerId);
   }
 
   @Post('/group')
@@ -49,12 +62,28 @@ export class BasketController {
     await this.basketService.addGroupToBasket(request.userId, body.groupId);
   }
 
+  @Get('/:offerId/count')
+  public getBasketItemCount(
+    @Request() request: AppRequest,
+    @Param() params: OfferCountParams,
+  ) {
+    return this.basketService.getBasketItemCount(
+      request.userId,
+      params.offerId,
+    );
+  }
+
   @Put('/:id/count')
   public async changeBasketItemCount(
+    @Request() request: AppRequest,
     @Body() body: ChangeBasketItemCountBody,
     @Param() params: BasketItemParams,
   ) {
-    await this.basketService.changeBasketItemCount(params.id, body.count);
+    await this.basketService.changeBasketItemCount(
+      request.userId,
+      params.id,
+      body.count,
+    );
   }
 
   @Delete(':id')

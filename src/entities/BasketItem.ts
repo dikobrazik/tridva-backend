@@ -15,10 +15,12 @@ export class BasketItem {
   @PrimaryGeneratedColumn()
   id: number;
 
+  // will be null if it's single item
   @ManyToOne(() => Group, {eager: true, nullable: true})
   @JoinColumn()
   group: Group | null;
 
+  // will be null if it's group item
   @ManyToOne(() => Offer, {eager: true, nullable: true})
   @JoinColumn()
   offer: Offer | null;

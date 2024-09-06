@@ -7,41 +7,62 @@ import {Repository} from 'typeorm';
 @Injectable()
 export class BasketService {
   @InjectRepository(BasketItem)
-  private backetItemRepository: Repository<BasketItem>;
+  private basketItemRepository: Repository<BasketItem>;
 
   @InjectRepository(Group)
   private groupRepository: Repository<Group>;
 
   public async addGroupToBasket(userId: number, groupId: number) {
-    await this.backetItemRepository.insert({
+    await this.basketItemRepository.insert({
       user: {id: userId},
       group: {id: groupId},
     });
   }
 
   public async addOfferToBasket(userId: number, offerId: number) {
-    await this.backetItemRepository.insert({
+    const {
+      identifiers: [{id: basketItemId}],
+    } = await this.basketItemRepository.insert({
       user: {id: userId},
       offer: {id: offerId},
     });
+
+    return this.basketItemRepository
+      .findOne({where: {id: basketItemId}})
+      .then((basketItem) => this.formatSingleOfferBasketItem(basketItem));
   }
 
-  public changeBasketItemCount(basketItemId: number, count: number) {
-    this.backetItemRepository.update(basketItemId, {
-      count,
-    });
+  public async changeBasketItemCount(
+    userId: number,
+    basketItemId: number,
+    count: number,
+  ) {
+    if (count === 0) {
+      this.removeItemFromBasket(userId, basketItemId);
+    } else {
+      await this.basketItemRepository.update(basketItemId, {
+        count,
+      });
+    }
   }
 
-  public async removeItemFromBasket(userId: number, itemId: number) {
-    const basketItem = await this.backetItemRepository.findOne({
-      where: {id: itemId, user: {id: userId}},
+  public getBasketItemCount(userId: number, basketItemId: number) {
+    return this.basketItemRepository
+      .findOne({where: {offer: {id: basketItemId}, user: {id: userId}}})
+      .then((basketItem) => basketItem.count)
+      .catch(() => 0);
+  }
+
+  public async removeItemFromBasket(userId: number, basketItemId: number) {
+    const basketItem = await this.basketItemRepository.findOne({
+      where: {id: basketItemId, user: {id: userId}},
       relations: {group: true},
     });
 
     const groupId = basketItem.group.id;
 
     if (basketItem) {
-      await this.backetItemRepository.remove(basketItem);
+      await this.basketItemRepository.remove(basketItem);
     }
 
     // костыль, надо понять, как сделать where через delete
@@ -54,8 +75,16 @@ export class BasketService {
     }
   }
 
+  public getUserBasketItemByOfferId(userId: number, offerId: number) {
+    return this.basketItemRepository
+      .findOne({
+        where: {user: {id: userId}, offer: {id: offerId}},
+      })
+      .catch(() => null);
+  }
+
   public getUserBasket(userId: number) {
-    return this.backetItemRepository
+    return this.basketItemRepository
       .find({
         where: {user: {id: userId}},
         relations: {group: {offer: true, owner: true}, offer: true},
@@ -64,30 +93,46 @@ export class BasketService {
         return basketItems.map((basketItem) => {
           const isGroupItem = Boolean(basketItem.group.id);
 
-          const offer = isGroupItem ? basketItem.group.offer : basketItem.offer;
-
           if (isGroupItem) {
-            const groupId = basketItem.group.id;
-
-            return {
-              id: basketItem.id,
-              count: basketItem.count,
-              group: {
-                id: groupId,
-                owner: basketItem.group.owner.id === userId,
-                capacity: basketItem.group.capacity,
-              },
-              offer: {...offer, photos: offer.photos.split('|')},
-            };
+            return this.formatGroupBasketItem(basketItem, userId);
           }
 
-          return {
-            id: basketItem.id,
-            count: basketItem.count,
-            group: undefined,
-            offer: {...offer, photos: offer.photos.split('|')},
-          };
+          return this.formatSingleOfferBasketItem(basketItem);
         });
       });
+  }
+
+  private getBasketItemOffer(basketItem: BasketItem) {
+    const isGroupItem = Boolean(basketItem.group.id);
+
+    return isGroupItem ? basketItem.group.offer : basketItem.offer;
+  }
+
+  private formatSingleOfferBasketItem(basketItem: BasketItem) {
+    const offer = this.getBasketItemOffer(basketItem);
+
+    return {
+      id: basketItem.id,
+      count: basketItem.count,
+      group: undefined,
+      offer: {...offer, photos: offer.photos.split('|')},
+    };
+  }
+
+  private formatGroupBasketItem(basketItem: BasketItem, userId: number) {
+    const offer = this.getBasketItemOffer(basketItem);
+
+    const groupId = basketItem.group.id;
+
+    return {
+      id: basketItem.id,
+      count: basketItem.count,
+      group: {
+        id: groupId,
+        owner: basketItem.group.owner.id === userId,
+        capacity: basketItem.group.capacity,
+      },
+      offer: {...offer, photos: offer.photos.split('|')},
+    };
   }
 }
