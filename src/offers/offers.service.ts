@@ -22,6 +22,7 @@ export class OffersService {
     const offers = await this.offerRepository.find({
       ...getPaginationFields(page, pageSize),
       where: await this.getOffersListWhere(search, categoryId),
+      order: {photos: 'ASC'},
     });
 
     return offers.map(this.prepareOffer);
