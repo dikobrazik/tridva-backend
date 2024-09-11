@@ -16,6 +16,7 @@ import {
 import {Offer} from 'src/entities/Offer';
 import {OfferAttribute} from 'src/entities/OfferAttribute';
 import {Attribute} from 'src/entities/Attribute';
+import {getRandomNumber} from 'src/shared/utils/getRandomNumber';
 
 interface ISimaApi {
   loadAttribute: (id: number) => Promise<SimaAttribute>;
@@ -217,11 +218,16 @@ export class PullerService {
         try {
           await this.offerRepository.upsert(
             offers.map((offer) => {
+              const discount = getRandomNumber(10, 30);
+              // цена = цена у поставщика + скидка
+              const price = offer.price * (1 + discount / 100);
+
               const result = {
                 id: offer.id,
                 title: offer.name,
                 description: offer.description,
-                price: offer.price,
+                discount,
+                price,
                 categoryId: offer.category_id,
                 photos: null,
               };
