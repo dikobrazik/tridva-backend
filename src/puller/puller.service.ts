@@ -210,20 +210,27 @@ export class PullerService {
 
       for (let i = initialPage; i < iterations; i++) {
         const offers = (await this.simaApi.loadOffers(i)).filter(
-          (offer) => offer.category_id && !offer.is_adult,
+          (offer) =>
+            offer.category_id &&
+            offer.agg_photos &&
+            offer.agg_photos.length &&
+            !offer.is_adult &&
+            !offer.is_paid_delivery &&
+            !offer.is_remote_store,
         );
 
         if (offers.length === 0) break;
 
         try {
-          await this.offerRepository.upsert(
+          await this.offerRepository.insert(
             offers.map((offer) => {
               const discount = getRandomNumber(10, 30);
               // цена = цена у поставщика + скидка
               const price = offer.price * (1 + discount / 100);
 
               const result = {
-                id: offer.id,
+                simaid: offer.id,
+                sid: offer.sid,
                 title: offer.name,
                 description: offer.description,
                 discount,
@@ -240,7 +247,6 @@ export class PullerService {
 
               return result;
             }),
-            ['id'],
           );
         } catch {
           console.log('something went wrong while loading offers');

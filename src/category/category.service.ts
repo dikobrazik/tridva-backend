@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Category} from 'src/entities/Category';
-import {Like, Repository} from 'typeorm';
+import {ILike, Like, Repository} from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -12,8 +12,14 @@ export class CategoryService {
     return this.categoryRepository.find({where: {level: '1'}, take: 5});
   }
 
-  getCategoriesList(level: number) {
-    return this.categoryRepository.find({where: {level: String(level)}});
+  getCategoriesList(level: number, name: string) {
+    return this.categoryRepository.find({
+      where: {
+        level: level ? String(level) : undefined,
+        name: ILike(`%${name}%`),
+      },
+      take: 30,
+    });
   }
 
   getCategoryById(categoryId: number) {

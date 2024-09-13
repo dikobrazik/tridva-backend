@@ -23,4 +23,10 @@ export class AttributesService {
       value: offerAttribute.value,
     }));
   }
+
+  public async getOfferAttributesCount(offerId: number) {
+    return await this.offerAttributeRepository.count({
+      where: {offerId},
+    });
+  }
 }

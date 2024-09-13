@@ -17,6 +17,12 @@ export class Offer {
   title: string;
 
   @Column()
+  simaid: number;
+
+  @Column()
+  sid: number;
+
+  @Column()
   description: string;
 
   @Column({type: 'decimal', nullable: true})

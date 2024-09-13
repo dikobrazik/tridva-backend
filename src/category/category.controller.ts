@@ -9,8 +9,11 @@ export class CategoryController {
   constructor(private categoryService: CategoryService) {}
 
   @Get()
-  getCategoriesList(@Query('level') level: number = 1) {
-    return this.categoryService.getCategoriesList(level);
+  getCategoriesList(
+    @Query('level') level: number,
+    @Query('name') name: string,
+  ) {
+    return this.categoryService.getCategoriesList(level, name);
   }
 
   @Get('popular')

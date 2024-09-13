@@ -43,4 +43,9 @@ export class OffersController {
   getOfferAttributes(@Param() params: SearchOfferDto) {
     return this.attributesService.getOfferAttributes(params.id);
   }
+
+  @Get(':id/attributes/count')
+  getOfferAttributesCount(@Param() params: SearchOfferDto) {
+    return this.attributesService.getOfferAttributesCount(params.id);
+  }
 }
