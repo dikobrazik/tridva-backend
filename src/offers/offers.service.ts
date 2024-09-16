@@ -1,9 +1,12 @@
 import {Inject, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {CategoryService} from 'src/category/category.service';
-import {getPaginationFields} from 'src/shared/utils/pagination';
+import {
+  DEFAULT_PAGE_SIZE,
+  getPaginationFields,
+} from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
-import {FindOptionsWhere, In, Like, Repository} from 'typeorm';
+import {FindOptionsWhere, ILike, In, Repository} from 'typeorm';
 
 @Injectable()
 export class OffersService {
@@ -19,13 +22,16 @@ export class OffersService {
     pageSize: number,
     categoryId?: string,
   ) {
-    const offers = await this.offerRepository.find({
+    const [offers, count] = await this.offerRepository.findAndCount({
       ...getPaginationFields(page, pageSize),
       where: await this.getOffersListWhere(search, categoryId),
       order: {photos: 'ASC'},
     });
 
-    return offers.map(this.prepareOffer);
+    return {
+      offers: offers.map(this.prepareOffer),
+      pagesCount: Math.ceil(count / (pageSize ?? DEFAULT_PAGE_SIZE)),
+    };
   }
 
   async getOfferById(offerId: Offer['id']) {
@@ -58,7 +64,7 @@ export class OffersService {
     const where: FindOptionsWhere<Offer> = {};
 
     if (search) {
-      where.title = Like(`%${search}%`);
+      where.title = ILike(`%${search}%`);
     }
 
     if (categoryId) {

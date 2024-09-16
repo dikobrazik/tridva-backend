@@ -9,14 +9,31 @@ export class CategoryService {
   private categoryRepository: Repository<Category>;
 
   getPopularCategoriesList() {
-    return this.categoryRepository.find({where: {level: '1'}, take: 5});
+    return Promise.all([
+      this.categoryRepository.findOne({where: {level: '1', name: 'Посуда'}}),
+      this.categoryRepository.findOne({where: {level: '1', name: 'Игрушки'}}),
+      this.categoryRepository.findOne({
+        where: {level: '1', name: 'Бытовая техника и электроника'},
+      }),
+      this.categoryRepository.findOne({where: {level: '1', name: 'Мебель'}}),
+      this.categoryRepository.findOne({where: {level: '1', name: 'Хозтовары'}}),
+      this.categoryRepository.findOne({
+        where: {level: '1', name: 'Канцтовары'},
+      }),
+      this.categoryRepository.findOne({
+        where: {level: '1', name: 'Творчество'},
+      }),
+      this.categoryRepository.findOne({
+        where: {level: '4', name: 'Товары для красоты и здоровья'},
+      }),
+    ]);
   }
 
   getCategoriesList(level: number, name: string) {
     return this.categoryRepository.find({
       where: {
         level: level ? String(level) : undefined,
-        name: ILike(`%${name}%`),
+        name: name ? ILike(`%${name}%`) : undefined,
       },
       take: 30,
     });

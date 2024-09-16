@@ -1,5 +1,5 @@
-const DEFAULT_PAGE = 1;
-const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_PAGE = 1;
+export const DEFAULT_PAGE_SIZE = 20;
 
 export const getPaginationFields = (
   page: number = DEFAULT_PAGE,
