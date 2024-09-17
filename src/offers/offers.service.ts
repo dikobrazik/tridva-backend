@@ -6,7 +6,7 @@ import {
   getPaginationFields,
 } from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
-import {FindOptionsWhere, ILike, In, Repository} from 'typeorm';
+import {Repository} from 'typeorm';
 
 @Injectable()
 export class OffersService {
@@ -16,20 +16,44 @@ export class OffersService {
   @Inject(CategoryService)
   private categoryService: CategoryService;
 
-  async getOffersList(
+  async getRandomOffersList(
     search: string,
     page: number,
     pageSize: number,
     categoryId?: string,
   ) {
-    const [offers, count] = await this.offerRepository.findAndCount({
-      ...getPaginationFields(page, pageSize),
-      where: await this.getOffersListWhere(search, categoryId),
-      order: {photos: 'ASC'},
-    });
+    const {skip, take} = getPaginationFields(page, pageSize);
+    const queryBuilder = this.offerRepository
+      .createQueryBuilder('offer')
+      .select();
+
+    if (search) {
+      queryBuilder.where('offer.title ILIKE :title', {title: `%${search}%`});
+    }
+
+    if (categoryId) {
+      const childCategories = await this.categoryService.getCategoryChildrenIds(
+        Number(categoryId),
+      );
+
+      queryBuilder.andWhere('offer.categoryId IN(:...category)', {
+        category: childCategories,
+      });
+    }
+
+    if (!search && !categoryId) {
+      queryBuilder.orderBy('RANDOM()');
+    }
+
+    const [offers, count] = await queryBuilder
+      .addOrderBy('offer.photos')
+      .skip(skip)
+      .take(take)
+      .getManyAndCount();
 
     return {
       offers: offers.map(this.prepareOffer),
+      total: count,
       pagesCount: Math.ceil(count / (pageSize ?? DEFAULT_PAGE_SIZE)),
     };
   }
@@ -52,29 +76,5 @@ export class OffersService {
       };
     }
     return offer;
-  }
-
-  async getOffersTotal(search?: string, categoryId?: string) {
-    return this.offerRepository.count({
-      where: await this.getOffersListWhere(search, categoryId),
-    });
-  }
-
-  private async getOffersListWhere(search?: string, categoryId?: string) {
-    const where: FindOptionsWhere<Offer> = {};
-
-    if (search) {
-      where.title = ILike(`%${search}%`);
-    }
-
-    if (categoryId) {
-      const childCategories = await this.categoryService.getCategoryChildrenIds(
-        Number(categoryId),
-      );
-
-      where.categoryId = In(childCategories);
-    }
-
-    return where;
   }
 }

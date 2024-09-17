@@ -212,11 +212,17 @@ export class PullerService {
         const offers = (await this.simaApi.loadOffers(i)).filter(
           (offer) =>
             offer.category_id &&
+            // убираем товары без фоток
             offer.agg_photos &&
             offer.agg_photos.length &&
+            // убираем товары для взрослых
             !offer.is_adult &&
+            // убираем товары с платной доставкой
             !offer.is_paid_delivery &&
-            !offer.is_remote_store,
+            // убираем товары от внешних партнеров
+            !offer.is_remote_store &&
+            // убираем товары которых нет в наличии
+            offer.balance === '0',
         );
 
         if (offers.length === 0) break;
