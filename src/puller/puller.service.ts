@@ -17,6 +17,7 @@ import {Offer} from 'src/entities/Offer';
 import {OfferAttribute} from 'src/entities/OfferAttribute';
 import {Attribute} from 'src/entities/Attribute';
 import {getRandomNumber} from 'src/shared/utils/getRandomNumber';
+import {PullHistory} from 'src/entities/PullHistory';
 
 interface ISimaApi {
   loadAttribute: (id: number) => Promise<SimaAttribute>;
@@ -82,6 +83,8 @@ class SimaApi implements ISimaApi {
   }
 }
 
+const MS_IN_DAY = 1000 * 60 * 60 * 24; // 1 day
+
 @Injectable()
 export class PullerService {
   @InjectRepository(Category)
@@ -92,6 +95,9 @@ export class PullerService {
   private offerAttributeRepository: Repository<OfferAttribute>;
   @InjectRepository(Attribute)
   private attributeRepository: Repository<Attribute>;
+
+  @InjectRepository(PullHistory)
+  private pullHistoryRepository: Repository<PullHistory>;
 
   private simaApi: SimaApi;
 
@@ -108,6 +114,8 @@ export class PullerService {
     await this.fillCategories();
     await this.fillOffers();
     await this.fillAttributes();
+
+    this.pullHistoryRepository.update({id: 1}, {});
   }
 
   async signIn() {
@@ -124,8 +132,11 @@ export class PullerService {
   }
 
   async fillCategories() {
+    const hasBeenUpdatedMoreThanDayAgo =
+      await this.getHasBeenUpdatedMoreThanDayAgo();
     const categoriesCount = await this.categoryRepository.count();
-    if (categoriesCount && !this.isDebug) return;
+    if (categoriesCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo)
+      return;
 
     const iterations = this.isDebug ? 2 : Number.MAX_SAFE_INTEGER;
 
@@ -151,7 +162,10 @@ export class PullerService {
 
   async fillAttributes() {
     const offerAttributesCount = await this.offerAttributeRepository.count();
-    if (offerAttributesCount && !this.isDebug) return;
+    const hasBeenUpdatedMoreThanDayAgo =
+      await this.getHasBeenUpdatedMoreThanDayAgo();
+    if (offerAttributesCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo)
+      return;
 
     const iterations = this.isDebug ? 2 : Number.MAX_SAFE_INTEGER;
 
@@ -159,11 +173,11 @@ export class PullerService {
       const loadedOfferAttributes = await this.simaApi.loadItemAttributes(i);
 
       for (const offerAttribute of loadedOfferAttributes) {
-        const isOfferExists = await this.offerRepository.exist({
-          where: {id: offerAttribute.item_id},
+        const offer = await this.offerRepository.findOne({
+          where: {simaid: offerAttribute.item_id},
         });
 
-        if (isOfferExists) {
+        if (offer) {
           const attribute = await this.simaApi.loadAttribute(
             offerAttribute.attribute_id,
           );
@@ -188,7 +202,7 @@ export class PullerService {
 
           await this.offerAttributeRepository.insert({
             id: offerAttribute.id,
-            offerId: offerAttribute.item_id,
+            offerId: offer.id,
             attributeId: offerAttribute.attribute_id,
             value: attributeValue || 'Empty',
           });
@@ -201,12 +215,14 @@ export class PullerService {
 
   async fillOffers() {
     const offersCount = await this.offerRepository.count();
-    if (offersCount && !this.isDebug) return;
+    const hasBeenUpdatedMoreThanDayAgo =
+      await this.getHasBeenUpdatedMoreThanDayAgo();
+    if (offersCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo) return;
 
-    const initialPages = [12343, 23002, 37213, 58922, 70932];
+    const initialPages = [5000, 12343, 23002, 37213, 58922, 70932];
 
     for (const initialPage of initialPages) {
-      const iterations = this.isDebug ? initialPage + 1 : initialPage + 200;
+      const iterations = this.isDebug ? initialPage + 1 : initialPage + 1000;
 
       for (let i = initialPage; i < iterations; i++) {
         const offers = (await this.simaApi.loadOffers(i)).filter(
@@ -217,8 +233,6 @@ export class PullerService {
             offer.agg_photos.length &&
             // убираем товары для взрослых
             !offer.is_adult &&
-            // убираем товары с платной доставкой
-            !offer.is_paid_delivery &&
             // убираем товары от внешних партнеров
             !offer.is_remote_store &&
             // убираем товары которых нет в наличии
@@ -228,7 +242,7 @@ export class PullerService {
         if (offers.length === 0) break;
 
         try {
-          await this.offerRepository.insert(
+          await this.offerRepository.upsert(
             offers.map((offer) => {
               const discount = getRandomNumber(10, 30);
               // цена = цена у поставщика + скидка
@@ -253,6 +267,7 @@ export class PullerService {
 
               return result;
             }),
+            ['simaid'],
           );
         } catch {
           console.log('something went wrong while loading offers');
@@ -277,6 +292,17 @@ export class PullerService {
     }
 
     return offersCategoriesMap;
+  }
+
+  private getHasBeenUpdatedMoreThanDayAgo() {
+    return this.pullHistoryRepository
+      .findOne({
+        where: {id: 1},
+      })
+      .then(
+        ({updatedAt}) =>
+          new Date().valueOf() - new Date(updatedAt).valueOf() > MS_IN_DAY,
+      );
   }
 
   private get isDebug() {

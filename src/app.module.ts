@@ -27,6 +27,7 @@ import {GeoModule} from './geo/geo.module';
 import {Attribute} from './entities/Attribute';
 import {OfferAttribute} from './entities/OfferAttribute';
 import {AttributesModule} from './attributes/attributes.module';
+import {PullHistory} from './entities/PullHistory';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import {AttributesModule} from './attributes/attributes.module';
           Order,
           City,
           PickupPoint,
+          PullHistory,
         ],
         subscribers: [],
         migrations: [],
