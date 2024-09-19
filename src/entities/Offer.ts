@@ -31,6 +31,12 @@ export class Offer {
   @Column({nullable: true})
   photos?: string;
 
+  @VirtualColumn({
+    query: (alias) =>
+      `SELECT * FROM "offer_photo" WHERE "offerId" = ${alias}.id`,
+  })
+  newPhotos: string[];
+
   @Column({type: 'decimal'})
   price: number;
 

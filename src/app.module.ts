@@ -28,6 +28,7 @@ import {Attribute} from './entities/Attribute';
 import {OfferAttribute} from './entities/OfferAttribute';
 import {AttributesModule} from './attributes/attributes.module';
 import {PullHistory} from './entities/PullHistory';
+import {OfferPhoto} from './entities/OfferPhoto';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import {PullHistory} from './entities/PullHistory';
           OfferAttribute,
           User,
           Offer,
+          OfferPhoto,
           Review,
           Category,
           Profile,

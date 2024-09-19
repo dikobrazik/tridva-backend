@@ -7,6 +7,7 @@ import {Offer} from 'src/entities/Offer';
 import {Attribute} from 'src/entities/Attribute';
 import {OfferAttribute} from 'src/entities/OfferAttribute';
 import {PullHistory} from 'src/entities/PullHistory';
+import {OfferPhoto} from 'src/entities/OfferPhoto';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import {PullHistory} from 'src/entities/PullHistory';
       Attribute,
       Category,
       Offer,
+      OfferPhoto,
       OfferAttribute,
       PullHistory,
     ]),

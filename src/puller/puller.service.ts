@@ -18,6 +18,8 @@ import {OfferAttribute} from 'src/entities/OfferAttribute';
 import {Attribute} from 'src/entities/Attribute';
 import {getRandomNumber} from 'src/shared/utils/getRandomNumber';
 import {PullHistory} from 'src/entities/PullHistory';
+import {OfferPhoto} from 'src/entities/OfferPhoto';
+import {QueryDeepPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
 
 interface ISimaApi {
   loadAttribute: (id: number) => Promise<SimaAttribute>;
@@ -91,6 +93,8 @@ export class PullerService {
   private categoryRepository: Repository<Category>;
   @InjectRepository(Offer)
   private offerRepository: Repository<Offer>;
+  @InjectRepository(OfferPhoto)
+  private offerPhotoRepository: Repository<OfferPhoto>;
   @InjectRepository(OfferAttribute)
   private offerAttributeRepository: Repository<OfferAttribute>;
   @InjectRepository(Attribute)
@@ -115,7 +119,10 @@ export class PullerService {
     await this.fillOffers();
     await this.fillAttributes();
 
-    this.pullHistoryRepository.update({id: 1}, {});
+    await this.pullHistoryRepository.update(
+      {id: 1},
+      {date: new Date().toDateString()},
+    );
   }
 
   async signIn() {
@@ -268,6 +275,22 @@ export class PullerService {
               return result;
             }),
             ['simaid'],
+          );
+
+          await this.offerPhotoRepository.upsert(
+            offers.reduce((offersPhotos, offer) => {
+              const offerPhotosUrls = offer.agg_photos.map(
+                (index) => `${offer.base_photo_url}${index}`,
+              );
+
+              return offersPhotos.concat(
+                offerPhotosUrls.map((url) => ({
+                  offerId: offer.id,
+                  photoUrl: url,
+                })),
+              );
+            }, [] as QueryDeepPartialEntity<OfferPhoto>[]),
+            ['offerId'],
           );
         } catch {
           console.log('something went wrong while loading offers');
