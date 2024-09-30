@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import {Category} from './Category';
 
-@Entity()
+@Entity({orderBy: {photosCount: 'ASC'}})
 export class Offer {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,9 +33,9 @@ export class Offer {
 
   @VirtualColumn({
     query: (alias) =>
-      `SELECT * FROM "offer_photo" WHERE "offerId" = ${alias}.id`,
+      `SELECT COUNT(*) FROM "offer_photo" WHERE "offerId" = ${alias}.id`,
   })
-  newPhotos: string[];
+  photosCount: number;
 
   @Column({type: 'decimal'})
   price: number;
