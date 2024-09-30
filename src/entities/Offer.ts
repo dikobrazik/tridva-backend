@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import {Category} from './Category';
 
-@Entity({orderBy: {photosCount: 'ASC'}})
+@Entity()
 export class Offer {
   @PrimaryGeneratedColumn()
   id: number;
