@@ -16,7 +16,11 @@ export class OffersController {
 
   @Get()
   getOffers(@Query() query: SearchOffersDto) {
-    return this.offersService.getRandomOffersList(
+    if (!query.search && !query.category) {
+      return this.offersService.getRandomOffersList(query.page, query.pageSize);
+    }
+
+    return this.offersService.getOffersList(
       query.search,
       query.page,
       query.pageSize,

@@ -6,7 +6,7 @@ import {
   getPaginationFields,
 } from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
-import {Repository} from 'typeorm';
+import {ILike, In, Repository} from 'typeorm';
 
 @Injectable()
 export class OffersService {
@@ -16,40 +16,52 @@ export class OffersService {
   @Inject(CategoryService)
   private categoryService: CategoryService;
 
-  async getRandomOffersList(
+  private randomOffersIds: number[] = [];
+
+  async preloadRandomOffersIds() {
+    this.randomOffersIds = await this.offerRepository
+      .createQueryBuilder('offer')
+      .orderBy('RANDOM()')
+      .select('offer.id')
+      .getMany()
+      .then((offers) => offers.map((offer) => offer.id));
+  }
+
+  async getRandomOffersList(page: number, pageSize: number) {
+    const {skip, take} = getPaginationFields(page, pageSize);
+    const offers = await this.offerRepository
+      .find({
+        where: {id: In(this.randomOffersIds.slice(skip, skip + take))},
+      })
+      .then((offers) =>
+        this.randomOffersIds
+          .slice(skip, skip + take)
+          .map((id) => offers.find((offer) => offer.id === id)),
+      );
+    const count = this.randomOffersIds.length;
+
+    return {
+      offers: offers.map(this.prepareOffer),
+      total: count,
+      pagesCount: Math.ceil(count / (pageSize ?? DEFAULT_PAGE_SIZE)),
+    };
+  }
+
+  async getOffersList(
     search: string,
     page: number,
     pageSize: number,
     categoryId?: string,
   ) {
     const {skip, take} = getPaginationFields(page, pageSize);
-    const queryBuilder = this.offerRepository
-      .createQueryBuilder('offer')
-      .select();
-
-    if (search) {
-      queryBuilder.where('offer.title ILIKE :title', {title: `%${search}%`});
-    }
-
-    if (categoryId) {
-      const childCategories = await this.categoryService.getCategoryChildrenIds(
-        Number(categoryId),
-      );
-
-      queryBuilder.andWhere('offer.categoryId IN(:...category)', {
-        category: childCategories,
-      });
-    }
-
-    if (!search && !categoryId) {
-      queryBuilder.orderBy('RANDOM()');
-    }
-
-    const [offers, count] = await queryBuilder
-      .addOrderBy('offer.photos')
-      .skip(skip)
-      .take(take)
-      .getManyAndCount();
+    const [offers, count] = await this.offerRepository.findAndCount({
+      where: {
+        title: search ? ILike(`%${search}%`) : undefined,
+        categoryId: await this.getCategoryWhere(categoryId),
+      },
+      skip,
+      take,
+    });
 
     return {
       offers: offers.map(this.prepareOffer),
@@ -72,9 +84,22 @@ export class OffersService {
     if (offer && offer.photos) {
       return {
         ...offer,
+        description: undefined,
         photos: offer.photos.split('|'),
       };
     }
     return offer;
+  }
+
+  private async getCategoryWhere(categoryId?: string) {
+    if (categoryId) {
+      const childCategories = await this.categoryService.getCategoryChildrenIds(
+        Number(categoryId),
+      );
+
+      return In(childCategories);
+    }
+
+    return undefined;
   }
 }

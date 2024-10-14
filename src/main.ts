@@ -4,6 +4,7 @@ import {ValidationPipe} from '@nestjs/common';
 import {setupSwagger} from './swagger';
 import {PullerService} from './puller/puller.service';
 import * as cookieParser from 'cookie-parser';
+import {OffersService} from './offers/offers.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +17,8 @@ async function bootstrap() {
   setupSwagger(app);
 
   app.get(PullerService).pull().catch(console.log);
+
+  await app.get(OffersService).preloadRandomOffersIds().catch(console.log);
 
   app.enableCors({
     origin: [

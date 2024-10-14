@@ -290,7 +290,7 @@ export class PullerService {
                 })),
               );
             }, [] as QueryDeepPartialEntity<OfferPhoto>[]),
-            ['offerId'],
+            ['offerId', 'photoUrl'],
           );
         } catch {
           console.log('something went wrong while loading offers');
