@@ -22,7 +22,7 @@ export class Category {
 
   @VirtualColumn({
     query: (alias) =>
-      `SELECT COUNT(*) FROM OFFER WHERE "categoryId" IN(SELECT category.id FROM category WHERE path LIKE ${alias}.id || '%')`,
+      `SELECT COUNT(*) FROM offer WHERE "categoryId" IN(SELECT category.id FROM category WHERE path LIKE ${alias}.id || '.%' OR path like '%.' || ${alias}.id || '.%' OR path LIKE '%.' || ${alias}.id)`,
   })
   offersCount: number;
 

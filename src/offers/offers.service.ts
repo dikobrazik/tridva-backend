@@ -77,7 +77,7 @@ export class OffersService {
       },
     });
 
-    return this.prepareOffer(offer);
+    return offer;
   }
 
   private prepareOffer(offer: Offer) {

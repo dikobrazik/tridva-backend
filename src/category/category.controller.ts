@@ -31,4 +31,9 @@ export class CategoryController {
 
     return category;
   }
+
+  @Get(':id/ancestors')
+  getCategoryAncestors(@Param() params: FindOneParams) {
+    return this.categoryService.getCategoryAncestors(params.id);
+  }
 }
