@@ -115,7 +115,7 @@ export class BasketService {
       id: basketItem.id,
       count: basketItem.count,
       group: undefined,
-      offer: {...offer, photos: offer.photos.split('|')},
+      offer,
     };
   }
 
@@ -132,7 +132,7 @@ export class BasketService {
         owner: basketItem.group.owner.id === userId,
         capacity: basketItem.group.capacity,
       },
-      offer: {...offer, photos: offer.photos.split('|')},
+      offer,
     };
   }
 }

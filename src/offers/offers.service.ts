@@ -81,11 +81,10 @@ export class OffersService {
   }
 
   private prepareOffer(offer: Offer) {
-    if (offer && offer.photos) {
+    if (offer) {
       return {
         ...offer,
         description: undefined,
-        photos: offer.photos.split('|'),
       };
     }
     return offer;

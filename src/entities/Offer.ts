@@ -28,7 +28,17 @@ export class Offer {
   @Column({type: 'decimal', nullable: true})
   discount: number;
 
-  @Column({nullable: true})
+  @Column({
+    nullable: true,
+    transformer: {
+      to(photos: string[]) {
+        return photos.join('|');
+      },
+      from(photos: string) {
+        return photos.split('|');
+      },
+    },
+  })
   photos?: string;
 
   @VirtualColumn({

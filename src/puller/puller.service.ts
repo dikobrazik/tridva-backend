@@ -267,9 +267,9 @@ export class PullerService {
               };
 
               if (offer.agg_photos?.length) {
-                result.photos = offer.agg_photos
-                  .map((index) => `${offer.base_photo_url}${index}`)
-                  .join('|');
+                result.photos = offer.agg_photos.map(
+                  (index) => `${offer.base_photo_url}${index}`,
+                );
               }
 
               return result;
