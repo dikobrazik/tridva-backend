@@ -1,12 +1,14 @@
-import {Controller, Get, Param, Query} from '@nestjs/common';
+import {Controller, Get, Header, Param, Query} from '@nestjs/common';
 import {SearchOfferDto, SearchOffersDto} from './dto';
 import {OffersService} from './offers.service';
 import {ApiTags} from '@nestjs/swagger';
 import {GroupsService} from 'src/groups/groups.service';
 import {AttributesService} from 'src/attributes/attributes.service';
+import {CacheTTL} from '@nestjs/cache-manager';
 
 @ApiTags('offer')
 @Controller('offers')
+@CacheTTL(50)
 export class OffersController {
   constructor(
     private offersService: OffersService,
@@ -15,6 +17,7 @@ export class OffersController {
   ) {}
 
   @Get()
+  @Header('Cache-Control', 'max-age=60, public')
   getOffers(@Query() query: SearchOffersDto) {
     if (!query.search && !query.category) {
       return this.offersService.getRandomOffersList(query.page, query.pageSize);
