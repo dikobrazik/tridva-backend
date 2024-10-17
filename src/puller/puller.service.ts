@@ -214,7 +214,7 @@ export class PullerService {
               attributeId: offerAttribute.attribute_id,
               value: attributeValue || 'Empty',
             },
-            ['offerId', 'attributeId'],
+            ['id', 'offerId', 'attributeId'],
           );
         }
       }
@@ -252,7 +252,7 @@ export class PullerService {
         if (offers.length === 0) break;
 
         try {
-          await this.offerRepository.upsert(
+          const {identifiers} = await this.offerRepository.upsert(
             offers.map((offer) => {
               const discount = getRandomNumber(10, 30);
               // цена = цена у поставщика + скидка
@@ -281,21 +281,22 @@ export class PullerService {
           );
 
           await this.offerPhotoRepository.upsert(
-            offers.reduce((offersPhotos, offer) => {
+            offers.reduce((offersPhotos, offer, index) => {
               const offerPhotosUrls = offer.agg_photos.map(
                 (index) => `${offer.base_photo_url}${index}`,
               );
 
               return offersPhotos.concat(
                 offerPhotosUrls.map((url) => ({
-                  offerId: offer.id,
+                  offerId: identifiers[index].id,
                   photoUrl: url,
                 })),
               );
             }, [] as QueryDeepPartialEntity<OfferPhoto>[]),
             ['offerId', 'photoUrl'],
           );
-        } catch {
+        } catch (e) {
+          console.log(e);
           console.log('something went wrong while loading offers');
         }
       }

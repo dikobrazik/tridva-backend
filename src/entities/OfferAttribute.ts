@@ -1,8 +1,16 @@
-import {Column, Entity, JoinColumn, ManyToOne, PrimaryColumn} from 'typeorm';
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 import {Offer} from './Offer';
 import {Attribute} from './Attribute';
 
 @Entity()
+@Index(['id', 'offerId', 'attributeId'], {unique: true})
 export class OfferAttribute {
   @PrimaryColumn()
   id: number;

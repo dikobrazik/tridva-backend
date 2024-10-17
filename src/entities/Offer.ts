@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -16,6 +17,7 @@ export class Offer {
   @Column()
   title: string;
 
+  @Index({unique: true})
   @Column()
   simaid: number;
 

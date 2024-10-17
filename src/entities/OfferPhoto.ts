@@ -1,6 +1,7 @@
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -8,6 +9,7 @@ import {
 import {Offer} from './Offer';
 
 @Entity()
+@Index(['offerId', 'photoUrl'], {unique: true})
 export class OfferPhoto {
   @PrimaryGeneratedColumn()
   id: number;
