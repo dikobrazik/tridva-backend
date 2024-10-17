@@ -4,11 +4,9 @@ import {OffersService} from './offers.service';
 import {ApiTags} from '@nestjs/swagger';
 import {GroupsService} from 'src/groups/groups.service';
 import {AttributesService} from 'src/attributes/attributes.service';
-import {CacheTTL} from '@nestjs/cache-manager';
 
 @ApiTags('offer')
 @Controller('offers')
-@CacheTTL(50)
 export class OffersController {
   constructor(
     private offersService: OffersService,
