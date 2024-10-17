@@ -207,12 +207,15 @@ export class PullerService {
             ['id'],
           );
 
-          await this.offerAttributeRepository.insert({
-            id: offerAttribute.id,
-            offerId: offer.id,
-            attributeId: offerAttribute.attribute_id,
-            value: attributeValue || 'Empty',
-          });
+          await this.offerAttributeRepository.upsert(
+            {
+              id: offerAttribute.id,
+              offerId: offer.id,
+              attributeId: offerAttribute.attribute_id,
+              value: attributeValue || 'Empty',
+            },
+            ['offerId', 'attributeId'],
+          );
         }
       }
     }
