@@ -37,7 +37,10 @@ export class Offer {
         return photos.join('|');
       },
       from(photos: string) {
-        return photos.split('|');
+        if (photos) {
+          return photos.split('|');
+        }
+        return photos;
       },
     },
   })
