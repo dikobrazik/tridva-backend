@@ -35,6 +35,11 @@ export class BasketController {
     return this.basketService.getUserBasket(request.userId);
   }
 
+  @Get('count')
+  public getBasketItemsCount(@Request() request: AppRequest) {
+    return this.basketService.getUserBasketItemsCount(request.userId);
+  }
+
   @Get('/:offerId')
   public getBasketItemByOfferId(
     @Request() request: AppRequest,

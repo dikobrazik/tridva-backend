@@ -1,12 +1,14 @@
 import {
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import {City} from './City';
 
+@Index(['longitude', 'latitude'], {unique: true})
 @Entity()
 export class PickupPoint {
   @PrimaryGeneratedColumn()

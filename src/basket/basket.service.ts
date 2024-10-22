@@ -102,6 +102,13 @@ export class BasketService {
       });
   }
 
+  public getUserBasketItemsCount(userId: number) {
+    return this.basketItemRepository.count({
+      where: {user: {id: userId}},
+      relations: {group: {offer: true, owner: true}, offer: true},
+    });
+  }
+
   private getBasketItemOffer(basketItem: BasketItem) {
     const isGroupItem = Boolean(basketItem.group.id);
 

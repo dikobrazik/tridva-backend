@@ -5,6 +5,7 @@ import {setupSwagger} from './swagger';
 import {PullerService} from './puller/puller.service';
 import * as cookieParser from 'cookie-parser';
 import {OffersService} from './offers/offers.service';
+import {GeoService} from './geo/geo.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,6 +20,7 @@ async function bootstrap() {
   app.get(PullerService).pull().catch(console.log);
 
   await app.get(OffersService).preloadRandomOffersIds().catch(console.log);
+  app.get(GeoService).initialize().catch(console.log);
 
   app.enableCors({
     origin: [
