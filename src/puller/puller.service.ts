@@ -232,7 +232,7 @@ export class PullerService {
     const initialPages = [5000, 12343, 23002, 37213, 58922, 70932];
 
     for (const initialPage of initialPages) {
-      const iterations = this.isDebug ? initialPage + 1 : initialPage + 1000;
+      const iterations = this.isDebug ? initialPage + 1 : initialPage + 3000;
 
       for (let i = initialPage; i < iterations; i++) {
         const offers = (await this.simaApi.loadOffers(i)).filter(
