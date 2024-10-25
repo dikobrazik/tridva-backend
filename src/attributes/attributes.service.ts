@@ -17,11 +17,23 @@ export class AttributesService {
       relations: {attribute: true},
     });
 
-    return offerAttributes.map((offerAttribute) => ({
-      id: offerAttribute.id,
-      attributeName: offerAttribute.attribute.name,
-      value: offerAttribute.value,
-    }));
+    const offerAttributesEntries = offerAttributes
+      .filter((offerAttribute) => offerAttribute.value !== 'Empty')
+      .reduce((offerAttributes, offerAttribute) => {
+        offerAttributes[offerAttribute.attribute.name] = (
+          offerAttributes[offerAttribute.attribute.name] || []
+        ).concat(offerAttribute.value);
+
+        return offerAttributes;
+      }, {} as Record<string, string[]>);
+
+    return Object.entries(offerAttributesEntries).map(
+      ([attributeName, attributeValues], index) => ({
+        id: index,
+        attributeName: attributeName,
+        value: attributeValues.join(', '),
+      }),
+    );
   }
 
   public async getOfferAttributesCount(offerId: number) {

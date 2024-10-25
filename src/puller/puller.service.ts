@@ -199,6 +199,10 @@ export class PullerService {
             attributeValue = offerAttribute[attribute.data_type_id];
           }
 
+          if (!attributeValue) {
+            continue;
+          }
+
           await this.attributeRepository.upsert(
             {
               id: attribute.id,
@@ -212,7 +216,7 @@ export class PullerService {
               id: offerAttribute.id,
               offerId: offer.id,
               attributeId: offerAttribute.attribute_id,
-              value: attributeValue || 'Empty',
+              value: attributeValue,
             },
             ['id', 'offerId', 'attributeId'],
           );
@@ -229,7 +233,7 @@ export class PullerService {
       await this.getHasBeenUpdatedMoreThanDayAgo();
     if (offersCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo) return;
 
-    const initialPages = [5000, 12343, 23002, 37213, 58922, 70932];
+    const initialPages = [5000, 15000, 25000, 35000, 45000, 65000, 75000];
 
     for (const initialPage of initialPages) {
       const iterations = this.isDebug ? initialPage + 1 : initialPage + 3000;
