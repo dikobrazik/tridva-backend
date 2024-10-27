@@ -271,6 +271,7 @@ export class PullerService {
                 price,
                 categoryId: offer.category_id,
                 photos: null,
+                ordersCount: getRandomNumber(100, 300),
               };
 
               if (offer.agg_photos?.length) {

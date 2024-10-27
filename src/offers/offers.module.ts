@@ -9,11 +9,22 @@ import {GroupsService} from 'src/groups/groups.service';
 import {Group} from 'src/entities/Group';
 import {BasketItem} from 'src/entities/BasketItem';
 import {AttributesModule} from 'src/attributes/attributes.module';
+import {FavoriteOffer} from 'src/entities/FavoriteOffer';
+import {JwtModule} from '@nestjs/jwt';
+import {User} from 'src/entities/User';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Offer, Category, Group, BasketItem]),
+    TypeOrmModule.forFeature([
+      Offer,
+      Category,
+      Group,
+      BasketItem,
+      FavoriteOffer,
+      User,
+    ]),
     AttributesModule,
+    JwtModule,
   ],
   controllers: [OffersController],
   providers: [OffersService, CategoryService, GroupsService],

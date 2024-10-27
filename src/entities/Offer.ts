@@ -55,6 +55,9 @@ export class Offer {
   @Column({type: 'decimal'})
   price: number;
 
+  @Column({type: 'int', nullable: true})
+  ordersCount: number;
+
   @ManyToOne(() => Category)
   @JoinColumn({name: 'categoryId'})
   category: Category;
