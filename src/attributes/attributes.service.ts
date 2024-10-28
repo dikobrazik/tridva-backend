@@ -18,7 +18,11 @@ export class AttributesService {
     });
 
     const offerAttributesEntries = offerAttributes
-      .filter((offerAttribute) => offerAttribute.value !== 'Empty')
+      .filter(
+        (offerAttribute) =>
+          offerAttribute.value !== 'Empty' &&
+          offerAttribute.attributeId !== 5935,
+      )
       .reduce((offerAttributes, offerAttribute) => {
         offerAttributes[offerAttribute.attribute.name] = (
           offerAttributes[offerAttribute.attribute.name] || []
