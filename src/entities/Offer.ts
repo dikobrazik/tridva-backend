@@ -67,9 +67,15 @@ export class Offer {
 
   @VirtualColumn({
     query: (alias) =>
-      `SELECT COUNT(*) FROM "review" WHERE "offerId" = ${alias}.id`,
+      `SELECT COUNT(*) FROM "review" WHERE "offerId" = ${alias}.id AND text != ''`,
   })
   reviewsCount: number;
+
+  @VirtualColumn({
+    query: (alias) =>
+      `SELECT COUNT(*) FROM "review" WHERE "offerId" = ${alias}.id`,
+  })
+  ratingsCount: number;
 
   @VirtualColumn({
     query: (alias) =>
