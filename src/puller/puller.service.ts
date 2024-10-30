@@ -233,25 +233,52 @@ export class PullerService {
       await this.getHasBeenUpdatedMoreThanDayAgo();
     if (offersCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo) return;
 
-    const initialPages = [5000, 15000, 25000, 35000, 45000, 65000, 75000];
+    const initialPages = [0, 5000, 15000, 25000, 35000, 45000, 65000, 75000];
+
+    const withoutCategoryOffers = [];
+    const withoutPhotosOffers = [];
+    const adultOffers = [];
+    const remoteStoreOffers = [];
+    const notExistingOffers = [];
+    const goodOffers: number[] = [];
 
     for (const initialPage of initialPages) {
-      const iterations = this.isDebug ? initialPage + 1 : initialPage + 3000;
+      const iterations = this.isDebug ? initialPage + 1 : initialPage + 5000;
 
       for (let i = initialPage; i < iterations; i++) {
-        const offers = (await this.simaApi.loadOffers(i)).filter(
-          (offer) =>
-            offer.category_id &&
-            // убираем товары без фоток
-            offer.agg_photos &&
-            offer.agg_photos.length &&
-            // убираем товары для взрослых
-            !offer.is_adult &&
-            // убираем товары от внешних партнеров
-            !offer.is_remote_store &&
-            // убираем товары которых нет в наличии
-            offer.balance === '0',
-        );
+        const offers = (await this.simaApi.loadOffers(i)).filter((offer) => {
+          const withCategory = offer.category_id;
+          // убираем товары без фоток
+          const withPhotos = offer.agg_photos && offer.agg_photos.length;
+          // убираем товары для взрослых
+          const isAdult = offer.is_adult;
+          // убираем товары от внешних партнеров
+          const isRemoteStore = offer.is_remote_store;
+          // убираем товары которых нет в наличии
+          const isExists = offer.balance === '0';
+
+          if (!withCategory) {
+            withoutCategoryOffers.push(offer.id);
+          }
+          if (!withPhotos) {
+            withoutPhotosOffers.push(offer.id);
+          }
+          if (isAdult) {
+            adultOffers.push(offer.id);
+          }
+          if (isRemoteStore) {
+            remoteStoreOffers.push(offer.id);
+          }
+          if (!isExists) {
+            notExistingOffers.push(offer.id);
+          }
+
+          return (
+            withCategory && withPhotos && !isAdult && !isRemoteStore && isExists
+          );
+        });
+
+        goodOffers.push(...offers.map((offer) => offer.id));
 
         if (offers.length === 0) break;
 
@@ -306,6 +333,15 @@ export class PullerService {
         }
       }
     }
+
+    console.log(
+      `good offers = ${goodOffers.length}`,
+      `withoutCategoryOffers = ${withoutCategoryOffers.length}`,
+      `withoutPhotosOffers = ${withoutPhotosOffers.length}`,
+      `adultOffers = ${adultOffers.length}`,
+      `remoteStoreOffers = ${remoteStoreOffers.length}`,
+      `notExistingOffers = ${notExistingOffers.length}`,
+    );
   }
 
   async getOffersCategories() {

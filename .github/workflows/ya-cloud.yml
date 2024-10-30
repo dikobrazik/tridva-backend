@@ -59,7 +59,7 @@ jobs:
           key: ${{ secrets.ID_RSA }}
           script: |
             cd ~/frontend &&
-            docker compose -f configs/yc/docker-compose.yaml stop && 
-            docker compose -f configs/yc/docker-compose.yaml pull && 
-            docker compose -f configs/yc/docker-compose.yaml up -d &&
+            docker compose -f configs/yc/docker-compose.yaml stop backend && 
+            docker compose -f configs/yc/docker-compose.yaml pull backend && 
+            docker compose -f configs/yc/docker-compose.yaml up -d backend &&
             docker system prune -f
