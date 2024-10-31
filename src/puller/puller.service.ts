@@ -64,9 +64,12 @@ class SimaApi implements ISimaApi {
 
       return axios(`/${entity}?p=${page}`)
         .then((r) => r.data)
-        .catch(() =>
-          new Promise((r) => setTimeout(r, 10_000)).then(() => load(page)),
-        );
+        .catch((e) => {
+          console.log(e);
+          return new Promise((r) => setTimeout(r, 10_000)).then(() =>
+            load(page),
+          );
+        });
     };
 
     return load;
@@ -116,7 +119,11 @@ export class PullerService {
 
     await this.signIn();
     await this.fillCategories();
-    await this.fillOffers();
+    await Promise.all(
+      [1, 5000, 15000, 25000, 35000, 45000, 65000, 75000].map(
+        this.fillOffers.bind(this),
+      ),
+    );
     await this.fillAttributes();
 
     await this.pullHistoryRepository.update(
@@ -227,13 +234,11 @@ export class PullerService {
     console.log('Attributes loading done!');
   }
 
-  async fillOffers() {
+  async fillOffers(initialPage: number) {
     const offersCount = await this.offerRepository.count();
     const hasBeenUpdatedMoreThanDayAgo =
       await this.getHasBeenUpdatedMoreThanDayAgo();
     if (offersCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo) return;
-
-    const initialPages = [0, 5000, 15000, 25000, 35000, 45000, 65000, 75000];
 
     const withoutCategoryOffers = [];
     const withoutPhotosOffers = [];
@@ -242,95 +247,93 @@ export class PullerService {
     const notExistingOffers = [];
     const goodOffers: number[] = [];
 
-    for (const initialPage of initialPages) {
-      const iterations = this.isDebug ? initialPage + 1 : initialPage + 5000;
+    const iterations = this.isDebug ? initialPage + 1 : initialPage + 5000;
 
-      for (let i = initialPage; i < iterations; i++) {
-        const offers = (await this.simaApi.loadOffers(i)).filter((offer) => {
-          const withCategory = offer.category_id;
-          // убираем товары без фоток
-          const withPhotos = offer.agg_photos && offer.agg_photos.length;
-          // убираем товары для взрослых
-          const isAdult = offer.is_adult;
-          // убираем товары от внешних партнеров
-          const isRemoteStore = offer.is_remote_store;
-          // убираем товары которых нет в наличии
-          const isExists = offer.balance === '0';
+    for (let i = initialPage; i < iterations; i++) {
+      const offers = (await this.simaApi.loadOffers(i)).filter((offer) => {
+        const withCategory = offer.category_id;
+        // убираем товары без фоток
+        const withPhotos = offer.agg_photos && offer.agg_photos.length;
+        // убираем товары для взрослых
+        const isAdult = offer.is_adult;
+        // убираем товары от внешних партнеров
+        const isRemoteStore = offer.is_remote_store;
+        // убираем товары которых нет в наличии
+        const isExists = offer.balance === '0';
 
-          if (!withCategory) {
-            withoutCategoryOffers.push(offer.id);
-          }
-          if (!withPhotos) {
-            withoutPhotosOffers.push(offer.id);
-          }
-          if (isAdult) {
-            adultOffers.push(offer.id);
-          }
-          if (isRemoteStore) {
-            remoteStoreOffers.push(offer.id);
-          }
-          if (!isExists) {
-            notExistingOffers.push(offer.id);
-          }
+        if (!withCategory) {
+          withoutCategoryOffers.push(offer.id);
+        }
+        if (!withPhotos) {
+          withoutPhotosOffers.push(offer.id);
+        }
+        if (isAdult) {
+          adultOffers.push(offer.id);
+        }
+        if (isRemoteStore) {
+          remoteStoreOffers.push(offer.id);
+        }
+        if (!isExists) {
+          notExistingOffers.push(offer.id);
+        }
 
-          return (
-            withCategory && withPhotos && !isAdult && !isRemoteStore && isExists
-          );
-        });
+        return (
+          withCategory && withPhotos && !isAdult && !isRemoteStore && isExists
+        );
+      });
 
-        goodOffers.push(...offers.map((offer) => offer.id));
+      goodOffers.push(...offers.map((offer) => offer.id));
 
-        if (offers.length === 0) break;
+      if (offers.length === 0) break;
 
-        try {
-          const {identifiers} = await this.offerRepository.upsert(
-            offers.map((offer) => {
-              const discount = getRandomNumber(10, 30);
-              // цена = цена у поставщика + скидка
-              const price = offer.price * (1 + discount / 100);
+      try {
+        const {identifiers} = await this.offerRepository.upsert(
+          offers.map((offer) => {
+            const discount = getRandomNumber(10, 30);
+            // цена = цена у поставщика + скидка
+            const price = offer.price * (1 + discount / 100);
 
-              const result = {
-                simaid: offer.id,
-                sid: offer.sid,
-                title: offer.name,
-                description: offer.description,
-                discount,
-                price,
-                categoryId: offer.category_id,
-                photos: null,
-                ordersCount: getRandomNumber(100, 300),
-              };
+            const result = {
+              simaid: offer.id,
+              sid: offer.sid,
+              title: offer.name,
+              description: offer.description,
+              discount,
+              price,
+              categoryId: offer.category_id,
+              photos: null,
+              ordersCount: getRandomNumber(100, 300),
+            };
 
-              if (offer.agg_photos?.length) {
-                result.photos = offer.agg_photos.map(
-                  (index) => `${offer.base_photo_url}${index}`,
-                );
-              }
-
-              return result;
-            }),
-            ['simaid'],
-          );
-
-          await this.offerPhotoRepository.upsert(
-            offers.reduce((offersPhotos, offer, index) => {
-              const offerPhotosUrls = offer.agg_photos.map(
+            if (offer.agg_photos?.length) {
+              result.photos = offer.agg_photos.map(
                 (index) => `${offer.base_photo_url}${index}`,
               );
+            }
 
-              return offersPhotos.concat(
-                offerPhotosUrls.map((url) => ({
-                  offerId: identifiers[index].id,
-                  photoUrl: url,
-                })),
-              );
-            }, [] as QueryDeepPartialEntity<OfferPhoto>[]),
-            ['offerId', 'photoUrl'],
-          );
-        } catch (e) {
-          console.log(e);
-          console.log('something went wrong while loading offers');
-        }
+            return result;
+          }),
+          ['simaid'],
+        );
+
+        await this.offerPhotoRepository.upsert(
+          offers.reduce((offersPhotos, offer, index) => {
+            const offerPhotosUrls = offer.agg_photos.map(
+              (index) => `${offer.base_photo_url}${index}`,
+            );
+
+            return offersPhotos.concat(
+              offerPhotosUrls.map((url) => ({
+                offerId: identifiers[index].id,
+                photoUrl: url,
+              })),
+            );
+          }, [] as QueryDeepPartialEntity<OfferPhoto>[]),
+          ['offerId', 'photoUrl'],
+        );
+      } catch (e) {
+        console.log(e);
+        console.log('something went wrong while loading offers');
       }
     }
 
