@@ -6,7 +6,7 @@ import {
   getPaginationFields,
 } from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
-import {ILike, In, Repository} from 'typeorm';
+import {FindOptionsWhere, ILike, In, Repository} from 'typeorm';
 import {FavoriteOffer} from 'src/entities/FavoriteOffer';
 
 @Injectable()
@@ -43,29 +43,45 @@ export class OffersService {
       );
     const count = this.randomOffersIds.length;
 
-    return {
-      offers: offers.map(this.prepareOffer),
-      total: count,
-      pagesCount: Math.ceil(count / (pageSize ?? DEFAULT_PAGE_SIZE)),
-    };
+    return this.prepareOffersListResponse(offers, count, pageSize);
   }
 
-  async getOffersList(
-    search: string,
+  async getOffersListBySearch(search: string, page: number, pageSize: number) {
+    return this.loadOffers(this.getSearchWhere(search), page, pageSize);
+  }
+
+  async getOffersListByCategory(
+    categoryId: string,
     page: number,
     pageSize: number,
-    categoryId?: string,
+  ) {
+    return this.loadOffers(
+      await this.getCategoryWhere(categoryId),
+      page,
+      pageSize,
+    );
+  }
+
+  private async loadOffers(
+    where: FindOptionsWhere<Offer> | FindOptionsWhere<Offer>[],
+    page: number,
+    pageSize: number,
   ) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const [offers, count] = await this.offerRepository.findAndCount({
-      where: {
-        title: search ? ILike(`%${search}%`) : undefined,
-        categoryId: await this.getCategoryWhere(categoryId),
-      },
+      where,
       skip,
       take,
     });
 
+    return this.prepareOffersListResponse(offers, count, pageSize);
+  }
+
+  private prepareOffersListResponse(
+    offers: Offer[],
+    count: number,
+    pageSize: number,
+  ) {
     return {
       offers: offers.map(this.prepareOffer),
       total: count,
@@ -135,13 +151,30 @@ export class OffersService {
     return offer;
   }
 
-  private async getCategoryWhere(categoryId?: string) {
+  private async getCategoryWhere(
+    categoryId?: string,
+  ): Promise<FindOptionsWhere<Offer>> | undefined {
     if (categoryId) {
       const childCategories = await this.categoryService.getCategoryChildrenIds(
         Number(categoryId),
       );
 
-      return In(childCategories);
+      return {categoryId: In(childCategories)};
+    }
+
+    return undefined;
+  }
+
+  private getSearchWhere(
+    search?: string,
+  ): FindOptionsWhere<Offer>[] | undefined {
+    if (search) {
+      const splittedSearch = search.split(' ');
+
+      return splittedSearch.map((searchSubString) => ({
+        title: ILike(`%${searchSubString}%`),
+        description: ILike(`%${searchSubString}%`),
+      }));
     }
 
     return undefined;

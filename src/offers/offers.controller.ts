@@ -28,16 +28,23 @@ export class OffersController {
   @Get()
   @Header('Cache-Control', 'max-age=60, public')
   getOffers(@Query() query: SearchOffersDto) {
-    if (!query.search && !query.category) {
-      return this.offersService.getRandomOffersList(query.page, query.pageSize);
+    if (query.search) {
+      return this.offersService.getOffersListBySearch(
+        query.search,
+        query.page,
+        query.pageSize,
+      );
     }
 
-    return this.offersService.getOffersList(
-      query.search,
-      query.page,
-      query.pageSize,
-      query.category,
-    );
+    if (query.category) {
+      return this.offersService.getOffersListByCategory(
+        query.category,
+        query.page,
+        query.pageSize,
+      );
+    }
+
+    return this.offersService.getRandomOffersList(query.page, query.pageSize);
   }
 
   @Get('favorite')

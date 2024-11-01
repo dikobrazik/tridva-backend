@@ -126,10 +126,12 @@ export class PullerService {
     );
     await this.fillAttributes();
 
-    await this.pullHistoryRepository.update(
-      {id: 1},
-      {date: new Date().toDateString()},
-    );
+    if (!this.isDebug) {
+      await this.pullHistoryRepository.update(
+        {id: 1},
+        {date: new Date().toDateString()},
+      );
+    }
   }
 
   async signIn() {
@@ -242,19 +244,12 @@ export class PullerService {
       await this.getHasBeenUpdatedMoreThanDayAgo();
     if (offersCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo) return;
 
-    let totalOffersCount = 0;
-    let withoutCategoryOffers = 0;
-    let withoutPhotosOffers = 0;
-    let adultOffers = 0;
-    let remoteStoreOffers = 0;
-    let notExistingOffers = 0;
-    let goodOffers = 0;
-
     const iterations = this.isDebug ? initialPage + 1 : initialPage + 5000;
 
     for (let i = initialPage; i < iterations; i++) {
-      totalOffersCount += 100;
-      const offers = (await this.simaApi.loadOffers(i)).filter((offer) => {
+      const rawOffers = await this.simaApi.loadOffers(i);
+
+      const filteredOffers = rawOffers.filter((offer) => {
         const withCategory = offer.category_id;
         // убираем товары без фоток
         const withPhotos = offer.agg_photos && offer.agg_photos.length;
@@ -265,34 +260,16 @@ export class PullerService {
         // убираем товары которых нет в наличии
         const isExists = offer.balance === '0';
 
-        if (!withCategory) {
-          withoutCategoryOffers++;
-        }
-        if (!withPhotos) {
-          withoutPhotosOffers++;
-        }
-        if (isAdult) {
-          adultOffers++;
-        }
-        if (isRemoteStore) {
-          remoteStoreOffers++;
-        }
-        if (!isExists) {
-          notExistingOffers++;
-        }
-
         return (
           withCategory && withPhotos && !isAdult && !isRemoteStore && isExists
         );
       });
 
-      goodOffers += offers.length;
-
-      if (offers.length === 0) break;
+      if (rawOffers.length === 0) break;
 
       try {
         const {identifiers} = await this.offerRepository.upsert(
-          offers.map((offer) => {
+          filteredOffers.map((offer) => {
             const discount = getRandomNumber(10, 30);
             // цена = цена у поставщика + скидка
             const price = offer.price * (1 + discount / 100);
@@ -321,7 +298,7 @@ export class PullerService {
         );
 
         await this.offerPhotoRepository.upsert(
-          offers.reduce((offersPhotos, offer, index) => {
+          rawOffers.reduce((offersPhotos, offer, index) => {
             const offerPhotosUrls = offer.agg_photos.map(
               (index) => `${offer.base_photo_url}${index}`,
             );
@@ -340,10 +317,6 @@ export class PullerService {
         console.log('something went wrong while loading offers');
       }
     }
-
-    console.log(
-      `${totalOffersCount} - ${withoutCategoryOffers} - ${withoutPhotosOffers} - ${adultOffers} - ${remoteStoreOffers} - ${notExistingOffers} = ${goodOffers}`,
-    );
   }
 
   async getOffersCategories() {
