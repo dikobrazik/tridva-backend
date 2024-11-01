@@ -186,6 +186,8 @@ export class PullerService {
     for (let i = 1; i < iterations; i++) {
       const loadedOfferAttributes = await this.simaApi.loadItemAttributes(i);
 
+      if (loadedOfferAttributes.length === 0) break;
+
       for (const offerAttribute of loadedOfferAttributes) {
         const offer = await this.offerRepository.findOne({
           where: {simaid: offerAttribute.item_id},
@@ -240,16 +242,18 @@ export class PullerService {
       await this.getHasBeenUpdatedMoreThanDayAgo();
     if (offersCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo) return;
 
-    const withoutCategoryOffers = [];
-    const withoutPhotosOffers = [];
-    const adultOffers = [];
-    const remoteStoreOffers = [];
-    const notExistingOffers = [];
-    const goodOffers: number[] = [];
+    let totalOffersCount = 0;
+    let withoutCategoryOffers = 0;
+    let withoutPhotosOffers = 0;
+    let adultOffers = 0;
+    let remoteStoreOffers = 0;
+    let notExistingOffers = 0;
+    let goodOffers = 0;
 
     const iterations = this.isDebug ? initialPage + 1 : initialPage + 5000;
 
     for (let i = initialPage; i < iterations; i++) {
+      totalOffersCount += 100;
       const offers = (await this.simaApi.loadOffers(i)).filter((offer) => {
         const withCategory = offer.category_id;
         // убираем товары без фоток
@@ -262,19 +266,19 @@ export class PullerService {
         const isExists = offer.balance === '0';
 
         if (!withCategory) {
-          withoutCategoryOffers.push(offer.id);
+          withoutCategoryOffers++;
         }
         if (!withPhotos) {
-          withoutPhotosOffers.push(offer.id);
+          withoutPhotosOffers++;
         }
         if (isAdult) {
-          adultOffers.push(offer.id);
+          adultOffers++;
         }
         if (isRemoteStore) {
-          remoteStoreOffers.push(offer.id);
+          remoteStoreOffers++;
         }
         if (!isExists) {
-          notExistingOffers.push(offer.id);
+          notExistingOffers++;
         }
 
         return (
@@ -282,7 +286,7 @@ export class PullerService {
         );
       });
 
-      goodOffers.push(...offers.map((offer) => offer.id));
+      goodOffers += offers.length;
 
       if (offers.length === 0) break;
 
@@ -338,12 +342,7 @@ export class PullerService {
     }
 
     console.log(
-      `good offers = ${goodOffers.length}`,
-      `withoutCategoryOffers = ${withoutCategoryOffers.length}`,
-      `withoutPhotosOffers = ${withoutPhotosOffers.length}`,
-      `adultOffers = ${adultOffers.length}`,
-      `remoteStoreOffers = ${remoteStoreOffers.length}`,
-      `notExistingOffers = ${notExistingOffers.length}`,
+      `${totalOffersCount} - ${withoutCategoryOffers} - ${withoutPhotosOffers} - ${adultOffers} - ${remoteStoreOffers} - ${notExistingOffers} = ${goodOffers}`,
     );
   }
 
