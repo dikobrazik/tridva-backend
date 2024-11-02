@@ -84,7 +84,7 @@ class SimaApi implements ISimaApi {
   }
 }
 
-const MS_IN_DAY = 1000 * 60 * 60 * 24; // 1 day
+const MS_IN_DAY = 1000 * 60 * 60 * 24; // 1 day trigger
 
 @Injectable()
 export class PullerService {
