@@ -64,12 +64,9 @@ class SimaApi implements ISimaApi {
 
       return axios(`/${entity}?p=${page}`)
         .then((r) => r.data)
-        .catch((e) => {
-          console.log(e);
-          return new Promise((r) => setTimeout(r, 10_000)).then(() =>
-            load(page),
-          );
-        });
+        .catch(() =>
+          new Promise((r) => setTimeout(r, 10_000)).then(() => load(page)),
+        );
     };
 
     return load;
@@ -118,20 +115,19 @@ export class PullerService {
     if (this.isDev && !this.isDebug) return;
 
     await this.signIn();
-    await this.fillCategories();
-    await Promise.all(
-      [1, 5000, 15000, 25000, 35000, 45000, 65000, 75000].map(
-        this.fillOffers.bind(this),
-      ),
-    );
+    // await this.fillCategories();
+    // await Promise.all(
+    //   [15000, 25000, 45000, 65000, 75000].map(this.fillOffers.bind(this)),
+    // );
+    // await this.fillCategoriesOffersCount();
     await this.fillAttributes();
 
-    if (!this.isDebug) {
-      await this.pullHistoryRepository.update(
-        {id: 1},
-        {date: new Date().toDateString()},
-      );
-    }
+    // if (!this.isDebug) {
+    //   await this.pullHistoryRepository.update(
+    //     {id: 1},
+    //     {date: new Date().toDateString()},
+    //   );
+    // }
   }
 
   async signIn() {
@@ -176,6 +172,44 @@ export class PullerService {
     }
   }
 
+  async fillCategoriesOffersCount() {
+    const hasBeenUpdatedMoreThanDayAgo =
+      await this.getHasBeenUpdatedMoreThanDayAgo();
+    if (!this.isDebug && !hasBeenUpdatedMoreThanDayAgo) return;
+
+    const levels = await this.categoryRepository
+      .createQueryBuilder()
+      .select('level')
+      .orderBy('level', 'DESC')
+      .groupBy('level')
+      .getRawMany();
+
+    await this.categoryRepository
+      .createQueryBuilder()
+      .update({offersCount: 0})
+      .execute();
+
+    for await (const {level} of levels) {
+      const categories = await this.categoryRepository.find({
+        where: {level: level},
+      });
+
+      for await (const category of categories) {
+        const categoryOffersCount = await this.offerRepository.count({
+          where: {categoryId: category.id},
+        });
+
+        await this.categoryRepository
+          .createQueryBuilder()
+          .whereInIds(category.path.split('.').map(Number))
+          .update({
+            offersCount: () => `offersCount + ${categoryOffersCount}`,
+          })
+          .execute();
+      }
+    }
+  }
+
   async fillAttributes() {
     const offerAttributesCount = await this.offerAttributeRepository.count();
     const hasBeenUpdatedMoreThanDayAgo =
@@ -183,57 +217,67 @@ export class PullerService {
     if (offerAttributesCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo)
       return;
 
-    const iterations = this.isDebug ? 2 : Number.MAX_SAFE_INTEGER;
+    const loadAttributesFromPage = async (startPage: number) => {
+      const iterations = this.isDebug ? 2 : 100_000;
 
-    for (let i = 1; i < iterations; i++) {
-      const loadedOfferAttributes = await this.simaApi.loadItemAttributes(i);
+      for (let i = startPage; i < iterations; i++) {
+        const loadedOfferAttributes = await this.simaApi.loadItemAttributes(i);
 
-      if (loadedOfferAttributes.length === 0) break;
+        if (loadedOfferAttributes.length === 0) break;
 
-      for (const offerAttribute of loadedOfferAttributes) {
-        const offer = await this.offerRepository.findOne({
-          where: {simaid: offerAttribute.item_id},
-        });
+        for (const offerAttribute of loadedOfferAttributes) {
+          const offer = await this.offerRepository.findOne({
+            select: {id: true},
+            where: {simaid: offerAttribute.item_id},
+          });
 
-        if (offer) {
-          const attribute = await this.simaApi.loadAttribute(
-            offerAttribute.attribute_id,
-          );
+          if (offer) {
+            const attribute = await this.simaApi.loadAttribute(
+              offerAttribute.attribute_id,
+            );
 
-          let attributeValue: string = '';
+            let attributeValue: string = '';
 
-          if (attribute.data_type_id === 6) {
-            attributeValue = await this.simaApi
-              .loadOption(offerAttribute.option_value)
-              .then((option) => option.name);
-          } else {
-            attributeValue = offerAttribute[attribute.data_type_id];
+            if (attribute.data_type_id === 6) {
+              attributeValue = await this.simaApi
+                .loadOption(offerAttribute.option_value)
+                .then((option) => option.name);
+            } else {
+              attributeValue = offerAttribute[attribute.data_type_id];
+            }
+
+            if (!attributeValue) {
+              continue;
+            }
+
+            await this.attributeRepository.upsert(
+              {
+                id: attribute.id,
+                name: attribute.name,
+              },
+              ['id'],
+            );
+
+            await this.offerAttributeRepository.upsert(
+              {
+                id: offerAttribute.id,
+                offerId: offer.id,
+                attributeId: offerAttribute.attribute_id,
+                value: attributeValue,
+              },
+              ['id', 'offerId', 'attributeId'],
+            );
           }
-
-          if (!attributeValue) {
-            continue;
-          }
-
-          await this.attributeRepository.upsert(
-            {
-              id: attribute.id,
-              name: attribute.name,
-            },
-            ['id'],
-          );
-
-          await this.offerAttributeRepository.upsert(
-            {
-              id: offerAttribute.id,
-              offerId: offer.id,
-              attributeId: offerAttribute.attribute_id,
-              value: attributeValue,
-            },
-            ['id', 'offerId', 'attributeId'],
-          );
         }
       }
-    }
+    };
+
+    await Promise.all(
+      [
+        1, 100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000,
+        800_000,
+      ].map((startPage) => loadAttributesFromPage(startPage)),
+    );
 
     console.log('Attributes loading done!');
   }
