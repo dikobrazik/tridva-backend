@@ -12,6 +12,7 @@ import {AttributesModule} from 'src/attributes/attributes.module';
 import {FavoriteOffer} from 'src/entities/FavoriteOffer';
 import {JwtModule} from '@nestjs/jwt';
 import {User} from 'src/entities/User';
+import {FavoriteOffersService} from './favoriteOffers.service';
 
 @Module({
   imports: [
@@ -27,7 +28,12 @@ import {User} from 'src/entities/User';
     JwtModule,
   ],
   controllers: [OffersController],
-  providers: [OffersService, CategoryService, GroupsService],
+  providers: [
+    OffersService,
+    FavoriteOffersService,
+    CategoryService,
+    GroupsService,
+  ],
   exports: [OffersService],
 })
 export class OffersModule {}

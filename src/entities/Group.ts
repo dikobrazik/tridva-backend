@@ -33,5 +33,5 @@ export class Group {
   owner: User;
 
   @CreateDateColumn()
-  createdAt: number;
+  createdAt: Date;
 }

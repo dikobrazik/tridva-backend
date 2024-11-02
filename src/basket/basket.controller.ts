@@ -3,16 +3,19 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
+  HttpStatus,
   Inject,
   Param,
   Post,
   Put,
   Request,
+  Response,
   UseGuards,
 } from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {BasketService} from './basket.service';
-import {AppRequest} from 'src/shared/types';
+import {AppRequest, AppResponse} from 'src/shared/types';
 import {
   ChangeBasketItemCountBody,
   PutGroupToBasketBody,
@@ -31,7 +34,26 @@ export class BasketController {
   private basketService: BasketService;
 
   @Get()
-  public getBasketItems(@Request() request: AppRequest) {
+  @Header('Cache-Control', 'max-age=180, private')
+  public async getBasketItems(
+    @Request() request: AppRequest,
+    @Response({passthrough: true}) response: AppResponse,
+  ) {
+    const lastUpdatedBasketItem =
+      await this.basketService.getUserBasketLastUpdatedAt(request.userId);
+
+    const tag = `W/"last-updated-at-${lastUpdatedBasketItem.updatedAt.valueOf()}"`;
+
+    response.set({
+      Etag: tag,
+    });
+
+    if (request.headers['if-none-match'] === tag) {
+      response.status(304);
+      response.statusCode = HttpStatus.NOT_MODIFIED;
+      return;
+    }
+
     return this.basketService.getUserBasket(request.userId);
   }
 

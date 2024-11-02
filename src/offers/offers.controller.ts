@@ -15,11 +15,13 @@ import {GroupsService} from 'src/groups/groups.service';
 import {AttributesService} from 'src/attributes/attributes.service';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
 import {AppRequest} from 'src/shared/types';
+import {FavoriteOffersService} from './favoriteOffers.service';
 
 @ApiTags('offer')
 @Controller('offers')
 export class OffersController {
   constructor(
+    private favoriteOffersService: FavoriteOffersService,
     private offersService: OffersService,
     private groupsService: GroupsService,
     private attributesService: AttributesService,
@@ -47,23 +49,23 @@ export class OffersController {
     return this.offersService.getRandomOffersList(query.page, query.pageSize);
   }
 
+  @Get(':id')
+  getOffer(@Param() params: SearchOfferDto) {
+    return this.offersService.getOfferById(params.id);
+  }
+
   @Get('favorite')
   @UseGuards(AuthTokenGuard)
   getFavoriteOffers(@Request() request: AppRequest) {
-    return this.offersService.getFavoriteOffers(request.userId);
+    return this.favoriteOffersService.getFavoriteOffers(request.userId);
   }
 
   @Get('favorite/ids')
   @UseGuards(AuthTokenGuard)
   getFavoriteOffersIds(@Request() request: AppRequest) {
-    return this.offersService
+    return this.favoriteOffersService
       .getFavoriteOffers(request.userId)
       .then((offers) => offers.map((offer) => offer.id));
-  }
-
-  @Get(':id')
-  getOffer(@Param() params: SearchOfferDto) {
-    return this.offersService.getOfferById(params.id);
   }
 
   @Get(':id/favorite')
@@ -72,7 +74,10 @@ export class OffersController {
     @Param() params: SearchOfferDto,
     @Request() request: AppRequest,
   ) {
-    return this.offersService.getIsFavoriteOffer(params.id, request.userId);
+    return this.favoriteOffersService.getIsFavoriteOffer(
+      params.id,
+      request.userId,
+    );
   }
 
   @Post(':id/favorite')
@@ -81,7 +86,10 @@ export class OffersController {
     @Param() params: SearchOfferDto,
     @Request() request: AppRequest,
   ) {
-    return this.offersService.addFavoriteOffer(params.id, request.userId);
+    return this.favoriteOffersService.addFavoriteOffer(
+      params.id,
+      request.userId,
+    );
   }
 
   @Get(':id/groups')

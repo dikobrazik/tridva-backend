@@ -8,6 +8,8 @@ export class CategoryService {
   @InjectRepository(Category)
   private categoryRepository: Repository<Category>;
 
+  private categoryChildrenIds: Record<number, number[]> = {};
+
   getPopularCategoriesList() {
     return Promise.all([
       this.categoryRepository.findOne({where: {level: '1', name: 'Посуда'}}),
@@ -66,13 +68,25 @@ export class CategoryService {
   }
 
   async getCategoryChildrenIds(categoryId: Category['id']) {
+    if (this.categoryChildrenIds[categoryId])
+      return this.categoryChildrenIds[categoryId].slice();
+
     const categories = await this.categoryRepository.find({
       select: ['id'],
-      where: {
-        path: Like(`${categoryId}.%`),
-      },
+      where: [
+        {
+          path: Like(`${categoryId}.%`),
+        },
+        {
+          path: Like(`%.${categoryId}.%`),
+        },
+      ],
     });
 
-    return categories.map((category) => category.id).concat(categoryId);
+    this.categoryChildrenIds[categoryId] = categories
+      .map((category) => category.id)
+      .concat(categoryId);
+
+    return this.categoryChildrenIds[categoryId].slice();
   }
 }

@@ -51,5 +51,5 @@ export class Order {
   status: OrderStatus;
 
   @CreateDateColumn()
-  createdAt: number;
+  createdAt: Date;
 }

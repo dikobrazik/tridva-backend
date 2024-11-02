@@ -32,5 +32,5 @@ export class Review {
   offerId: number;
 
   @CreateDateColumn()
-  createdAt: number;
+  createdAt: Date;
 }

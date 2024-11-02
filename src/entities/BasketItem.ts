@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import {User} from './User';
 import {Group} from './Group';
@@ -26,12 +27,18 @@ export class BasketItem {
   offer: Offer | null;
 
   @ManyToOne(() => User)
-  @JoinColumn()
+  @JoinColumn({name: 'userId'})
   user: User;
+
+  @Column()
+  userId: number;
 
   @Column({type: 'int', default: 1})
   count: number;
 
   @CreateDateColumn()
-  createdAt: number;
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

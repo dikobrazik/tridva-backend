@@ -19,7 +19,6 @@ import {Attribute} from 'src/entities/Attribute';
 import {getRandomNumber} from 'src/shared/utils/getRandomNumber';
 import {PullHistory} from 'src/entities/PullHistory';
 import {OfferPhoto} from 'src/entities/OfferPhoto';
-import {QueryDeepPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
 
 interface ISimaApi {
   loadAttribute: (id: number) => Promise<SimaAttribute>;
@@ -115,12 +114,12 @@ export class PullerService {
     if (this.isDev && !this.isDebug) return;
 
     await this.signIn();
-    await this.fillCategories();
+    // await this.fillCategories();
     await Promise.all(
       [15000, 25000, 45000, 65000, 75000].map(this.fillOffers.bind(this)),
     );
-    await this.fillCategoriesOffersCount();
-    await this.fillAttributes();
+    // await this.fillCategoriesOffersCount();
+    // await this.fillAttributes();
 
     if (!this.isDebug) {
       await this.pullHistoryRepository.update(
@@ -342,19 +341,12 @@ export class PullerService {
         );
 
         await this.offerPhotoRepository.upsert(
-          rawOffers.reduce((offersPhotos, offer, index) => {
-            const offerPhotosUrls = offer.agg_photos.map(
-              (index) => `${offer.base_photo_url}${index}`,
-            );
-
-            return offersPhotos.concat(
-              offerPhotosUrls.map((url) => ({
-                offerId: identifiers[index].id,
-                photoUrl: url,
-              })),
-            );
-          }, [] as QueryDeepPartialEntity<OfferPhoto>[]),
-          ['offerId', 'photoUrl'],
+          filteredOffers.map((offer, index) => ({
+            offerId: identifiers[index].id,
+            photoBaseUrl: offer.base_photo_url,
+            photosCount: offer.agg_photos?.length || 0,
+          })),
+          ['offerId'],
         );
       } catch (e) {
         console.log(e);

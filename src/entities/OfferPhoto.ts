@@ -3,24 +3,27 @@ import {
   Entity,
   Index,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import {Offer} from './Offer';
 
 @Entity()
-@Index(['offerId', 'photoUrl'], {unique: true})
 export class OfferPhoto {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Offer)
+  @OneToOne(() => Offer)
   @JoinColumn({name: 'offerId'})
   offer: Offer;
 
   @Column()
+  @Index({unique: true})
   offerId: number;
 
   @Column()
-  photoUrl: string;
+  photoBaseUrl: string;
+
+  @Column({type: 'smallint', default: 0})
+  photosCount: number;
 }

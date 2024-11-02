@@ -83,6 +83,14 @@ export class BasketService {
       .catch(() => null);
   }
 
+  public getUserBasketLastUpdatedAt(userId: number) {
+    return this.basketItemRepository.findOne({
+      select: {id: true, updatedAt: true},
+      where: {userId},
+      order: {updatedAt: 'DESC'},
+    });
+  }
+
   public getUserBasket(userId: number) {
     return this.basketItemRepository
       .find({
