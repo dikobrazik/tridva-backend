@@ -114,12 +114,12 @@ export class PullerService {
     if (this.isDev && !this.isDebug) return;
 
     await this.signIn();
-    // await this.fillCategories();
+    await this.fillCategories();
     await Promise.all(
       [15000, 25000, 45000, 65000, 75000].map(this.fillOffers.bind(this)),
     );
-    // await this.fillCategoriesOffersCount();
-    // await this.fillAttributes();
+    await this.fillCategoriesOffersCount();
+    await this.fillAttributes();
 
     if (!this.isDebug) {
       await this.pullHistoryRepository.update(
