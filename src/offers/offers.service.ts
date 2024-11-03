@@ -7,23 +7,27 @@ import {
 } from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
 import {FindOptionsWhere, ILike, In, Repository} from 'typeorm';
+import {ConfigService} from '@nestjs/config';
 
 @Injectable()
 export class OffersService {
   @InjectRepository(Offer)
   private offerRepository: Repository<Offer>;
-
   @Inject(CategoryService)
   private categoryService: CategoryService;
+  @Inject(ConfigService)
+  private configService: ConfigService;
 
   private randomOffersIds: number[] = [];
 
   async preloadRandomOffersIds() {
+    const isDev = this.configService.get('IS_DEV') === 'true';
+
     this.randomOffersIds = await this.offerRepository
       .createQueryBuilder('offer')
       .orderBy('RANDOM()')
       .select('offer.id')
-      .limit(30_000)
+      .limit(isDev ? 500 : 30_000)
       .getMany()
       .then((offers) => offers.map((offer) => offer.id));
   }
