@@ -108,18 +108,34 @@ export class PullerService {
     this.simaApi = new SimaApi();
   }
 
+  private async functionWorkTimeLogger(fn: () => Promise<any>) {
+    console.time(fn.name);
+    console.log(`${fn.name} started...`);
+    await fn();
+    console.log(`${fn.name} ended...`);
+    console.timeEnd(fn.name);
+  }
+
   async pull() {
     axios.defaults.baseURL = this.configService.getOrThrow('SIMA_URL');
 
     if (this.isDev && !this.isDebug) return;
 
-    await this.signIn();
-    await this.fillCategories();
-    await Promise.all(
-      [15000, 25000, 45000, 65000, 75000].map(this.fillOffers.bind(this)),
+    await this.functionWorkTimeLogger(this.signIn.bind(this));
+    await this.functionWorkTimeLogger(this.fillCategories.bind(this));
+    await this.functionWorkTimeLogger(
+      async function loadOffers() {
+        await Promise.all(
+          [15000, 25000, 45000, 65000, 75000].map(this.fillOffers.bind(this)),
+        );
+      }.bind(this),
     );
-    await this.fillCategoriesOffersCount();
-    await this.fillAttributes();
+    if (!this.isDebug) {
+      await this.functionWorkTimeLogger(
+        this.fillCategoriesOffersCount.bind(this),
+      );
+    }
+    await this.functionWorkTimeLogger(this.fillAttributes.bind(this));
 
     if (!this.isDebug) {
       await this.pullHistoryRepository.update(
@@ -137,7 +153,9 @@ export class PullerService {
         password: this.configService.getOrThrow('SIMA_PASS'),
         regulation: true,
       },
-    }).then((r) => r.data.token);
+    })
+      .then((r) => r.data.token)
+      .catch(console.log);
 
     axios.defaults.headers.Authorization = token;
   }
