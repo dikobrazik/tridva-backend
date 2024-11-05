@@ -6,8 +6,19 @@ import {
   getPaginationFields,
 } from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
-import {FindOptionsWhere, ILike, In, Repository} from 'typeorm';
+import {In, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
+
+const OFFER_SELECT_FIELDS = {
+  id: true,
+  title: true,
+  photos: true,
+  price: true,
+  discount: true,
+  reviewsCount: true,
+  ordersCount: true,
+  rating: true,
+};
 
 @Injectable()
 export class OffersService {
@@ -36,6 +47,7 @@ export class OffersService {
     const {skip, take} = getPaginationFields(page, pageSize);
     const offers = await this.offerRepository
       .find({
+        select: OFFER_SELECT_FIELDS,
         where: {id: In(this.randomOffersIds.slice(skip, skip + take))},
       })
       .then((offers) =>
@@ -52,6 +64,7 @@ export class OffersService {
     const {skip, take} = getPaginationFields(page, pageSize);
     const [offers, count] = await this.offerRepository
       .createQueryBuilder('offer')
+      .select(Object.keys(OFFER_SELECT_FIELDS))
       .where(
         `to_tsvector('russian', offer.title || ' ' || offer.description) @@ to_tsquery('russian', '${search
           .split(' ')
@@ -69,21 +82,12 @@ export class OffersService {
     page: number,
     pageSize: number,
   ) {
-    return this.loadOffers(
-      await this.getCategoryWhere(categoryId),
-      page,
-      pageSize,
-    );
-  }
-
-  private async loadOffers(
-    where: FindOptionsWhere<Offer> | FindOptionsWhere<Offer>[],
-    page: number,
-    pageSize: number,
-  ) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const [offers, count] = await this.offerRepository.findAndCount({
-      where,
+      select: OFFER_SELECT_FIELDS,
+      where: {
+        categoryId: In(await this.getCategoryIds(categoryId)),
+      },
       skip,
       take,
     });
@@ -123,30 +127,15 @@ export class OffersService {
     return offer;
   }
 
-  private async getCategoryWhere(
+  private async getCategoryIds(
     categoryId?: string,
-  ): Promise<FindOptionsWhere<Offer>> | undefined {
+  ): Promise<number[]> | undefined {
     if (categoryId) {
       const childCategories = await this.categoryService.getCategoryChildrenIds(
         Number(categoryId),
       );
 
-      return {categoryId: In(childCategories)};
-    }
-
-    return undefined;
-  }
-
-  private getSearchWhere(
-    search?: string,
-  ): FindOptionsWhere<Offer>[] | undefined {
-    if (search) {
-      const splittedSearch = search.split(' ');
-
-      return splittedSearch.map((searchSubString) => ({
-        title: ILike(`%${searchSubString}%`),
-        description: ILike(`%${searchSubString}%`),
-      }));
+      return childCategories;
     }
 
     return undefined;

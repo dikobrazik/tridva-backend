@@ -6,9 +6,16 @@ import {PullerService} from './puller/puller.service';
 import * as cookieParser from 'cookie-parser';
 import {OffersService} from './offers/offers.service';
 import {GeoService} from './geo/geo.service';
+import {initializeIndices} from './indices';
+import {DataSource} from 'typeorm';
+import {ConfigService} from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  if (app.get(ConfigService).get('DROP_SCHEMA') === 'true') {
+    initializeIndices(app.get(DataSource));
+  }
 
   app.setGlobalPrefix('api');
 

@@ -27,6 +27,9 @@ export class Offer {
   @Column()
   description: string;
 
+  @Column()
+  balance: string;
+
   @Column({type: 'decimal', nullable: true})
   discount: number;
 

@@ -48,6 +48,7 @@ import {FavoriteOffer} from './entities/FavoriteOffer';
           ca: readFileSync(join(cwd(), 'db.pem')),
         },
         synchronize: true,
+        dropSchema: configService.get('DROP_SCHEMA') === 'true',
         logging: configService.get('IS_DEV') === 'true',
         entities: [
           Attribute,

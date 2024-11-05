@@ -2,7 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
 import {Category} from 'src/entities/Category';
-import {Repository} from 'typeorm';
+import {In, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {
   SimaAttribute,
@@ -126,7 +126,9 @@ export class PullerService {
     await this.functionWorkTimeLogger(
       async function loadOffers() {
         await Promise.all(
-          [15000, 25000, 45000, 65000, 75000].map(this.fillOffers.bind(this)),
+          [5000, 15000, 25000, 45000, 65000, 75000].map(
+            this.fillOffers.bind(this),
+          ),
         );
       }.bind(this),
     );
@@ -319,12 +321,29 @@ export class PullerService {
         // убираем товары от внешних партнеров
         const isRemoteStore = offer.is_remote_store;
         // убираем товары которых нет в наличии
-        const isExists = offer.balance === '0';
+        const isExists = offer.balance !== '0';
 
         return (
           withCategory && withPhotos && !isAdult && !isRemoteStore && isExists
         );
       });
+
+      const notExistingOffers = rawOffers.filter(
+        (offer) => offer.balance === '0',
+      );
+
+      if (
+        (await this.offerRepository.count({
+          where: {simaid: In(notExistingOffers.map((offer) => offer.id))},
+        })) > 0
+      ) {
+        try {
+          await this.offerRepository.delete({
+            simaid: In(notExistingOffers.map((offer) => offer.id)),
+          });
+          // eslint-disable-next-line no-empty
+        } catch {}
+      }
 
       if (rawOffers.length === 0) break;
 
@@ -339,6 +358,7 @@ export class PullerService {
               simaid: offer.id,
               sid: offer.sid,
               title: offer.name,
+              balance: offer.balance,
               description: offer.description,
               discount,
               price,

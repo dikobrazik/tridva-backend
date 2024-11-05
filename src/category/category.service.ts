@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Category} from 'src/entities/Category';
-import {In, Like, Repository} from 'typeorm';
+import {In, Like, MoreThan, Repository} from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -48,6 +48,8 @@ export class CategoryService {
       );
     }
 
+    queryBuilder.andWhere({offersCount: MoreThan(1)});
+
     return queryBuilder.getMany();
   }
 
@@ -86,9 +88,11 @@ export class CategoryService {
       where: [
         {
           path: Like(`${categoryId}.%`),
+          // offersCount: MoreThan(0),
         },
         {
           path: Like(`%.${categoryId}.%`),
+          // offersCount: MoreThan(0),
         },
       ],
     });
