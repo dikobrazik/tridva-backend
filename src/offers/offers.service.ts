@@ -49,7 +49,19 @@ export class OffersService {
   }
 
   async getOffersListBySearch(search: string, page: number, pageSize: number) {
-    return this.loadOffers(this.getSearchWhere(search), page, pageSize);
+    const {skip, take} = getPaginationFields(page, pageSize);
+    const [offers, count] = await this.offerRepository
+      .createQueryBuilder('offer')
+      .where(
+        `to_tsvector('russian', offer.title || ' ' || offer.description) @@ to_tsquery('russian', '${search
+          .split(' ')
+          .join(' & ')}')`,
+      )
+      .skip(skip)
+      .take(take)
+      .getManyAndCount();
+
+    return this.prepareOffersListResponse(offers, count, pageSize);
   }
 
   async getOffersListByCategory(

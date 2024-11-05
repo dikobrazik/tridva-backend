@@ -1,7 +1,7 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Category} from 'src/entities/Category';
-import {ILike, In, Like, Repository} from 'typeorm';
+import {In, Like, Repository} from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -32,13 +32,23 @@ export class CategoryService {
   }
 
   getCategoriesList(level: number, name: string) {
-    return this.categoryRepository.find({
-      where: {
-        level: level ? String(level) : undefined,
-        name: name ? ILike(`%${name}%`) : undefined,
-      },
-      take: 30,
-    });
+    const queryBuilder = this.categoryRepository.createQueryBuilder();
+
+    queryBuilder.take(30);
+
+    if (level) {
+      queryBuilder.where('level = :level', {level: String(level)});
+    }
+
+    if (name) {
+      queryBuilder.orWhere(
+        `to_tsvector('russian', name) @@ to_tsquery('russian', '${name
+          .split(' ')
+          .join(' & ')}')`,
+      );
+    }
+
+    return queryBuilder.getMany();
   }
 
   getCategoryById(categoryId: number) {

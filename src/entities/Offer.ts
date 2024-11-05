@@ -62,6 +62,7 @@ export class Offer {
   @JoinColumn({name: 'categoryId'})
   category: Category;
 
+  @Index()
   @Column()
   categoryId: number;
 
