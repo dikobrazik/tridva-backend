@@ -119,6 +119,8 @@ export class PullerService {
   async pull() {
     axios.defaults.baseURL = this.configService.getOrThrow('SIMA_URL');
 
+    console.log(await this.getHasBeenUpdatedMoreThanDayAgo());
+
     if (this.isDev && !this.isDebug) return;
 
     await this.functionWorkTimeLogger(this.signIn.bind(this));
