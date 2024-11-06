@@ -64,7 +64,11 @@ export class OffersService {
     const {skip, take} = getPaginationFields(page, pageSize);
     const [offers, count] = await this.offerRepository
       .createQueryBuilder('offer')
-      .select(Object.keys(OFFER_SELECT_FIELDS))
+      .select(
+        Object.keys(OFFER_SELECT_FIELDS).map(
+          (fieldName) => `offer.${fieldName}`,
+        ),
+      )
       .where(
         `to_tsvector('russian', offer.title || ' ' || offer.description) @@ to_tsquery('russian', '${search
           .split(' ')
