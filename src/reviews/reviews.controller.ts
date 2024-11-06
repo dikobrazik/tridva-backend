@@ -38,6 +38,15 @@ export class ReviewsController {
     return this.reviewsService.getReviews(params);
   }
 
+  @Get(':offerId/has-review')
+  @UseGuards(AuthTokenGuard)
+  public getHasReview(
+    @Param() params: GetReviewsDto,
+    @Request() request: AppRequest,
+  ) {
+    return this.reviewsService.getHasReview(request.userId, params);
+  }
+
   @Get(':offerId/reviews/total')
   public getReviewCount(@Param() params: GetReviewsTotalDto) {
     return this.reviewsService.getReviewsCount(params.offerId);

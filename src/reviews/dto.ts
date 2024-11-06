@@ -1,14 +1,8 @@
-import {ApiProperty, ApiPropertyOptional} from '@nestjs/swagger';
+import {ApiProperty} from '@nestjs/swagger';
 import {Type} from 'class-transformer';
-import {
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  Max,
-  Min,
-  MinLength,
-} from 'class-validator';
+import {IsInt, IsNotEmpty, IsString, Max, Min} from 'class-validator';
+import {OfferId} from 'src/shared/dto/decorators';
+import {Paginable} from 'src/shared/dto/pagination';
 
 export class CreateReviewDto {
   @ApiProperty()
@@ -24,40 +18,26 @@ export class CreateReviewDto {
   rating: number;
 }
 
-export class GetReviewsDto {
-  @ApiPropertyOptional({default: 1})
-  @IsInt()
-  @IsOptional()
-  @Min(1)
-  @Type(() => Number)
-  page: number;
-
-  @ApiPropertyOptional({default: 20})
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Type(() => Number)
-  pageSize: number;
-
+export class GetReviewsDto extends Paginable {
   @ApiProperty()
-  @IsInt()
-  @IsNotEmpty()
-  @Type(() => Number)
+  @OfferId()
+  offerId: number;
+}
+
+export class GetHasReviewDto {
+  @ApiProperty()
+  @OfferId()
   offerId: number;
 }
 
 export class GetReviewsTotalDto {
   @ApiProperty()
-  @IsInt()
-  @IsNotEmpty()
-  @Type(() => Number)
+  @OfferId()
   offerId: number;
 }
 
 export class CreateReviewParamsDto {
   @ApiProperty()
-  @IsInt()
-  @IsNotEmpty()
-  @Type(() => Number)
+  @OfferId()
   offerId: number;
 }

@@ -42,6 +42,12 @@ export class ReviewsService {
       );
   }
 
+  public getHasReview(userId: number, params: GetReviewsDto) {
+    return this.reviewRepository.exist({
+      where: {offerId: params.offerId, author: {id: userId}},
+    });
+  }
+
   public getReviewsAvg(offerId: number) {
     return this.reviewRepository
       .createQueryBuilder('reviews')
