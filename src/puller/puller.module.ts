@@ -8,6 +8,7 @@ import {Attribute} from 'src/entities/Attribute';
 import {OfferAttribute} from 'src/entities/OfferAttribute';
 import {PullHistory} from 'src/entities/PullHistory';
 import {OfferPhoto} from 'src/entities/OfferPhoto';
+import {OffersModule} from 'src/offers/offers.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import {OfferPhoto} from 'src/entities/OfferPhoto';
       PullHistory,
     ]),
     ConfigModule,
+    OffersModule,
   ],
   providers: [PullerService],
 })

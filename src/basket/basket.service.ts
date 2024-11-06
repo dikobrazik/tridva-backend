@@ -83,7 +83,9 @@ export class BasketService {
       .catch(() => null);
   }
 
-  public getUserBasketLastUpdatedAt(userId: number) {
+  public getUserBasketLastUpdatedAt(
+    userId: number,
+  ): Promise<BasketItem | null> {
     return this.basketItemRepository.findOne({
       select: {id: true, updatedAt: true},
       where: {userId},

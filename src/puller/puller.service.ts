@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import {Inject, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
 import {Category} from 'src/entities/Category';
@@ -19,6 +19,7 @@ import {Attribute} from 'src/entities/Attribute';
 import {getRandomNumber} from 'src/shared/utils/getRandomNumber';
 import {PullHistory} from 'src/entities/PullHistory';
 import {OfferPhoto} from 'src/entities/OfferPhoto';
+import {OffersService} from 'src/offers/offers.service';
 
 interface ISimaApi {
   loadAttribute: (id: number) => Promise<SimaAttribute>;
@@ -102,6 +103,9 @@ export class PullerService {
   @InjectRepository(PullHistory)
   private pullHistoryRepository: Repository<PullHistory>;
 
+  @Inject(OffersService)
+  private offersService: OffersService;
+
   private simaApi: SimaApi;
 
   constructor(private configService: ConfigService) {
@@ -118,8 +122,6 @@ export class PullerService {
 
   async pull() {
     axios.defaults.baseURL = this.configService.getOrThrow('SIMA_URL');
-
-    console.log(await this.getHasBeenUpdatedMoreThanDayAgo());
 
     if (this.isDev && !this.isDebug) return;
 
@@ -140,6 +142,8 @@ export class PullerService {
       );
     }
     await this.functionWorkTimeLogger(this.fillAttributes.bind(this));
+
+    this.offersService.preloadRandomOffersIds();
 
     if (!this.isDebug) {
       await this.pullHistoryRepository.update(
@@ -334,11 +338,12 @@ export class PullerService {
         (offer) => offer.balance === '0',
       );
 
-      if (
+      const isNotExistingOffersExistsInDb =
         (await this.offerRepository.count({
           where: {simaid: In(notExistingOffers.map((offer) => offer.id))},
-        })) > 0
-      ) {
+        })) > 0;
+
+      if (isNotExistingOffersExistsInDb) {
         try {
           await this.offerRepository.delete({
             simaid: In(notExistingOffers.map((offer) => offer.id)),

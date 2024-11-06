@@ -42,16 +42,18 @@ export class BasketController {
     const lastUpdatedBasketItem =
       await this.basketService.getUserBasketLastUpdatedAt(request.userId);
 
-    const tag = `W/"last-updated-at-${lastUpdatedBasketItem.updatedAt.valueOf()}"`;
+    if (lastUpdatedBasketItem) {
+      const tag = `W/"last-updated-at-${lastUpdatedBasketItem.updatedAt.valueOf()}"`;
 
-    response.set({
-      Etag: tag,
-    });
+      response.set({
+        Etag: tag,
+      });
 
-    if (request.headers['if-none-match'] === tag) {
-      response.status(304);
-      response.statusCode = HttpStatus.NOT_MODIFIED;
-      return;
+      if (request.headers['if-none-match'] === tag) {
+        response.status(304);
+        response.statusCode = HttpStatus.NOT_MODIFIED;
+        return;
+      }
     }
 
     return this.basketService.getUserBasket(request.userId);
