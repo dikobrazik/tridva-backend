@@ -85,5 +85,5 @@ export const generateSiteMap = async (app: INestApplication<any>) => {
 
   const siteMapContent = await generateSiteMapContent(app);
 
-  await writeFile('/usr/app/sitemap.xml', siteMapContent);
+  await writeFile('/usr/app/sitemap.xml', siteMapContent, {flag: 'wx'});
 };
