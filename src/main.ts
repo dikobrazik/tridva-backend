@@ -9,6 +9,7 @@ import {GeoService} from './geo/geo.service';
 import {initializeIndices} from './indices';
 import {DataSource} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
+import {generateSiteMap} from './sitemap';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -25,6 +26,8 @@ async function bootstrap() {
   setupSwagger(app);
 
   app.get(PullerService).pull().catch(console.log);
+
+  generateSiteMap(app);
 
   await app.get(OffersService).preloadRandomOffersIds().catch(console.log);
   app.get(GeoService).initialize().catch(console.log);
