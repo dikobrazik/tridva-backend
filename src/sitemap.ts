@@ -3,6 +3,7 @@ import {DataSource, MoreThan} from 'typeorm';
 import {Category} from './entities/Category';
 import {Offer} from './entities/Offer';
 import {writeFile} from 'fs/promises';
+import {ConfigService} from '@nestjs/config';
 
 type ChangeFreq =
   | 'always'
@@ -67,13 +68,22 @@ const generateSiteMapContent = async (app: INestApplication<any>) => {
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
+  <url>
+    <loc>https://tridva.store/categories/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
 ${categoriesUrls.join('\n')}
 ${offersUrls.join('\n')}
 </urlset>`;
 };
 
 export const generateSiteMap = async (app: INestApplication<any>) => {
+  const isDev = app.get(ConfigService).get('IS_DEV');
+
+  if (isDev) return;
+
   const siteMapContent = await generateSiteMapContent(app);
 
-  await writeFile('sitemap.xml', siteMapContent);
+  await writeFile('/usr/app/sitemap.xml', siteMapContent);
 };
