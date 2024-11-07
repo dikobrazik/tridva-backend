@@ -27,7 +27,7 @@ async function bootstrap() {
 
   app.get(PullerService).pull().catch(console.log);
 
-  generateSiteMap(app);
+  generateSiteMap(app).catch(console.log);
 
   await app.get(OffersService).preloadRandomOffersIds().catch(console.log);
   app.get(GeoService).initialize().catch(console.log);
