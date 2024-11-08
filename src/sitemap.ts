@@ -85,6 +85,8 @@ export const generateSiteMap = async (app: INestApplication<any>) => {
 
   const siteMapContent = await generateSiteMapContent(app);
 
-  console.log(`${__dirname}/sitemap.xml`);
-  await writeFile(`${__dirname}/sitemap.xml`, siteMapContent, {flag: 'wx'});
+  await writeFile(`/var/tmp/shared-docker/sitemap.xml`, siteMapContent, {
+    flag: 'w+',
+  });
+  console.log(`Site map generated to /var/tmp/shared-docker/sitemap.xml`);
 };
