@@ -5,7 +5,6 @@ import {
   Param,
   Post,
   Query,
-  Request,
   UseGuards,
 } from '@nestjs/common';
 import {SearchOfferDto, SearchOffersDto} from './dto';
@@ -14,8 +13,8 @@ import {ApiTags} from '@nestjs/swagger';
 import {GroupsService} from 'src/groups/groups.service';
 import {AttributesService} from 'src/attributes/attributes.service';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
-import {AppRequest} from 'src/shared/types';
 import {FavoriteOffersService} from './favoriteOffers.service';
+import {UserId} from 'src/shared/decorators/UserId';
 
 @ApiTags('offer')
 @Controller('offers')
@@ -50,21 +49,22 @@ export class OffersController {
   }
 
   @Get(':id')
+  @Header('Cache-Control', 'max-age=20, public')
   getOffer(@Param() params: SearchOfferDto) {
     return this.offersService.getOfferById(params.id);
   }
 
   @Get('favorite')
   @UseGuards(AuthTokenGuard)
-  getFavoriteOffers(@Request() request: AppRequest) {
-    return this.favoriteOffersService.getFavoriteOffers(request.userId);
+  getFavoriteOffers(@UserId() userId: number) {
+    return this.favoriteOffersService.getFavoriteOffers(userId);
   }
 
   @Get('favorite/ids')
   @UseGuards(AuthTokenGuard)
-  getFavoriteOffersIds(@Request() request: AppRequest) {
+  getFavoriteOffersIds(@UserId() userId: number) {
     return this.favoriteOffersService
-      .getFavoriteOffers(request.userId)
+      .getFavoriteOffers(userId)
       .then((offers) => offers.map((offer) => offer.id));
   }
 
@@ -72,24 +72,15 @@ export class OffersController {
   @UseGuards(AuthTokenGuard)
   getIsFavoriteOffer(
     @Param() params: SearchOfferDto,
-    @Request() request: AppRequest,
+    @UserId() userId: number,
   ) {
-    return this.favoriteOffersService.getIsFavoriteOffer(
-      params.id,
-      request.userId,
-    );
+    return this.favoriteOffersService.getIsFavoriteOffer(params.id, userId);
   }
 
   @Post(':id/favorite')
   @UseGuards(AuthTokenGuard)
-  addFavoriteOffer(
-    @Param() params: SearchOfferDto,
-    @Request() request: AppRequest,
-  ) {
-    return this.favoriteOffersService.addFavoriteOffer(
-      params.id,
-      request.userId,
-    );
+  addFavoriteOffer(@Param() params: SearchOfferDto, @UserId() userId: number) {
+    return this.favoriteOffersService.addFavoriteOffer(params.id, userId);
   }
 
   @Get(':id/groups')

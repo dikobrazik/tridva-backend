@@ -1,17 +1,10 @@
-import {
-  Body,
-  Controller,
-  Inject,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import {Body, Controller, Inject, Post, UseGuards} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
-import {AppRequest} from 'src/shared/types';
 import {CreateGroupOrderDto} from './dto';
 import {GroupsService} from './groups.service';
 import {BasketService} from 'src/basket/basket.service';
+import {UserId} from 'src/shared/decorators/UserId';
 
 @UseGuards(AuthTokenGuard)
 @ApiTags('groups')
@@ -25,14 +18,11 @@ export class GroupsController {
 
   @Post()
   async createGroup(
-    @Request() request: AppRequest,
+    @UserId() userId: number,
     @Body() body: CreateGroupOrderDto,
   ) {
-    const groupId = await this.groupsService.createGroup(
-      body.offerId,
-      request.userId,
-    );
+    const groupId = await this.groupsService.createGroup(body.offerId, userId);
 
-    await this.basketService.addGroupToBasket(request.userId, groupId);
+    await this.basketService.addGroupToBasket(userId, groupId);
   }
 }

@@ -15,7 +15,7 @@ export class Group {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Offer)
+  @ManyToOne(() => Offer, {eager: true})
   @JoinColumn()
   offer: Offer;
 
@@ -29,8 +29,11 @@ export class Group {
   capacity: number;
 
   @ManyToOne(() => User)
-  @JoinColumn()
+  @JoinColumn({name: 'ownerId'})
   owner: User;
+
+  @Column()
+  ownerId: number;
 
   @CreateDateColumn()
   createdAt: Date;

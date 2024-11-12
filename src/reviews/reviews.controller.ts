@@ -1,14 +1,5 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import {Body, Controller, Get, Param, Post, UseGuards} from '@nestjs/common';
 import {ReviewsService} from './reviews.service';
-import {AppRequest} from 'src/shared/types';
 import {
   CreateReviewDto,
   CreateReviewParamsDto,
@@ -17,6 +8,7 @@ import {
 } from './dto';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
 import {ApiTags} from '@nestjs/swagger';
+import {UserId} from 'src/shared/decorators/UserId';
 
 @ApiTags('reviews')
 @Controller('offers')
@@ -26,11 +18,11 @@ export class ReviewsController {
   @UseGuards(AuthTokenGuard)
   @Post(':offerId/reviews')
   public createReview(
-    @Request() request: AppRequest,
+    @UserId() userId: number,
     @Body() body: CreateReviewDto,
     @Param() params: CreateReviewParamsDto,
   ) {
-    return this.reviewsService.createReview(request.userId, body, params);
+    return this.reviewsService.createReview(userId, body, params);
   }
 
   @Get(':offerId/reviews')
@@ -42,9 +34,9 @@ export class ReviewsController {
   @UseGuards(AuthTokenGuard)
   public getHasReview(
     @Param() params: GetReviewsDto,
-    @Request() request: AppRequest,
+    @UserId() userId: number,
   ) {
-    return this.reviewsService.getHasReview(request.userId, params);
+    return this.reviewsService.getHasReview(userId, params);
   }
 
   @Get(':offerId/reviews/total')

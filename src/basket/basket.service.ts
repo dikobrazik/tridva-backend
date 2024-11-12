@@ -1,14 +1,16 @@
 import {Injectable} from '@nestjs/common';
-import {InjectRepository} from '@nestjs/typeorm';
+import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {BasketItem} from 'src/entities/BasketItem';
 import {Group} from 'src/entities/Group';
-import {Repository} from 'typeorm';
+import {DataSource, Repository} from 'typeorm';
 
 @Injectable()
 export class BasketService {
+  @InjectDataSource()
+  private dataSource: DataSource;
+
   @InjectRepository(BasketItem)
   private basketItemRepository: Repository<BasketItem>;
-
   @InjectRepository(Group)
   private groupRepository: Repository<Group>;
 
@@ -38,7 +40,7 @@ export class BasketService {
     count: number,
   ) {
     if (count === 0) {
-      this.removeItemFromBasket(userId, basketItemId);
+      await this.removeItemFromBasket(userId, basketItemId);
     } else {
       await this.basketItemRepository.update(basketItemId, {
         count,
@@ -54,24 +56,46 @@ export class BasketService {
   }
 
   public async removeItemFromBasket(userId: number, basketItemId: number) {
-    const basketItem = await this.basketItemRepository.findOne({
-      where: {id: basketItemId, user: {id: userId}},
-      relations: {group: true},
-    });
+    await this.basketItemRepository.delete({id: basketItemId, userId});
+  }
 
-    const groupId = basketItem.group.id;
+  // оставил на случай, если при удалении группы из корзины - будем удалять всю группу
+  public async removeGroupFromAllBaskets(userId: number, basketItemId: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.startTransaction();
 
-    if (basketItem) {
-      await this.basketItemRepository.remove(basketItem);
-    }
+    try {
+      const basketItem = await this.basketItemRepository.findOne({
+        select: {group: {id: true, ownerId: true}},
+        where: {id: basketItemId, userId},
+        relations: {group: true},
+        loadEagerRelations: false,
+      });
 
-    // костыль, надо понять, как сделать where через delete
-    const group = await this.groupRepository.findOne({
-      where: {id: groupId, owner: {id: userId}},
-    });
+      if (basketItem) {
+        await this.basketItemRepository.remove(basketItem);
+      }
 
-    if (group) {
-      await this.groupRepository.remove(group);
+      const {id: groupId, ownerId} = basketItem.group;
+
+      const isGroupOwner = ownerId === userId;
+
+      if (groupId && isGroupOwner) {
+        await this.basketItemRepository.delete({
+          groupId,
+        });
+
+        await this.groupRepository.delete({
+          id: groupId,
+          ownerId: userId,
+        });
+      }
+
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -148,6 +172,7 @@ export class BasketService {
         id: groupId,
         owner: basketItem.group.owner.id === userId,
         capacity: basketItem.group.capacity,
+        filled: 'filled unknown',
       },
       offer,
     };

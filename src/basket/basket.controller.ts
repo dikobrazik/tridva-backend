@@ -25,6 +25,7 @@ import {
   GetBasketItemByOfferIdPayload,
 } from './dtos';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {UserId} from 'src/shared/decorators/UserId';
 
 @UseGuards(AuthTokenGuard)
 @ApiTags('basket')
@@ -34,82 +35,80 @@ export class BasketController {
   private basketService: BasketService;
 
   @Get()
-  @Header('Cache-Control', 'max-age=180, private')
+  @Header('Cache-Control', 'max-age=10, private')
   public async getBasketItems(
     @Request() request: AppRequest,
+    @UserId() userId: number,
     @Response({passthrough: true}) response: AppResponse,
   ) {
     const lastUpdatedBasketItem =
-      await this.basketService.getUserBasketLastUpdatedAt(request.userId);
+      await this.basketService.getUserBasketLastUpdatedAt(userId);
 
-    if (lastUpdatedBasketItem) {
-      const tag = `W/"last-updated-at-${lastUpdatedBasketItem.updatedAt.valueOf()}"`;
+    const tag = `W/"last-updated-at-${(
+      lastUpdatedBasketItem?.updatedAt ?? new Date()
+    ).valueOf()}"`;
 
-      response.set({
-        Etag: tag,
-      });
+    response.set({
+      Etag: tag,
+    });
 
-      if (request.headers['if-none-match'] === tag) {
-        response.status(304);
-        response.statusCode = HttpStatus.NOT_MODIFIED;
-        return;
-      }
+    if (lastUpdatedBasketItem && request.headers['if-none-match'] === tag) {
+      response.status(304);
+      response.statusCode = HttpStatus.NOT_MODIFIED;
+      return;
     }
 
-    return this.basketService.getUserBasket(request.userId);
+    return this.basketService.getUserBasket(userId);
   }
 
   @Get('count')
-  public getBasketItemsCount(@Request() request: AppRequest) {
-    return this.basketService.getUserBasketItemsCount(request.userId);
+  public getBasketItemsCount(@UserId() userId: number) {
+    return this.basketService.getUserBasketItemsCount(userId);
   }
 
   @Get('/:offerId')
   public getBasketItemByOfferId(
-    @Request() request: AppRequest,
+    @UserId() userId: number,
     @Param() params: GetBasketItemByOfferIdPayload,
   ) {
     return this.basketService.getUserBasketItemByOfferId(
-      request.userId,
+      userId,
       params.offerId,
     );
   }
 
   @Post('/offer')
   public putOfferToBasket(
-    @Request() request: AppRequest,
+    @UserId() userId: number,
     @Body() body: PutOfferToBasketBody,
   ) {
-    return this.basketService.addOfferToBasket(request.userId, body.offerId);
+    return this.basketService.addOfferToBasket(userId, body.offerId);
   }
 
   @Post('/group')
   public async putGroupToBasket(
-    @Request() request: AppRequest,
+    @UserId() userId: number,
     @Body() body: PutGroupToBasketBody,
   ) {
-    await this.basketService.addGroupToBasket(request.userId, body.groupId);
+    await this.basketService.addGroupToBasket(userId, body.groupId);
   }
 
   @Get('/:offerId/count')
   public getBasketItemCount(
-    @Request() request: AppRequest,
+    @UserId() userId: number,
     @Param() params: OfferCountParams,
   ) {
-    return this.basketService.getBasketItemCount(
-      request.userId,
-      params.offerId,
-    );
+    return this.basketService.getBasketItemCount(userId, params.offerId);
   }
 
   @Put('/:id/count')
   public async changeBasketItemCount(
-    @Request() request: AppRequest,
+    @UserId() userId: number,
     @Body() body: ChangeBasketItemCountBody,
     @Param() params: BasketItemParams,
   ) {
-    await this.basketService.changeBasketItemCount(
-      request.userId,
+    return this.basketService.changeBasketItemCount(
+      userId,
       params.id,
       body.count,
     );
@@ -117,9 +116,9 @@ export class BasketController {
 
   @Delete(':id')
   public removeItemFromBasket(
-    @Request() request: AppRequest,
+    @UserId() userId: number,
     @Param() params: BasketItemParams,
   ) {
-    this.basketService.removeItemFromBasket(request.userId, params.id);
+    return this.basketService.removeItemFromBasket(userId, params.id);
   }
 }

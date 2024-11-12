@@ -18,13 +18,19 @@ export class BasketItem {
 
   // will be null if it's single item
   @ManyToOne(() => Group, {eager: true, nullable: true})
-  @JoinColumn()
+  @JoinColumn({name: 'groupId'})
   group: Group | null;
+
+  @Column({nullable: true})
+  groupId: number;
 
   // will be null if it's group item
   @ManyToOne(() => Offer, {eager: true, nullable: true})
-  @JoinColumn()
+  @JoinColumn({name: 'offerId'})
   offer: Offer | null;
+
+  @Column({nullable: true})
+  offerId: number;
 
   @ManyToOne(() => User)
   @JoinColumn({name: 'userId'})

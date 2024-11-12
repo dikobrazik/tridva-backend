@@ -4,16 +4,16 @@ import {
   HttpStatus,
   Inject,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import {AuthorizationService} from './authorization.service';
 import {ApiTags} from '@nestjs/swagger';
 import {CheckCodeDto, GetCodeDto} from './dtos';
-import {Request, Response} from 'express';
-import {AppRequest} from 'src/shared/types';
+import {Response} from 'express';
 import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {UserId} from 'src/shared/decorators/UserId';
+import {Token} from 'src/shared/decorators/Token';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -23,10 +23,9 @@ export class AuthorizationController {
 
   @Post('/check')
   async checkUserToken(
-    @Req() request: Request,
+    @Token() token: string,
     @Res({passthrough: true}) response: Response,
   ) {
-    const token = request.cookies['token'];
     response.statusCode = HttpStatus.OK;
 
     if (token && (await this.authService.isAccessTokenValid(token))) {
@@ -61,11 +60,11 @@ export class AuthorizationController {
   @UseGuards(AuthTokenGuard)
   async signIn(
     @Body() payload: CheckCodeDto,
-    @Req() request: AppRequest,
+    @UserId() userId: number,
     @Res({passthrough: true}) response: Response,
   ) {
     const {access_token, profile} = await this.authService.signInOrUp(
-      request.userId,
+      userId,
       payload,
     );
 
