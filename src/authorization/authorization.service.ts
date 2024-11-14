@@ -23,36 +23,34 @@ export class AuthorizationService {
 
   async sendCode(_phone: string) {}
 
-  async isAccessTokenValid(token: string) {
+  async getTokenUser(token: string) {
     const userId = await this.parseAccessToken(token);
 
     const user = await this.userRepository.findOne({
       where: {id: userId},
+      relations: {profile: true},
     });
 
-    return Boolean(user);
+    return user;
   }
 
-  async isUserAnonymous(token: string) {
-    const userId = await this.parseAccessToken(token);
-
-    const user = await this.userRepository.findOne({
-      where: {id: userId},
-    });
-
+  async isUserAnonymous(user: User) {
     return !user.phone;
   }
 
   async createAnonymous() {
+    const name = getRandomName();
     const {
       identifiers: [{id: profileId}],
-    } = await this.profileRepository.insert({name: getRandomName()});
+    } = await this.profileRepository.insert({name});
     const {
       identifiers: [{id: userId}],
     } = await this.userRepository.insert({profile: {id: profileId}});
 
     return {
       userId,
+      phone: null,
+      profile: {id: profileId, name},
       access_token: await this.jwtService.signAsync({
         userId,
       } as SignatureContent),

@@ -28,23 +28,20 @@ export class AuthorizationController {
   ) {
     response.statusCode = HttpStatus.OK;
 
-    if (token && (await this.authService.isAccessTokenValid(token))) {
-      const userId = await this.authService.parseAccessToken(token);
-      const isAnonymous = await this.authService.isUserAnonymous(token);
+    if (token) {
+      const user = await this.authService.getTokenUser(token);
 
-      if (!isAnonymous) {
-        const {phone, profile} = await this.authService.getUser(userId);
+      if (user) {
+        const isAnonymous = await this.authService.isUserAnonymous(user);
+
+        const {phone, profile} = user;
 
         return {isAnonymous, phone, profile};
       }
-
-      const {phone, profile} = await this.authService.getUser(userId);
-
-      return {isAnonymous, phone, profile};
     }
 
-    const {access_token, userId} = await this.authService.createAnonymous();
-    const {phone, profile} = await this.authService.getUser(userId);
+    const {access_token, phone, profile} =
+      await this.authService.createAnonymous();
 
     response.cookie('token', access_token);
 

@@ -90,3 +90,17 @@ export type SimaDataType = {
   id: number;
   name: string;
 };
+
+export type SimaItemModifier = {
+  id: number;
+  item_id: number;
+  modifier_id: number;
+  value: string;
+  priority: number;
+};
+
+export type SimaModifier = {
+  id: number;
+  name: string;
+  is_picture: boolean;
+};

@@ -10,25 +10,49 @@ export class CategoryService {
 
   private categoryChildrenIds: Record<number, number[]> = {};
 
-  getPopularCategoriesList() {
-    return Promise.all([
-      this.categoryRepository.findOne({where: {level: '1', name: 'Посуда'}}),
-      this.categoryRepository.findOne({where: {level: '1', name: 'Игрушки'}}),
+  private popularCategoriesList: Category[] = [];
+
+  async preparePopularCategoriesList() {
+    await Promise.all([
       this.categoryRepository.findOne({
+        select: {id: true, name: true},
+        where: {level: '1', name: 'Посуда'},
+      }),
+      this.categoryRepository.findOne({
+        select: {id: true, name: true},
+        where: {level: '1', name: 'Игрушки'},
+      }),
+      this.categoryRepository.findOne({
+        select: {id: true, name: true},
         where: {level: '1', name: 'Бытовая техника и электроника'},
       }),
-      this.categoryRepository.findOne({where: {level: '1', name: 'Мебель'}}),
-      this.categoryRepository.findOne({where: {level: '1', name: 'Хозтовары'}}),
       this.categoryRepository.findOne({
+        select: {id: true, name: true},
+        where: {level: '1', name: 'Мебель'},
+      }),
+      this.categoryRepository.findOne({
+        select: {id: true, name: true},
+        where: {level: '1', name: 'Хозтовары'},
+      }),
+      this.categoryRepository.findOne({
+        select: {id: true, name: true},
         where: {level: '1', name: 'Канцтовары'},
       }),
       this.categoryRepository.findOne({
+        select: {id: true, name: true},
         where: {level: '1', name: 'Творчество'},
       }),
       this.categoryRepository.findOne({
+        select: {id: true, name: true},
         where: {level: '4', name: 'Товары для красоты и здоровья'},
       }),
-    ]);
+    ]).then((popularCategoriesList) => {
+      this.popularCategoriesList = popularCategoriesList;
+    });
+  }
+
+  getPopularCategoriesList() {
+    return this.popularCategoriesList;
   }
 
   getCategoriesList(level: number, name: string) {

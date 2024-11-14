@@ -10,6 +10,7 @@ import {initializeIndices} from './indices';
 import {DataSource} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {generateSiteMap} from './sitemap';
+import {CategoryService} from './category/category.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +31,10 @@ async function bootstrap() {
   generateSiteMap(app).catch(console.log);
 
   await app.get(OffersService).preloadRandomOffersIds().catch(console.log);
+  await app
+    .get(CategoryService)
+    .preparePopularCategoriesList()
+    .catch(console.log);
   app.get(GeoService).initialize().catch(console.log);
 
   app.enableCors({

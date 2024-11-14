@@ -42,11 +42,11 @@ export class AuthTokenGuard implements CanActivate {
       );
 
       if (payload.userId) {
-        const user = await this.userRepository.findOne({
+        const isUserExist = await this.userRepository.exist({
           where: {id: payload.userId},
         });
 
-        if (!user) {
+        if (!isUserExist) {
           throw new UnauthorizedException();
         }
       }

@@ -2,7 +2,7 @@ import {Inject, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
 import {Category} from 'src/entities/Category';
-import {In, Repository} from 'typeorm';
+import {Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {
   SimaAttribute,
@@ -12,6 +12,8 @@ import {
   SimaOfferCategory,
   SimaOption,
   SimaDataType,
+  SimaItemModifier,
+  SimaModifier,
 } from './types';
 import {Offer} from 'src/entities/Offer';
 import {OfferAttribute} from 'src/entities/OfferAttribute';
@@ -20,13 +22,18 @@ import {getRandomNumber} from 'src/shared/utils/getRandomNumber';
 import {PullHistory} from 'src/entities/PullHistory';
 import {OfferPhoto} from 'src/entities/OfferPhoto';
 import {OffersService} from 'src/offers/offers.service';
+import {CategoryService} from 'src/category/category.service';
+import {Modifier} from 'src/entities/Modifier';
+import {OfferModifier} from 'src/entities/OfferModifier';
 
 interface ISimaApi {
   loadAttribute: (id: number) => Promise<SimaAttribute>;
   loadOption: (id: number) => Promise<SimaOption>;
+  loadModifier: (id: number) => Promise<SimaModifier>;
   loadDataType: (id: number) => Promise<SimaDataType>;
 
   loadAttributes: (page: number) => Promise<SimaAttribute[]>;
+  loadItemModifiers: (page: number) => Promise<SimaItemModifier[]>;
   loadItemAttributes: (page: number) => Promise<SimaItemAttribute[]>;
   loadOffers: (page: number) => Promise<SimaOffer[]>;
   loadCategories: (page: number) => Promise<SimaCategory[]>;
@@ -35,10 +42,12 @@ interface ISimaApi {
 
 class SimaApi implements ISimaApi {
   public loadOption: ISimaApi['loadOption'];
+  public loadModifier: ISimaApi['loadModifier'];
   public loadAttribute: ISimaApi['loadAttribute'];
   public loadDataType: ISimaApi['loadDataType'];
 
   public loadItemAttributes: ISimaApi['loadItemAttributes'];
+  public loadItemModifiers: ISimaApi['loadItemModifiers'];
   public loadAttributes: ISimaApi['loadAttributes'];
   public loadOffers: ISimaApi['loadOffers'];
   public loadCategories: ISimaApi['loadCategories'];
@@ -47,8 +56,11 @@ class SimaApi implements ISimaApi {
   constructor() {
     this.loadAttribute = this.entityLoader<SimaAttribute>('attribute');
     this.loadOption = this.entityLoader<SimaAttribute>('option');
+    this.loadModifier = this.entityLoader<SimaModifier>('modifier');
     this.loadDataType = this.entityLoader<SimaDataType>('data-type');
 
+    this.loadItemModifiers =
+      this.entitiesLoader<SimaItemModifier>('item-modifier');
     this.loadAttributes = this.entitiesLoader<SimaAttribute>('attribute');
     this.loadItemAttributes =
       this.entitiesLoader<SimaItemAttribute>('item-attribute');
@@ -99,14 +111,22 @@ export class PullerService {
   private offerAttributeRepository: Repository<OfferAttribute>;
   @InjectRepository(Attribute)
   private attributeRepository: Repository<Attribute>;
+  @InjectRepository(Modifier)
+  private modifierRepository: Repository<Modifier>;
+  @InjectRepository(OfferModifier)
+  private offerModifierRepository: Repository<OfferModifier>;
 
   @InjectRepository(PullHistory)
   private pullHistoryRepository: Repository<PullHistory>;
 
   @Inject(OffersService)
   private offersService: OffersService;
+  @Inject(CategoryService)
+  private categoryService: CategoryService;
 
   private simaApi: SimaApi;
+
+  private moreThanOneQuantityOffersCount = 0;
 
   constructor(private configService: ConfigService) {
     this.simaApi = new SimaApi();
@@ -130,7 +150,7 @@ export class PullerService {
     await this.functionWorkTimeLogger(
       async function loadOffers() {
         await Promise.all(
-          [5000, 15000, 25000, 45000, 65000, 75000].map(
+          [5000, 15000, 25000, 35000, 45000, 55000, 65000, 75000].map(
             this.fillOffers.bind(this),
           ),
         );
@@ -142,8 +162,15 @@ export class PullerService {
       );
     }
     await this.functionWorkTimeLogger(this.fillAttributes.bind(this));
+    await this.functionWorkTimeLogger(this.fillModifiers.bind(this));
 
-    this.offersService.preloadRandomOffersIds();
+    console.log(
+      'moreThanOneQuantityOffersCount',
+      this.moreThanOneQuantityOffersCount,
+    );
+
+    this.offersService.preloadRandomOffersIds().catch(console.log);
+    this.categoryService.preparePopularCategoriesList().catch(console.log);
 
     if (!this.isDebug) {
       await this.pullHistoryRepository.update(
@@ -303,8 +330,52 @@ export class PullerService {
         800_000,
       ].map((startPage) => loadAttributesFromPage(startPage)),
     );
+  }
 
-    console.log('Attributes loading done!');
+  async fillModifiers() {
+    const offerModifiersCount = await this.offerModifierRepository.count();
+    const hasBeenUpdatedMoreThanDayAgo =
+      await this.getHasBeenUpdatedMoreThanDayAgo();
+    if (offerModifiersCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo)
+      return;
+
+    await this.offerModifierRepository.clear();
+
+    const iterations = this.isDebug ? 2 : 27000;
+
+    for (let i = 0; i < iterations; i++) {
+      const loadedOfferModifiers = await this.simaApi.loadItemModifiers(i);
+
+      if (loadedOfferModifiers.length === 0) break;
+
+      for (const offerModifier of loadedOfferModifiers) {
+        const offer = await this.offerRepository.findOne({
+          select: {id: true},
+          where: {simaid: offerModifier.item_id},
+        });
+
+        if (offer) {
+          const modifier = await this.simaApi.loadModifier(
+            offerModifier.modifier_id,
+          );
+
+          await this.modifierRepository.upsert(
+            {
+              id: modifier.id,
+              name: modifier.name,
+            },
+            ['id'],
+          );
+
+          await this.offerModifierRepository.insert({
+            id: offerModifier.id,
+            offerId: offer.id,
+            modifierId: offerModifier.modifier_id,
+            value: offerModifier.value,
+          });
+        }
+      }
+    }
   }
 
   async fillOffers(initialPage: number) {
@@ -334,25 +405,11 @@ export class PullerService {
         );
       });
 
-      const notExistingOffers = rawOffers.filter(
-        (offer) => offer.balance === '0',
-      );
-
-      const isNotExistingOffersExistsInDb =
-        (await this.offerRepository.count({
-          where: {simaid: In(notExistingOffers.map((offer) => offer.id))},
-        })) > 0;
-
-      if (isNotExistingOffersExistsInDb) {
-        try {
-          await this.offerRepository.delete({
-            simaid: In(notExistingOffers.map((offer) => offer.id)),
-          });
-          // eslint-disable-next-line no-empty
-        } catch {}
-      }
-
       if (rawOffers.length === 0) break;
+
+      this.moreThanOneQuantityOffersCount += filteredOffers.filter(
+        (offer) => offer.minimum_order_quantity > 1,
+      ).length;
 
       try {
         const {identifiers} = await this.offerRepository.upsert(

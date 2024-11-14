@@ -113,6 +113,7 @@ export class BasketService {
     return this.basketItemRepository.findOne({
       select: {id: true, updatedAt: true},
       where: {userId},
+      loadEagerRelations: false,
       order: {updatedAt: 'DESC'},
     });
   }
@@ -120,7 +121,7 @@ export class BasketService {
   public getUserBasket(userId: number) {
     return this.basketItemRepository
       .find({
-        where: {user: {id: userId}},
+        where: {userId},
         relations: {group: {offer: true, owner: true}, offer: true},
       })
       .then((basketItems) => {
@@ -138,8 +139,8 @@ export class BasketService {
 
   public getUserBasketItemsCount(userId: number) {
     return this.basketItemRepository.count({
-      where: {user: {id: userId}},
-      relations: {group: {offer: true, owner: true}, offer: true},
+      where: {userId},
+      loadEagerRelations: false,
     });
   }
 
