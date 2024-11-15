@@ -30,6 +30,8 @@ import {AttributesModule} from './attributes/attributes.module';
 import {PullHistory} from './entities/PullHistory';
 import {OfferPhoto} from './entities/OfferPhoto';
 import {FavoriteOffer} from './entities/FavoriteOffer';
+import {Modifier} from './entities/Modifier';
+import {OfferModifier} from './entities/OfferModifier';
 
 @Module({
   imports: [
@@ -64,6 +66,8 @@ import {FavoriteOffer} from './entities/FavoriteOffer';
           BasketItem,
           Order,
           City,
+          Modifier,
+          OfferModifier,
           PickupPoint,
           PullHistory,
         ],

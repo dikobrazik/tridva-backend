@@ -2,7 +2,7 @@ import {Inject, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
 import {Category} from 'src/entities/Category';
-import {Repository} from 'typeorm';
+import {In, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {
   SimaAttribute,
@@ -270,18 +270,28 @@ export class PullerService {
       return;
 
     const loadAttributesFromPage = async (startPage: number) => {
-      const iterations = this.isDebug ? 2 : 100_000;
+      const iterations = this.isDebug ? startPage + 2 : startPage + 100_000;
 
       for (let i = startPage; i < iterations; i++) {
         const loadedOfferAttributes = await this.simaApi.loadItemAttributes(i);
 
+        const offers = await this.offerRepository.find({
+          select: {id: true, simaid: true},
+          where: {
+            simaid: In(
+              loadedOfferAttributes.map(
+                (offerAttribute) => offerAttribute.item_id,
+              ),
+            ),
+          },
+        });
+
         if (loadedOfferAttributes.length === 0) break;
 
         for (const offerAttribute of loadedOfferAttributes) {
-          const offer = await this.offerRepository.findOne({
-            select: {id: true},
-            where: {simaid: offerAttribute.item_id},
-          });
+          const offer = offers.find(
+            (offer) => offer.simaid === offerAttribute.item_id,
+          );
 
           if (offer) {
             const attribute = await this.simaApi.loadAttribute(
@@ -326,8 +336,9 @@ export class PullerService {
 
     await Promise.all(
       [
-        1, 100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000,
-        800_000,
+        1, 50_000, 100_000, 150_000, 200_000, 250_000, 300_000, 350_000,
+        400_000, 450_000, 500_000, 550_000, 600_000, 650_000, 700_000, 750_000,
+        800_000, 850_000,
       ].map((startPage) => loadAttributesFromPage(startPage)),
     );
   }
@@ -343,16 +354,26 @@ export class PullerService {
 
     const iterations = this.isDebug ? 2 : 27000;
 
-    for (let i = 0; i < iterations; i++) {
+    for (let i = 1; i < iterations; i++) {
       const loadedOfferModifiers = await this.simaApi.loadItemModifiers(i);
+
+      const offers = await this.offerRepository.find({
+        select: {id: true, simaid: true},
+        where: {
+          simaid: In(
+            loadedOfferModifiers.map(
+              (offerAttribute) => offerAttribute.item_id,
+            ),
+          ),
+        },
+      });
 
       if (loadedOfferModifiers.length === 0) break;
 
       for (const offerModifier of loadedOfferModifiers) {
-        const offer = await this.offerRepository.findOne({
-          select: {id: true},
-          where: {simaid: offerModifier.item_id},
-        });
+        const offer = offers.find(
+          (offer) => offer.simaid === offerModifier.item_id,
+        );
 
         if (offer) {
           const modifier = await this.simaApi.loadModifier(
