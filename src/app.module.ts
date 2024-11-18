@@ -37,6 +37,14 @@ import {JwtModule} from '@nestjs/jwt';
 @Module({
   imports: [
     AuthorizationModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      global: true,
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.getOrThrow('SC'),
+      }),
+    }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -78,13 +86,6 @@ import {JwtModule} from '@nestjs/jwt';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
-    }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.getOrThrow('SC'),
-      }),
     }),
     OffersModule,
     ReviewsModule,
