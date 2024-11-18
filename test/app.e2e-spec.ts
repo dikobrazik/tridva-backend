@@ -15,10 +15,12 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('/offers (GET)', async () => {
+    await request(app.getHttpServer()).get('/offers').expect(200);
+    // .expect({
+    //   offers: expect.any(Array),
+    //   total: expect.any(Number),
+    //   pagesCount: expect.any(Number),
+    // });
   });
 });

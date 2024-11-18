@@ -27,6 +27,18 @@ export class GroupsService {
     return groupId;
   }
 
+  public async moveGroupsFromUserToUser(
+    fromUserId: number,
+    toUserId: number,
+  ): Promise<void> {
+    await this.groupRepository.update(
+      {ownerId: fromUserId},
+      {
+        ownerId: toUserId,
+      },
+    );
+  }
+
   public async getUserGroups(userId: number): Promise<Group[]> {
     const orders = await this.orderRepository.find({
       select: {groupId: true},

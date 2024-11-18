@@ -1,14 +1,15 @@
 import {Inject, Injectable} from '@nestjs/common';
 import {JwtService} from '@nestjs/jwt';
-import {InjectRepository} from '@nestjs/typeorm';
+import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {User} from 'src/entities/User';
 import {SignatureContent} from 'src/shared/types';
-import {Repository} from 'typeorm';
+import {DataSource, Repository} from 'typeorm';
 import {CheckCodeDto} from './dtos';
 import {Profile} from 'src/entities/Profile';
 import {ConfigService} from '@nestjs/config';
 import {getRandomName} from 'src/shared/utils/getRandomName';
 import {BasketService} from 'src/basket/basket.service';
+import {GroupsService} from 'src/groups/groups.service';
 
 @Injectable()
 export class AuthorizationService {
@@ -17,10 +18,15 @@ export class AuthorizationService {
   @InjectRepository(Profile)
   private profileRepository: Repository<Profile>;
 
+  @InjectDataSource()
+  private dataSource: DataSource;
+
   @Inject(ConfigService)
   private configService: ConfigService;
   @Inject(BasketService)
   private basketService: BasketService;
+  @Inject(GroupsService)
+  private groupsService: GroupsService;
   @Inject(JwtService)
   private jwtService: JwtService;
 
@@ -69,24 +75,42 @@ export class AuthorizationService {
     const existingUserId = existingUser?.id;
 
     if (existingUserId) {
-      const user = await this.userRepository.findOne({
-        where: {id: userId},
-        relations: {profile: true},
-      });
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.startTransaction();
 
-      await this.basketService.moveItemsFromUserToUser(userId, existingUserId);
+      try {
+        const user = await this.userRepository.findOne({
+          where: {id: userId},
+          relations: {profile: true},
+        });
 
-      await Promise.all([
-        this.userRepository.delete(userId),
-        this.profileRepository.delete(user.profile.id),
-      ]);
+        await this.basketService.moveItemsFromUserToUser(
+          userId,
+          existingUserId,
+        );
+        await this.groupsService.moveGroupsFromUserToUser(
+          userId,
+          existingUserId,
+        );
 
-      return {
-        profile: existingUser.profile,
-        access_token: await this.jwtService.signAsync({
-          userId: existingUserId,
-        } as SignatureContent),
-      };
+        await Promise.all([
+          this.userRepository.delete(userId),
+          this.profileRepository.delete(user.profile.id),
+        ]);
+
+        await queryRunner.commitTransaction();
+
+        return {
+          profile: existingUser.profile,
+          access_token: await this.jwtService.signAsync({
+            userId: existingUserId,
+          } as SignatureContent),
+        };
+      } catch {
+        await queryRunner.rollbackTransaction();
+      } finally {
+        await queryRunner.release();
+      }
     } else {
       await this.userRepository.update(userId, {
         phone,
