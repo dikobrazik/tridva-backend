@@ -6,7 +6,7 @@ import {
   GetReviewsDto,
   GetReviewsTotalDto,
 } from './dto';
-import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {ApiTags} from '@nestjs/swagger';
 import {UserId} from 'src/shared/decorators/UserId';
 

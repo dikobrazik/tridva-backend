@@ -2,6 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {BasketItem} from 'src/entities/BasketItem';
 import {Group} from 'src/entities/Group';
+import {User} from 'src/entities/User';
 import {DataSource, Repository} from 'typeorm';
 
 @Injectable()
@@ -142,6 +143,15 @@ export class BasketService {
       where: {userId},
       loadEagerRelations: false,
     });
+  }
+
+  public moveItemsFromUserToUser(fromUserId: number, toUserId: number) {
+    return this.basketItemRepository.update(
+      {userId: fromUserId},
+      {
+        userId: toUserId,
+      },
+    );
   }
 
   private getBasketItemOffer(basketItem: BasketItem) {

@@ -9,5 +9,6 @@ import {PickupPoint} from 'src/entities/PickupPoint';
   imports: [TypeOrmModule.forFeature([City, PickupPoint])],
   controllers: [GeoController],
   providers: [GeoService],
+  exports: [GeoService],
 })
 export class GeoModule {}

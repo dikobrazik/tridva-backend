@@ -24,7 +24,7 @@ import {
   OfferCountParams,
   GetBasketItemByOfferIdPayload,
 } from './dtos';
-import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {UserId} from 'src/shared/decorators/UserId';
 
 @UseGuards(AuthTokenGuard)

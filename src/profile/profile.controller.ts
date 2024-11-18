@@ -1,7 +1,7 @@
 import {Body, Controller, Inject, Patch, UseGuards} from '@nestjs/common';
 import {ApiBody} from '@nestjs/swagger';
 import {UpdateProfileDto} from './dtos';
-import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {ProfileService} from './profile.service';
 import {UserId} from 'src/shared/decorators/UserId';
 

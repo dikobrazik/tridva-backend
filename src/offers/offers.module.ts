@@ -5,14 +5,12 @@ import {TypeOrmModule} from '@nestjs/typeorm';
 import {Offer} from 'src/entities/Offer';
 import {Category} from 'src/entities/Category';
 import {CategoryService} from 'src/category/category.service';
-import {GroupsService} from 'src/groups/groups.service';
 import {Group} from 'src/entities/Group';
 import {BasketItem} from 'src/entities/BasketItem';
 import {AttributesModule} from 'src/attributes/attributes.module';
 import {FavoriteOffer} from 'src/entities/FavoriteOffer';
-import {JwtModule} from '@nestjs/jwt';
-import {User} from 'src/entities/User';
 import {FavoriteOffersService} from './favoriteOffers.service';
+import {GroupsModule} from 'src/groups/groups.module';
 
 @Module({
   imports: [
@@ -22,18 +20,12 @@ import {FavoriteOffersService} from './favoriteOffers.service';
       Group,
       BasketItem,
       FavoriteOffer,
-      User,
     ]),
     AttributesModule,
-    JwtModule,
+    GroupsModule,
   ],
   controllers: [OffersController],
-  providers: [
-    OffersService,
-    FavoriteOffersService,
-    CategoryService,
-    GroupsService,
-  ],
+  providers: [OffersService, FavoriteOffersService, CategoryService],
   exports: [OffersService],
 })
 export class OffersModule {}

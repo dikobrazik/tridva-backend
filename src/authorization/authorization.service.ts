@@ -8,6 +8,7 @@ import {CheckCodeDto} from './dtos';
 import {Profile} from 'src/entities/Profile';
 import {ConfigService} from '@nestjs/config';
 import {getRandomName} from 'src/shared/utils/getRandomName';
+import {BasketService} from 'src/basket/basket.service';
 
 @Injectable()
 export class AuthorizationService {
@@ -18,6 +19,8 @@ export class AuthorizationService {
 
   @Inject(ConfigService)
   private configService: ConfigService;
+  @Inject(BasketService)
+  private basketService: BasketService;
   @Inject(JwtService)
   private jwtService: JwtService;
 
@@ -71,9 +74,7 @@ export class AuthorizationService {
         relations: {profile: true},
       });
 
-      await this.userRepository.update(existingUserId, {
-        phone,
-      });
+      await this.basketService.moveItemsFromUserToUser(userId, existingUserId);
 
       await Promise.all([
         this.userRepository.delete(userId),

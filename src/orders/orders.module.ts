@@ -3,9 +3,11 @@ import {OrdersController} from './orders.controller';
 import {OrdersService} from './orders.service';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {Order} from 'src/entities/Order';
+import {BasketItem} from 'src/entities/BasketItem';
+import {GeoModule} from 'src/geo/geo.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order])],
+  imports: [GeoModule, TypeOrmModule.forFeature([Order, BasketItem])],
   controllers: [OrdersController],
   providers: [OrdersService],
 })

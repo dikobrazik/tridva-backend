@@ -1,6 +1,6 @@
-import {Body, Controller, Inject, Post, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Inject, Post, UseGuards} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
-import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {CreateGroupOrderDto} from './dto';
 import {GroupsService} from './groups.service';
 import {BasketService} from 'src/basket/basket.service';
@@ -24,5 +24,10 @@ export class GroupsController {
     const groupId = await this.groupsService.createGroup(body.offerId, userId);
 
     await this.basketService.addGroupToBasket(userId, groupId);
+  }
+
+  @Get()
+  getUserGroups(@UserId() userId: number) {
+    return this.groupsService.getUserGroups(userId);
   }
 }

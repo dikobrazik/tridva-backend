@@ -47,4 +47,10 @@ export class GeoService {
       where: {city: {id: cityId}},
     });
   }
+
+  getIsPickupPointExist(pickupPointId: number) {
+    return this.pickupPointRepository.exist({
+      where: {id: pickupPointId},
+    });
+  }
 }

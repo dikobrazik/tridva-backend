@@ -12,7 +12,7 @@ import {OffersService} from './offers.service';
 import {ApiTags} from '@nestjs/swagger';
 import {GroupsService} from 'src/groups/groups.service';
 import {AttributesService} from 'src/attributes/attributes.service';
-import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {FavoriteOffersService} from './favoriteOffers.service';
 import {UserId} from 'src/shared/decorators/UserId';
 

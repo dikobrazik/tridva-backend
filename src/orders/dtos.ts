@@ -1,28 +1,7 @@
 import {Type} from 'class-transformer';
-import {
-  IsEmail,
-  IsMobilePhone,
-  Min,
-  MinLength,
-  ValidateNested,
-} from 'class-validator';
+import {Min} from 'class-validator';
 
-export class UserInfo {
-  @MinLength(2)
-  name: string;
-
-  @IsEmail()
-  email: string;
-
-  @IsMobilePhone('ru-RU')
-  phone: string;
-}
-
-export class ProcessOrderDto {
-  @ValidateNested()
-  @Type(() => UserInfo)
-  userInfo: UserInfo;
-
+export class CreateOrderDto {
   @Min(1)
   @Type(() => Number)
   pickupPointId: number;

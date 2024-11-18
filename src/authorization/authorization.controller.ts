@@ -11,7 +11,7 @@ import {AuthorizationService} from './authorization.service';
 import {ApiTags} from '@nestjs/swagger';
 import {CheckCodeDto, GetCodeDto} from './dtos';
 import {Response} from 'express';
-import {AuthTokenGuard} from 'src/guards/auth-token.guard';
+import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {UserId} from 'src/shared/decorators/UserId';
 import {Token} from 'src/shared/decorators/Token';
 

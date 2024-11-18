@@ -1,4 +1,11 @@
-import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import {PickupPoint} from './PickupPoint';
 
 @Entity()
 export class Profile {
@@ -16,4 +23,11 @@ export class Profile {
 
   @Column({nullable: true})
   sex: string;
+
+  @ManyToOne(() => PickupPoint, {nullable: true})
+  @JoinColumn({name: 'lastSelectedPickupPointId'})
+  lastSelectedPickupPoint: PickupPoint;
+
+  @Column({nullable: true})
+  lastSelectedPickupPointId: string;
 }

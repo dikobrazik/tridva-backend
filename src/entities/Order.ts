@@ -4,8 +4,8 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import {Group} from './Group';
 import {Offer} from './Offer';
@@ -14,7 +14,7 @@ import {PickupPoint} from './PickupPoint';
 
 export enum OrderStatus {
   CREATED,
-  PROCESSED,
+  PAID,
   IN_DELIVERY,
   DELIVERED,
 }
@@ -24,24 +24,36 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => Group)
-  @JoinColumn()
-  group: string | null;
+  @ManyToOne(() => Group)
+  @JoinColumn({name: 'groupId'})
+  group: Group | null;
+
+  @Column({nullable: true})
+  groupId: number | null;
 
   @ManyToOne(() => Offer)
-  @JoinColumn()
-  offer: string | null;
+  @JoinColumn({name: 'offerId'})
+  offer: Offer | null;
+
+  @Column({nullable: true})
+  offerId: number | null;
 
   @ManyToOne(() => User)
-  @JoinColumn()
-  user: string;
+  @JoinColumn({name: 'userId'})
+  user: User;
+
+  @Column()
+  userId: number;
 
   @ManyToOne(() => PickupPoint)
-  @JoinColumn()
+  @JoinColumn({name: 'pickupPointId'})
   pickupPoint: PickupPoint;
 
   @Column()
-  offersCount: number;
+  pickupPointId: number;
+
+  @Column()
+  count: number;
 
   @Column({
     type: 'enum',
@@ -52,4 +64,7 @@ export class Order {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

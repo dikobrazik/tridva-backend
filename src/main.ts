@@ -3,7 +3,7 @@ import {AppModule} from './app.module';
 import {ValidationPipe} from '@nestjs/common';
 import {setupSwagger} from './swagger';
 import {PullerService} from './puller/puller.service';
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 import {OffersService} from './offers/offers.service';
 import {GeoService} from './geo/geo.service';
 import {initializeIndices} from './indices';

@@ -1,25 +1,23 @@
-import {Module} from '@nestjs/common';
+import {Global, Module} from '@nestjs/common';
 import {AuthorizationController} from './authorization.controller';
 import {AuthorizationService} from './authorization.service';
 import {TypeOrmModule} from '@nestjs/typeorm';
 import {User} from 'src/entities/User';
-import {JwtModule} from '@nestjs/jwt';
-import {ConfigModule, ConfigService} from '@nestjs/config';
+import {JwtService} from '@nestjs/jwt';
 import {Profile} from 'src/entities/Profile';
+import {ConfigService} from '@nestjs/config';
+import {BasketModule} from 'src/basket/basket.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, Profile]),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.getOrThrow('SC'),
-      }),
-    }),
-  ],
+  imports: [BasketModule, TypeOrmModule.forFeature([User, Profile])],
   controllers: [AuthorizationController],
-  providers: [AuthorizationService],
-  exports: [AuthorizationService],
+  providers: [AuthorizationService, ConfigService, JwtService],
+  exports: [
+    AuthorizationService,
+    JwtService,
+    TypeOrmModule.forFeature([User]),
+    ConfigService,
+  ],
 })
+@Global()
 export class AuthorizationModule {}

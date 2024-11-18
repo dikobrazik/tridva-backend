@@ -83,7 +83,7 @@ export class Offer {
 
   @VirtualColumn({
     query: (alias) =>
-      `SELECT COUNT(*) FROM "group" WHERE "offerId" = ${alias}.id AND "capacity" > 1`,
+      `SELECT COUNT(*) FROM "group" WHERE "offerId" = ${alias}.id AND "capacity" > 1 AND (SELECT COUNT(*) FROM "order" WHERE "order"."groupId" = "group".id) > 0`,
   })
   groupsCount: number;
 

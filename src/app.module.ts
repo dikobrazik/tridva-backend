@@ -32,6 +32,7 @@ import {OfferPhoto} from './entities/OfferPhoto';
 import {FavoriteOffer} from './entities/FavoriteOffer';
 import {Modifier} from './entities/Modifier';
 import {OfferModifier} from './entities/OfferModifier';
+import {JwtModule} from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -77,6 +78,13 @@ import {OfferModifier} from './entities/OfferModifier';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.getOrThrow('SC'),
+      }),
     }),
     OffersModule,
     ReviewsModule,
