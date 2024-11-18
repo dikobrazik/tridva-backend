@@ -61,6 +61,12 @@ export class Offer {
   @Column({type: 'int', nullable: true})
   ordersCount: number;
 
+  @Column({type: 'int', nullable: true})
+  minOrderQty: number;
+
+  @Column({type: 'int', nullable: true})
+  qtyMultiplier: number;
+
   @ManyToOne(() => Category)
   @JoinColumn({name: 'categoryId'})
   category: Category;

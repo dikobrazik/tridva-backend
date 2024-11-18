@@ -126,8 +126,6 @@ export class PullerService {
 
   private simaApi: SimaApi;
 
-  private moreThanOneQuantityOffersCount = 0;
-
   constructor(private configService: ConfigService) {
     this.simaApi = new SimaApi();
   }
@@ -163,11 +161,6 @@ export class PullerService {
     }
     await this.functionWorkTimeLogger(this.fillAttributes.bind(this));
     await this.functionWorkTimeLogger(this.fillModifiers.bind(this));
-
-    console.log(
-      'moreThanOneQuantityOffersCount',
-      this.moreThanOneQuantityOffersCount,
-    );
 
     this.offersService.preloadRandomOffersIds().catch(console.log);
     this.categoryService.preparePopularCategoriesList().catch(console.log);
@@ -269,34 +262,42 @@ export class PullerService {
     if (offerAttributesCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo)
       return;
 
+    const offers: Record<number, Offer> = await this.offerRepository
+      .find({
+        select: {id: true, simaid: true},
+      })
+      .then((o) =>
+        o.reduce((acc, offer) => {
+          acc[offer.simaid] = offer;
+          return acc;
+        }, {}),
+      );
+
+    const attributes = {};
+
+    for (let i = 1; i < 500; i++) {
+      const loadedAttributes = await this.simaApi.loadAttributes(i);
+
+      if (loadedAttributes.length === 0) break;
+
+      for (const attribute of loadedAttributes) {
+        attributes[attribute.id] = attribute;
+      }
+    }
+
     const loadAttributesFromPage = async (startPage: number) => {
       const iterations = this.isDebug ? startPage + 2 : startPage + 100_000;
 
       for (let i = startPage; i < iterations; i++) {
         const loadedOfferAttributes = await this.simaApi.loadItemAttributes(i);
 
-        const offers = await this.offerRepository.find({
-          select: {id: true, simaid: true},
-          where: {
-            simaid: In(
-              loadedOfferAttributes.map(
-                (offerAttribute) => offerAttribute.item_id,
-              ),
-            ),
-          },
-        });
-
         if (loadedOfferAttributes.length === 0) break;
 
         for (const offerAttribute of loadedOfferAttributes) {
-          const offer = offers.find(
-            (offer) => offer.simaid === offerAttribute.item_id,
-          );
+          const offer = offers[offerAttribute.item_id];
 
           if (offer) {
-            const attribute = await this.simaApi.loadAttribute(
-              offerAttribute.attribute_id,
-            );
+            const attribute = attributes[offerAttribute.attribute_id];
 
             let attributeValue: string = '';
 
@@ -428,10 +429,6 @@ export class PullerService {
 
       if (rawOffers.length === 0) break;
 
-      this.moreThanOneQuantityOffersCount += filteredOffers.filter(
-        (offer) => offer.minimum_order_quantity > 1,
-      ).length;
-
       try {
         const {identifiers} = await this.offerRepository.upsert(
           filteredOffers.map((offer) => {
@@ -449,6 +446,8 @@ export class PullerService {
               price,
               categoryId: offer.category_id,
               photos: null,
+              minOrderQty: offer.minimum_order_quantity,
+              qtyMultiplier: offer.qty_multiplier,
               ordersCount: getRandomNumber(100, 300),
             };
 
