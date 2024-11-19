@@ -62,6 +62,7 @@ export class OffersService {
           .split(' ')
           .join(' & ')}')`,
       )
+      .leftJoinAndSelect('offer.photos', 'offer_photo')
       .skip(skip)
       .take(take)
       .getManyAndCount();
