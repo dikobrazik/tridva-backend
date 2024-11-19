@@ -257,10 +257,7 @@ export class PullerService {
 
   async fillAttributes() {
     const offerAttributesCount = await this.offerAttributeRepository.count();
-    const hasBeenUpdatedMoreThanDayAgo =
-      await this.getHasBeenUpdatedMoreThanDayAgo();
-    if (offerAttributesCount && !this.isDebug && !hasBeenUpdatedMoreThanDayAgo)
-      return;
+    if (offerAttributesCount && !this.isDebug) return;
 
     const offers: Record<number, Offer> = await this.offerRepository
       .find({
