@@ -48,12 +48,6 @@ export class OffersController {
     return this.offersService.getRandomOffersList(query.page, query.pageSize);
   }
 
-  @Get(':id')
-  @Header('Cache-Control', 'max-age=20, public')
-  getOffer(@Param() params: SearchOfferDto) {
-    return this.offersService.getOfferById(params.id);
-  }
-
   @Get('favorite')
   @UseGuards(AuthTokenGuard)
   getFavoriteOffers(@UserId() userId: number) {
@@ -66,6 +60,12 @@ export class OffersController {
     return this.favoriteOffersService
       .getFavoriteOffers(userId)
       .then((offers) => offers.map((offer) => offer.id));
+  }
+
+  @Get(':id')
+  @Header('Cache-Control', 'max-age=20, public')
+  getOffer(@Param() params: SearchOfferDto) {
+    return this.offersService.getOfferById(params.id);
   }
 
   @Get(':id/favorite')

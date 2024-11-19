@@ -2,6 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {FavoriteOffer} from 'src/entities/FavoriteOffer';
 import {Offer} from 'src/entities/Offer';
+import {LIST_OFFER_VIEW} from 'src/entity-views/offer';
 import {Repository} from 'typeorm';
 
 @Injectable()
@@ -23,7 +24,7 @@ export class FavoriteOffersService {
   async getFavoriteOffers(userId: number) {
     return this.favoriteOffersRepository
       .find({
-        select: {offer: {id: true}},
+        select: {offer: LIST_OFFER_VIEW},
         where: {
           userId,
         },
@@ -32,6 +33,15 @@ export class FavoriteOffersService {
       .then((favoriteOffers) =>
         favoriteOffers.map((favoriteOffer) => favoriteOffer.offer),
       );
+  }
+
+  async moveFavoriteOffersFromUserToUser(fromUserId: number, toUserId: number) {
+    return this.favoriteOffersRepository.update(
+      {
+        userId: fromUserId,
+      },
+      {userId: toUserId},
+    );
   }
 
   async addFavoriteOffer(offerId: Offer['id'], userId: number) {

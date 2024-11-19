@@ -7,11 +7,13 @@ import {Profile} from 'src/entities/Profile';
 import {ConfigService} from '@nestjs/config';
 import {BasketModule} from 'src/basket/basket.module';
 import {GroupsModule} from 'src/groups/groups.module';
+import {OffersModule} from 'src/offers/offers.module';
 
 @Module({
   imports: [
     BasketModule,
     GroupsModule,
+    OffersModule,
     TypeOrmModule.forFeature([User, Profile]),
   ],
   controllers: [AuthorizationController],

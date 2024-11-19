@@ -10,6 +10,7 @@ import {ConfigService} from '@nestjs/config';
 import {getRandomName} from 'src/shared/utils/getRandomName';
 import {BasketService} from 'src/basket/basket.service';
 import {GroupsService} from 'src/groups/groups.service';
+import {FavoriteOffersService} from 'src/offers/favoriteOffers.service';
 
 @Injectable()
 export class AuthorizationService {
@@ -27,6 +28,8 @@ export class AuthorizationService {
   private basketService: BasketService;
   @Inject(GroupsService)
   private groupsService: GroupsService;
+  @Inject(FavoriteOffersService)
+  private favoriteOffersService: FavoriteOffersService;
   @Inject(JwtService)
   private jwtService: JwtService;
 
@@ -89,6 +92,11 @@ export class AuthorizationService {
           existingUserId,
         );
         await this.groupsService.moveGroupsFromUserToUser(
+          userId,
+          existingUserId,
+        );
+
+        await this.favoriteOffersService.moveFavoriteOffersFromUserToUser(
           userId,
           existingUserId,
         );

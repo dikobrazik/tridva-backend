@@ -8,17 +8,7 @@ import {
 import {Offer} from 'src/entities/Offer';
 import {In, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
-
-const OFFER_SELECT_FIELDS = {
-  id: true,
-  title: true,
-  photos: true,
-  price: true,
-  discount: true,
-  reviewsCount: true,
-  ordersCount: true,
-  rating: true,
-};
+import {LIST_OFFER_VIEW} from 'src/entity-views/offer';
 
 @Injectable()
 export class OffersService {
@@ -47,7 +37,7 @@ export class OffersService {
     const {skip, take} = getPaginationFields(page, pageSize);
     const offers = await this.offerRepository
       .find({
-        select: OFFER_SELECT_FIELDS,
+        select: LIST_OFFER_VIEW,
         where: {id: In(this.randomOffersIds.slice(skip, skip + take))},
       })
       .then((offers) =>
@@ -65,9 +55,7 @@ export class OffersService {
     const [offers, count] = await this.offerRepository
       .createQueryBuilder('offer')
       .select(
-        Object.keys(OFFER_SELECT_FIELDS).map(
-          (fieldName) => `offer.${fieldName}`,
-        ),
+        Object.keys(LIST_OFFER_VIEW).map((fieldName) => `offer.${fieldName}`),
       )
       .where(
         `to_tsvector('russian', offer.title || ' ' || offer.description) @@ to_tsquery('russian', '${search
@@ -88,7 +76,7 @@ export class OffersService {
   ) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const [offers, count] = await this.offerRepository.findAndCount({
-      select: OFFER_SELECT_FIELDS,
+      select: LIST_OFFER_VIEW,
       where: {
         categoryId: In(await this.getCategoryIds(categoryId)),
       },

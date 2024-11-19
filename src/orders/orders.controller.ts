@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Inject,
   Post,
   UseGuards,
@@ -34,5 +35,11 @@ export class OrdersController {
     }
 
     await this.ordersService.createOrder(createOrderBody, userId);
+  }
+
+  @Get()
+  @UseGuards(AuthTokenGuard)
+  async getUserOrders(@UserId() userId: number) {
+    return this.ordersService.getUserOrders(userId);
   }
 }

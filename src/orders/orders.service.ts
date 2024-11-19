@@ -1,7 +1,7 @@
 import {Injectable, InternalServerErrorException} from '@nestjs/common';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {Order, OrderStatus} from 'src/entities/Order';
-import {DataSource, In, ObjectLiteral, Repository} from 'typeorm';
+import {DataSource, In, IsNull, ObjectLiteral, Repository} from 'typeorm';
 import {CreateOrderDto} from './dtos';
 import {BasketItem} from 'src/entities/BasketItem';
 import {QueryDeepPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
@@ -16,6 +16,13 @@ export class OrdersService {
 
   @InjectDataSource()
   private dataSource: DataSource;
+
+  public async getUserOrders(userId: number) {
+    return this.ordersRepository.find({
+      where: {userId, groupId: IsNull(), status: OrderStatus.PAID},
+      relations: {offer: true, pickupPoint: true},
+    });
+  }
 
   public async createOrder(createOrderDto: CreateOrderDto, userId: number) {
     let createdOrdersIdentifiers: ObjectLiteral[] = [];

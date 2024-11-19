@@ -2,7 +2,6 @@ import {Injectable} from '@nestjs/common';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {BasketItem} from 'src/entities/BasketItem';
 import {Group} from 'src/entities/Group';
-import {User} from 'src/entities/User';
 import {DataSource, Repository} from 'typeorm';
 
 @Injectable()

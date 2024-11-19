@@ -4,10 +4,12 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
   VirtualColumn,
 } from 'typeorm';
 import {Category} from './Category';
+import {OfferPhoto} from './OfferPhoto';
 
 @Entity()
 export class Offer {
@@ -33,21 +35,8 @@ export class Offer {
   @Column({type: 'decimal', nullable: true})
   discount: number;
 
-  @Column({
-    nullable: true,
-    transformer: {
-      to(photos: string[]) {
-        return photos.join('|');
-      },
-      from(photos: string) {
-        if (photos) {
-          return photos.split('|');
-        }
-        return photos;
-      },
-    },
-  })
-  photos?: string;
+  @OneToOne(() => OfferPhoto, (offerPhoto) => offerPhoto.offer, {eager: true})
+  photos?: OfferPhoto;
 
   @VirtualColumn({
     query: (alias) =>
