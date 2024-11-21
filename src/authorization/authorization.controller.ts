@@ -14,12 +14,15 @@ import {Response} from 'express';
 import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {UserId} from 'src/shared/decorators/UserId';
 import {Token} from 'src/shared/decorators/Token';
+import {AuthenticationService} from './authentication.service';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthorizationController {
   @Inject(AuthorizationService)
-  private authService: AuthorizationService;
+  private authorizationService: AuthorizationService;
+  @Inject(AuthenticationService)
+  private authenticationService: AuthenticationService;
 
   @Post('/check')
   async checkUserToken(
@@ -29,10 +32,12 @@ export class AuthorizationController {
     response.statusCode = HttpStatus.OK;
 
     if (token) {
-      const user = await this.authService.getTokenUser(token);
+      const user = await this.authorizationService.getTokenUser(token);
 
       if (user) {
-        const isAnonymous = await this.authService.isUserAnonymous(user);
+        const isAnonymous = await this.authorizationService.isUserAnonymous(
+          user,
+        );
 
         const {phone, profile} = user;
 
@@ -41,7 +46,7 @@ export class AuthorizationController {
     }
 
     const {access_token, phone, profile} =
-      await this.authService.createAnonymous();
+      await this.authorizationService.createAnonymous();
 
     response.cookie('token', access_token);
 
@@ -50,7 +55,7 @@ export class AuthorizationController {
 
   @Post('/get-code')
   getCode(@Body() getCodeBody: GetCodeDto) {
-    return this.authService.sendCode(getCodeBody.phone);
+    return this.authenticationService.sendCode(getCodeBody.phone);
   }
 
   @Post('/check-code')
@@ -60,7 +65,7 @@ export class AuthorizationController {
     @UserId() userId: number,
     @Res({passthrough: true}) response: Response,
   ) {
-    const {access_token, profile} = await this.authService.signInOrUp(
+    const {access_token, profile} = await this.authorizationService.signInOrUp(
       userId,
       payload,
     );

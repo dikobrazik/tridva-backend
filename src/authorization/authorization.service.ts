@@ -1,16 +1,17 @@
 import {Inject, Injectable} from '@nestjs/common';
+import {ConfigService} from '@nestjs/config';
 import {JwtService} from '@nestjs/jwt';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
-import {User} from 'src/entities/User';
-import {SignatureContent} from 'src/shared/types';
-import {DataSource, Repository} from 'typeorm';
-import {CheckCodeDto} from './dtos';
-import {Profile} from 'src/entities/Profile';
-import {ConfigService} from '@nestjs/config';
-import {getRandomName} from 'src/shared/utils/getRandomName';
 import {BasketService} from 'src/basket/basket.service';
+import {Profile} from 'src/entities/Profile';
+import {User} from 'src/entities/User';
 import {GroupsService} from 'src/groups/groups.service';
 import {FavoriteOffersService} from 'src/offers/favoriteOffers.service';
+import {SignatureContent} from 'src/shared/types';
+import {getRandomName} from 'src/shared/utils/getRandomName';
+import {DataSource, Repository} from 'typeorm';
+import {AuthenticationService} from './authentication.service';
+import {CheckCodeDto} from './dtos';
 
 @Injectable()
 export class AuthorizationService {
@@ -32,8 +33,8 @@ export class AuthorizationService {
   private favoriteOffersService: FavoriteOffersService;
   @Inject(JwtService)
   private jwtService: JwtService;
-
-  async sendCode(_phone: string) {}
+  @Inject(AuthenticationService)
+  private authenticationService: AuthenticationService;
 
   async getTokenUser(token: string) {
     const userId = await this.parseAccessToken(token);
@@ -63,13 +64,13 @@ export class AuthorizationService {
       userId,
       phone: null,
       profile: {id: profileId, name},
-      access_token: await this.jwtService.signAsync({
-        userId,
-      } as SignatureContent),
+      access_token: await this.generateAccessToken(userId),
     };
   }
 
   async signInOrUp(userId: number, {phone, code}: CheckCodeDto) {
+    await this.authenticationService.checkCode(phone, code);
+
     const existingUser = await this.userRepository.findOne({
       where: {phone},
       relations: {profile: true},
@@ -110,9 +111,7 @@ export class AuthorizationService {
 
         return {
           profile: existingUser.profile,
-          access_token: await this.jwtService.signAsync({
-            userId: existingUserId,
-          } as SignatureContent),
+          access_token: await this.generateAccessToken(userId),
         };
       } catch {
         await queryRunner.rollbackTransaction();
@@ -126,18 +125,9 @@ export class AuthorizationService {
 
       return {
         profile: {},
-        access_token: await this.jwtService.signAsync({
-          userId,
-        } as SignatureContent),
+        access_token: await this.generateAccessToken(userId),
       };
     }
-  }
-
-  getUser(userId: number): Promise<User> {
-    return this.userRepository.findOne({
-      where: {id: userId},
-      relations: {profile: true},
-    });
   }
 
   parseAccessToken(token: string): Promise<number> {
@@ -146,5 +136,12 @@ export class AuthorizationService {
         secret: this.configService.getOrThrow('SC'),
       })
       .then((result) => result.userId);
+  }
+
+  private generateAccessToken(userId: number) {
+    return this.jwtService.signAsync({
+      userId,
+      sole: Math.random(),
+    } as SignatureContent);
   }
 }

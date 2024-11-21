@@ -44,6 +44,7 @@ export class AuthTokenGuard implements CanActivate {
       if (payload.userId) {
         const isUserExist = await this.userRepository.exist({
           where: {id: payload.userId},
+          loadEagerRelations: false,
         });
 
         if (!isUserExist) {

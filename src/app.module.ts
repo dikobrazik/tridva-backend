@@ -33,6 +33,8 @@ import {FavoriteOffer} from './entities/FavoriteOffer';
 import {Modifier} from './entities/Modifier';
 import {OfferModifier} from './entities/OfferModifier';
 import {JwtModule} from '@nestjs/jwt';
+import {SmsModule} from './sms/sms.module';
+import {AuthenticationService} from './authorization/authentication.service';
 
 @Module({
   imports: [
@@ -97,6 +99,8 @@ import {JwtModule} from '@nestjs/jwt';
     OrdersModule,
     GeoModule,
     AttributesModule,
+    SmsModule,
   ],
+  providers: [AuthenticationService],
 })
 export class AppModule {}
