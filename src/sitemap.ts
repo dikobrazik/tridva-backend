@@ -42,8 +42,9 @@ const generateSiteMapContent = async (app: INestApplication<any>) => {
 
   const offersIds = await offerRepository.find({
     select: {id: true},
+    loadEagerRelations: false,
     order: {description: 'desc'},
-    take: 40_000,
+    take: 50_000 - categoriesIds.length - 2,
   });
 
   const categoriesUrls = categoriesIds.map(({id}) =>
