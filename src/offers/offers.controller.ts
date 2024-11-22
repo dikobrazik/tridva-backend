@@ -72,7 +72,7 @@ export class OffersController {
       throw new NotFoundException();
     }
 
-    return;
+    return offer;
   }
 
   @Get(':id/favorite')
