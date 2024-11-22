@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Header,
+  NotFoundException,
   Param,
   Post,
   Query,
@@ -64,8 +65,14 @@ export class OffersController {
 
   @Get(':id')
   @Header('Cache-Control', 'max-age=20, public')
-  getOffer(@Param() params: SearchOfferDto) {
-    return this.offersService.getOfferById(params.id);
+  async getOffer(@Param() params: SearchOfferDto) {
+    const offer = await this.offersService.getOfferById(params.id);
+
+    if (offer === null) {
+      throw new NotFoundException();
+    }
+
+    return;
   }
 
   @Get(':id/favorite')

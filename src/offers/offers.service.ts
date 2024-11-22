@@ -100,7 +100,7 @@ export class OffersService {
     };
   }
 
-  async getOfferById(offerId: Offer['id']) {
+  async getOfferById(offerId: Offer['id']): Promise<Offer | null> {
     const offer = await this.offerRepository.findOne({
       where: {
         id: offerId,
