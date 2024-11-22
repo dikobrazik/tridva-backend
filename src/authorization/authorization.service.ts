@@ -69,7 +69,7 @@ export class AuthorizationService {
   }
 
   async signInOrUp(userId: number, {phone, code}: CheckCodeDto) {
-    await this.authenticationService.checkCode(phone, code);
+    this.authenticationService.checkCode(phone, code);
 
     const existingUser = await this.userRepository.findOne({
       where: {phone},
@@ -125,7 +125,7 @@ export class AuthorizationService {
 
       return {
         profile: {},
-        access_token: await this.generateAccessToken(userId),
+        access_token: await this.generateAccessToken(existingUserId),
       };
     }
   }

@@ -1,5 +1,5 @@
 import {BadRequestException, Inject, Injectable} from '@nestjs/common';
-import {getRandomNumber} from 'src/shared/utils/getRandomNumber';
+// import {getRandomNumber} from 'src/shared/utils/getRandomNumber';
 import {SmsService} from 'src/sms/sms.service';
 
 const MINUTE_MS = 60 * 1000;
@@ -14,7 +14,7 @@ export class AuthenticationService {
   private leftAttempts: Record<string, number> = {};
 
   public async sendCode(phone: string) {
-    const code = String(getRandomNumber(100000, 999999));
+    const code = '1234'; // String(getRandomNumber(100000, 999999));
     const canResendCode = this.getCanResendCode(phone);
 
     if (!canResendCode) {
