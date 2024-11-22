@@ -15,6 +15,8 @@ import {CategoryService} from './category/category.service';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const isDev = app.get(ConfigService).get('IS_DEV');
+
   if (app.get(ConfigService).get('DROP_SCHEMA') === 'true') {
     initializeIndices(app.get(DataSource));
   }
@@ -38,11 +40,13 @@ async function bootstrap() {
   app.get(GeoService).initialize().catch(console.log);
 
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://158.160.12.140',
-      'http://tridva.store',
-    ],
+    origin: isDev
+      ? [
+          'http://localhost:3000',
+          'http://158.160.12.140',
+          'https://tridva.store',
+        ]
+      : ['https://tridva.store'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
