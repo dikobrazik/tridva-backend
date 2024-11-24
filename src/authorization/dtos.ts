@@ -10,8 +10,8 @@ export class CheckCodeDto {
   @IsMobilePhone('ru-RU')
   phone: string;
 
-  @Max(9999)
-  @Min(1000)
+  @Max(999999)
+  @Min(100000)
   @IsInt()
   @Type(() => Number)
   code: string;

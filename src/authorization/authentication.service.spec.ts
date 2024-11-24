@@ -46,7 +46,7 @@ describe('AuthenticationService', () => {
 
       expect(smsService.sendMessage).toHaveBeenCalledWith(
         '89393803616',
-        `Tridva. Одноразовый код для доступа к личному кабинету - 1234`,
+        `Tridva. Одноразовый код для доступа к личному кабинету - 111111`,
       );
     });
 
@@ -92,7 +92,7 @@ describe('AuthenticationService', () => {
 
     describe('if code right', () => {
       it('should return true', async () => {
-        expect(service.checkCode('89393803616', '1234')).toEqual(true);
+        expect(service.checkCode('89393803616', '111111')).toEqual(true);
       });
     });
 

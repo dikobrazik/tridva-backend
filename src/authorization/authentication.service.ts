@@ -14,7 +14,7 @@ export class AuthenticationService {
   private leftAttempts: Record<string, number> = {};
 
   public async sendCode(phone: string) {
-    const code = '1234'; // String(getRandomNumber(100000, 999999));
+    const code = '111111'; // String(getRandomNumber(100000, 999999));
     const canResendCode = this.getCanResendCode(phone);
 
     if (!canResendCode) {

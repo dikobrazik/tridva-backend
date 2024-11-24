@@ -111,7 +111,7 @@ export class AuthorizationService {
 
         return {
           profile: existingUser.profile,
-          access_token: await this.generateAccessToken(userId),
+          access_token: await this.generateAccessToken(existingUserId),
         };
       } catch {
         await queryRunner.rollbackTransaction();
@@ -125,7 +125,7 @@ export class AuthorizationService {
 
       return {
         profile: {},
-        access_token: await this.generateAccessToken(existingUserId),
+        access_token: await this.generateAccessToken(userId),
       };
     }
   }
