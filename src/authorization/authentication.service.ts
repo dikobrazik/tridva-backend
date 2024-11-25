@@ -18,9 +18,10 @@ export class AuthenticationService {
     const canResendCode = this.getCanResendCode(phone);
 
     if (!canResendCode) {
-      throw new BadRequestException(
-        'Код нельзя запрашивать чаще чем раз в минуту',
-      );
+      throw new BadRequestException({
+        message: 'Код нельзя запрашивать чаще чем раз в минуту',
+        leftSeconds: this.getLeftSeconds(phone),
+      });
     }
 
     this.codes[phone] = code;
@@ -57,5 +58,9 @@ export class AuthenticationService {
     return this.lastSend[phone] !== undefined
       ? new Date().valueOf() - this.lastSend[phone] >= MINUTE_MS
       : true;
+  }
+
+  private getLeftSeconds(phone: string) {
+    return 60 - Math.floor((Date.now() - this.lastSend[phone]) / 1000);
   }
 }
