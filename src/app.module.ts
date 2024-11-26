@@ -35,6 +35,10 @@ import {OfferModifier} from './entities/OfferModifier';
 import {JwtModule} from '@nestjs/jwt';
 import {SmsModule} from './sms/sms.module';
 import {AuthenticationService} from './authorization/authentication.service';
+import {KassaModule} from './kassa/kassa.module';
+import {OrderOffer} from './entities/OrderOffer';
+import {OrderGroup} from './entities/OrderGroup';
+import {Payment} from './entities/Payment';
 
 @Module({
   imports: [
@@ -75,7 +79,10 @@ import {AuthenticationService} from './authorization/authentication.service';
           Profile,
           Group,
           BasketItem,
+          Payment,
           Order,
+          OrderOffer,
+          OrderGroup,
           City,
           Modifier,
           OfferModifier,
@@ -100,6 +107,7 @@ import {AuthenticationService} from './authorization/authentication.service';
     GeoModule,
     AttributesModule,
     SmsModule,
+    KassaModule,
   ],
   providers: [AuthenticationService],
 })

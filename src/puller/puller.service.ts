@@ -25,6 +25,7 @@ import {OffersService} from 'src/offers/offers.service';
 import {CategoryService} from 'src/category/category.service';
 import {Modifier} from 'src/entities/Modifier';
 import {OfferModifier} from 'src/entities/OfferModifier';
+import {AxiosInstance} from 'axios';
 
 interface ISimaApi {
   loadAttribute: (id: number) => Promise<SimaAttribute>;
@@ -53,7 +54,7 @@ class SimaApi implements ISimaApi {
   public loadCategories: ISimaApi['loadCategories'];
   public loadOffersCategories: ISimaApi['loadOffersCategories'];
 
-  constructor() {
+  constructor(private client: AxiosInstance) {
     this.loadAttribute = this.entityLoader<SimaAttribute>('attribute');
     this.loadOption = this.entityLoader<SimaAttribute>('option');
     this.loadModifier = this.entityLoader<SimaModifier>('modifier');
@@ -74,7 +75,7 @@ class SimaApi implements ISimaApi {
     const load = (page: number): Promise<E[]> => {
       if (page % 10000 === 0) console.log(`Loading ${entity} page ${page}...`);
 
-      return axios(`/${entity}?p=${page}`)
+      return this.client(`/${entity}?p=${page}`)
         .then((r) => r.data)
         .catch(() =>
           new Promise((r) => setTimeout(r, 10_000)).then(() => load(page)),
@@ -86,7 +87,7 @@ class SimaApi implements ISimaApi {
 
   private entityLoader<E>(entity: string) {
     const load = (id: number): Promise<E> => {
-      return axios(`/${entity}/${id}`)
+      return this.client(`/${entity}/${id}`)
         .then((r) => r.data)
         .catch(() =>
           new Promise((r) => setTimeout(r, 10_000)).then(() => load(id)),
@@ -125,9 +126,13 @@ export class PullerService {
   private categoryService: CategoryService;
 
   private simaApi: SimaApi;
+  private client: AxiosInstance;
 
   constructor(private configService: ConfigService) {
-    this.simaApi = new SimaApi();
+    this.client = axios.create({
+      baseURL: this.configService.getOrThrow('SIMA_URL'),
+    });
+    this.simaApi = new SimaApi(this.client);
   }
 
   private async functionWorkTimeLogger(fn: () => Promise<any>) {
@@ -139,8 +144,6 @@ export class PullerService {
   }
 
   async pull() {
-    axios.defaults.baseURL = this.configService.getOrThrow('SIMA_URL');
-
     if (this.isDev && !this.isDebug) return;
 
     await this.functionWorkTimeLogger(this.signIn.bind(this));
@@ -174,7 +177,7 @@ export class PullerService {
   }
 
   async signIn() {
-    const token = await axios('/signin', {
+    const token = await this.client('/signin', {
       method: 'POST',
       data: {
         phone: this.configService.getOrThrow('SIMA_PHONE'),
@@ -185,7 +188,7 @@ export class PullerService {
       .then((r) => r.data.token)
       .catch(console.log);
 
-    axios.defaults.headers.Authorization = token;
+    this.client.defaults.headers.Authorization = token;
   }
 
   async fillCategories() {

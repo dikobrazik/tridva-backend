@@ -4,13 +4,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   VirtualColumn,
 } from 'typeorm';
 import {Offer} from './Offer';
 import {User} from './User';
-import {Order} from './Order';
 
 @Entity()
 export class Group {
@@ -23,15 +21,12 @@ export class Group {
 
   @VirtualColumn({
     query: (alias) =>
-      `SELECT COUNT(*) FROM "order" WHERE "groupId" = ${alias}.id`,
+      `SELECT COUNT(*) FROM "order_group" WHERE "groupId" = ${alias}.id`,
   })
   participantsCount: number;
 
   @Column({type: 'int'})
   capacity: number;
-
-  @OneToMany(() => Order, (order) => order.group)
-  orders: Order[];
 
   @ManyToOne(() => User)
   @JoinColumn({name: 'ownerId'})

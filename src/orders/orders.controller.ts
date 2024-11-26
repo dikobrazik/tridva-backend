@@ -12,6 +12,7 @@ import {OrdersService} from './orders.service';
 import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {UserId} from 'src/shared/decorators/UserId';
 import {GeoService} from 'src/geo/geo.service';
+import {KassaService} from 'src/kassa/kassa.service';
 
 @Controller('orders')
 export class OrdersController {
@@ -19,6 +20,8 @@ export class OrdersController {
   private ordersService: OrdersService;
   @Inject(GeoService)
   private geoService: GeoService;
+  @Inject(KassaService)
+  private kassaService: KassaService;
 
   @Post()
   @UseGuards(AuthTokenGuard)
@@ -34,7 +37,7 @@ export class OrdersController {
       throw new BadRequestException('No pickup point with given id');
     }
 
-    await this.ordersService.createOrder(createOrderBody, userId);
+    return this.ordersService.createOrder(createOrderBody, userId);
   }
 
   @Get()
@@ -42,4 +45,14 @@ export class OrdersController {
   async getUserOrders(@UserId() userId: number) {
     return this.ordersService.getUserOrders(userId);
   }
+
+  @Post('/notify')
+  async notification(@Body() body) {
+    console.log('notification', body);
+  }
+
+  // @Get('/get-qr')
+  // async getQr() {
+  //   return this.kassaService.initPayment(4, 100);
+  // }
 }

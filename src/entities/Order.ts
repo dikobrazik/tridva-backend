@@ -4,13 +4,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import {Group} from './Group';
-import {Offer} from './Offer';
 import {User} from './User';
 import {PickupPoint} from './PickupPoint';
+import {OrderOffer} from './OrderOffer';
+import {OrderGroup} from './OrderGroup';
 
 export enum OrderStatus {
   CREATED,
@@ -24,19 +25,11 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Group)
-  @JoinColumn({name: 'groupId'})
-  group: Group | null;
+  @OneToMany(() => OrderGroup, (orderGroup) => orderGroup.order)
+  groups: OrderGroup[];
 
-  @Column({nullable: true})
-  groupId: number | null;
-
-  @ManyToOne(() => Offer)
-  @JoinColumn({name: 'offerId'})
-  offer: Offer | null;
-
-  @Column({nullable: true})
-  offerId: number | null;
+  @OneToMany(() => OrderOffer, (orderOffer) => orderOffer.order)
+  offers: OrderOffer[];
 
   @ManyToOne(() => User)
   @JoinColumn({name: 'userId'})
@@ -51,9 +44,6 @@ export class Order {
 
   @Column()
   pickupPointId: number;
-
-  @Column()
-  count: number;
 
   @Column({
     type: 'enum',
