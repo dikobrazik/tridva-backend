@@ -6,3 +6,9 @@ export class GetCityPickupPointsParamsDto {
   @Min(0)
   id: number;
 }
+
+export class GetPickupPointParamsDto {
+  @Type(() => Number)
+  @Min(0)
+  id: number;
+}

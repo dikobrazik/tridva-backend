@@ -48,6 +48,12 @@ export class GeoService {
     });
   }
 
+  getPickupPoint(pickupPointId: number) {
+    return this.pickupPointRepository.findOne({
+      where: {id: pickupPointId},
+    });
+  }
+
   getIsPickupPointExist(pickupPointId: number) {
     return this.pickupPointRepository.exist({
       where: {id: pickupPointId},

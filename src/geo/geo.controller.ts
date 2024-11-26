@@ -1,6 +1,6 @@
 import {Controller, Get, Inject, Param} from '@nestjs/common';
 import {GeoService} from './geo.service';
-import {GetCityPickupPointsParamsDto} from './dtos';
+import {GetCityPickupPointsParamsDto, GetPickupPointParamsDto} from './dtos';
 
 @Controller('geo')
 export class GeoController {
@@ -15,5 +15,10 @@ export class GeoController {
   @Get('/cities/:id/pickup-points')
   getCityPickupPoints(@Param() params: GetCityPickupPointsParamsDto) {
     return this.geoService.getCityPickupPoints(params.id);
+  }
+
+  @Get('/pickup-points/:id')
+  getPickupPoint(@Param() params: GetPickupPointParamsDto) {
+    return this.geoService.getPickupPoint(params.id);
   }
 }
