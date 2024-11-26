@@ -17,6 +17,7 @@ export class GroupsController {
   private basketService: BasketService;
 
   @Post()
+  @UseGuards(AuthTokenGuard)
   async createGroup(
     @UserId() userId: number,
     @Body() body: CreateGroupOrderDto,
@@ -27,6 +28,7 @@ export class GroupsController {
   }
 
   @Get()
+  @UseGuards(AuthTokenGuard)
   getUserGroups(@UserId() userId: number) {
     return this.groupsService.getUserGroups(userId);
   }

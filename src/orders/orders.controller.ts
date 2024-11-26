@@ -13,6 +13,7 @@ import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {UserId} from 'src/shared/decorators/UserId';
 import {GeoService} from 'src/geo/geo.service';
 import {KassaService} from 'src/kassa/kassa.service';
+import {KassaNotification} from 'src/kassa/types';
 
 @Controller('orders')
 export class OrdersController {
@@ -47,12 +48,7 @@ export class OrdersController {
   }
 
   @Post('/notify')
-  async notification(@Body() body) {
-    console.log('notification', body);
+  async notification(@Body() body: KassaNotification) {
+    await this.ordersService.processNotification(body);
   }
-
-  // @Get('/get-qr')
-  // async getQr() {
-  //   return this.kassaService.initPayment(4, 100);
-  // }
 }

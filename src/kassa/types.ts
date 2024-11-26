@@ -20,3 +20,17 @@ export type GetQrResponse = {
   Details: string;
   RequestKey: string;
 };
+
+export type KassaNotification = {
+  TerminalKey: string;
+  OrderId: string;
+  Success: boolean;
+  Status: string;
+  PaymentId: number;
+  ErrorCode: string;
+  Amount: number;
+  CardId: number;
+  Pan: string;
+  ExpDate: string;
+  Token: string;
+};

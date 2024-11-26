@@ -169,4 +169,11 @@ export class KassaService {
       Token: generateTokenFromBody(body, this.password),
     };
   }
+
+  public checkToken<Body extends Record<string, any>>(body: Body): boolean {
+    const {Token, ...bodyWithoutToken} = body;
+    const token = generateTokenFromBody(bodyWithoutToken, this.password);
+
+    return Token === token;
+  }
 }

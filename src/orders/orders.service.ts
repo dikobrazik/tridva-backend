@@ -1,4 +1,9 @@
-import {Inject, Injectable, InternalServerErrorException} from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {Order, OrderStatus} from 'src/entities/Order';
 import {DataSource, In, Repository} from 'typeorm';
@@ -10,6 +15,7 @@ import {OrderGroup} from 'src/entities/OrderGroup';
 import {OrderOffer} from 'src/entities/OrderOffer';
 import {KassaService} from 'src/kassa/kassa.service';
 import {Payment} from 'src/entities/Payment';
+import {KassaNotification} from 'src/kassa/types';
 
 @Injectable()
 export class OrdersService {
@@ -125,5 +131,24 @@ export class OrdersService {
     }
 
     return paymentURL;
+  }
+
+  public async processNotification(notification: KassaNotification) {
+    const isTokenValid = this.kassaService.checkToken(notification);
+
+    if (isTokenValid) {
+      if (notification.Success) {
+        if (notification.Status === 'CONFIRMED') {
+          await this.ordersRepository.update(
+            {id: Number(notification.OrderId)},
+            {status: OrderStatus.PAID},
+          );
+        }
+      } else {
+        console.log(notification);
+      }
+    } else {
+      new BadRequestException();
+    }
   }
 }
