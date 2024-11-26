@@ -34,3 +34,17 @@ export type KassaNotification = {
   ExpDate: string;
   Token: string;
 };
+
+export type CancelResponse = {
+  TerminalKey: string;
+  OrderId: string;
+  Success: boolean;
+  Status: string;
+  OriginalAmount: number;
+  NewAmount: number;
+  PaymentId: string;
+  ErrorCode: string;
+  Message: string;
+  Details: string;
+  ExternalRequestId: string;
+};

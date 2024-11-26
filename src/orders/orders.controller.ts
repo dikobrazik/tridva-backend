@@ -3,17 +3,20 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Inject,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
-import {CreateOrderDto} from './dtos';
+import {CancelOrderDto, CreateOrderDto} from './dtos';
 import {OrdersService} from './orders.service';
 import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {UserId} from 'src/shared/decorators/UserId';
 import {GeoService} from 'src/geo/geo.service';
 import {KassaService} from 'src/kassa/kassa.service';
 import {KassaNotification} from 'src/kassa/types';
+import {Response} from 'express';
 
 @Controller('orders')
 export class OrdersController {
@@ -41,6 +44,24 @@ export class OrdersController {
     return this.ordersService.createOrder(createOrderBody, userId);
   }
 
+  @Post('/cancel')
+  @UseGuards(AuthTokenGuard)
+  async cancelOrder(
+    @Body() cancelOrderBody: CancelOrderDto,
+    @UserId() userId: number,
+  ) {
+    const isUserOrder = await this.ordersService.getIsUserOrder(
+      cancelOrderBody,
+      userId,
+    );
+
+    if (!isUserOrder) {
+      throw new BadRequestException('User has no orders with given parameters');
+    }
+
+    return this.ordersService.cancelOrder(cancelOrderBody, userId);
+  }
+
   @Get()
   @UseGuards(AuthTokenGuard)
   async getUserOrders(@UserId() userId: number) {
@@ -48,7 +69,12 @@ export class OrdersController {
   }
 
   @Post('/notify')
-  async notification(@Body() body: KassaNotification) {
+  async notification(
+    @Body() body: KassaNotification,
+    @Res({passthrough: true}) response: Response,
+  ) {
+    response.statusCode = HttpStatus.OK;
+
     await this.ordersService.processNotification(body);
   }
 }

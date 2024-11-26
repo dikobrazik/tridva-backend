@@ -2,7 +2,7 @@ import {Injectable, InternalServerErrorException} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import axios, {AxiosInstance} from 'axios';
 import {generateTokenFromBody} from './utils';
-import {GetQrResponse, InitResponse} from './types';
+import {CancelResponse, GetQrResponse, InitResponse} from './types';
 
 @Injectable()
 export class KassaService {
@@ -153,6 +153,108 @@ export class KassaService {
       .then((r) => r.data);
 
     console.log('Init response', response);
+
+    if (!response.Success) {
+      throw new InternalServerErrorException();
+    }
+
+    return response;
+  }
+
+  public async cancelPayment(
+    paymentId: string,
+    amount: number,
+  ): Promise<CancelResponse> {
+    const body: Record<string, any> = this.prepareBody({
+      TerminalKey: this.terminalKey,
+      PaymentId: paymentId,
+      Amount: amount,
+      // Receipt: {
+      //   FfdVersion: 'string',
+      //   ClientInfo: {
+      //     Birthdate: 'string',
+      //     Citizenship: 'string',
+      //     DocumentСode: '21',
+      //     DocumentData: 'string',
+      //     Address: 'string',
+      //   },
+      //   Taxation: 'osn',
+      //   Email: 'a@test.ru',
+      //   Phone: '+79031234567',
+      //   Customer: '78894325',
+      //   CustomerInn: '788621292',
+      //   Items: [
+      //     {
+      //       AgentData: {
+      //         AgentSign: 'paying_agent',
+      //         OperationName: 'Позиция чека',
+      //         Phones: ['+790912312398'],
+      //         ReceiverPhones: ['+79221210697', '+79098561231'],
+      //         TransferPhones: ['+79221210697'],
+      //         OperatorName: 'Tinkoff',
+      //         OperatorAddress: 'г. Тольятти',
+      //         OperatorInn: '7710140679',
+      //       },
+      //       SupplierInfo: {
+      //         Phones: ['+79221210697', '+79098561231'],
+      //         Name: 'ООО Вендор товара',
+      //         Inn: '7710140679',
+      //       },
+      //       Name: 'Наименование товара 1',
+      //       Price: 10000,
+      //       Quantity: 1,
+      //       Amount: 10000,
+      //       Tax: 'vat10',
+      //       PaymentMethod: 'full_payment',
+      //       PaymentObject: 'goods_with_marking_code',
+      //       UserData: 'Данные пользователя ext.test.qa@tinkoff.ru',
+      //       Excise: '12.2',
+      //       CountryCode: '056',
+      //       DeclarationNumber: '12345678901',
+      //       MeasurementUnit: 'шт',
+      //       MarkProcessingMode: 'string',
+      //       MarkCode: {
+      //         MarkCodeType: 'EAN8',
+      //         Value: '12345678',
+      //       },
+      //       MarkQuantity: {
+      //         Numerator: 1,
+      //         Denominator: 2,
+      //       },
+      //       SectoralItemProps: {
+      //         FederalId: '001',
+      //         Date: '21.11.2020',
+      //         Number: '123/43',
+      //         Value: 'test value SectoralItemProps',
+      //       },
+      //     },
+      //   ],
+      //   Payments: {
+      //     Cash: 90000,
+      //     Electronic: 50000,
+      //     AdvancePayment: 0,
+      //     Credit: 0,
+      //     Provision: 0,
+      //   },
+      // },
+      // Shops: [
+      //   {
+      //     ShopCode: '700456',
+      //     Amount: 10000,
+      //     Name: 'Товар',
+      //   },
+      // ],
+      // QrMemberId: '77892',
+      // Route: 'BNPL',
+      // Source: 'BNPL',
+      // ExternalRequestId: 'string',
+    });
+
+    const response = await this.client
+      .post<CancelResponse>('/Cancel', body)
+      .then((r) => r.data);
+
+    console.log('Cancel response', response);
 
     if (!response.Success) {
       throw new InternalServerErrorException();

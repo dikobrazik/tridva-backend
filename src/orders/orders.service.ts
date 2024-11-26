@@ -7,7 +7,7 @@ import {
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {Order, OrderStatus} from 'src/entities/Order';
 import {DataSource, In, Repository} from 'typeorm';
-import {CreateOrderDto} from './dtos';
+import {CancelOrderDto, CreateOrderDto} from './dtos';
 import {BasketItem} from 'src/entities/BasketItem';
 import {QueryDeepPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
 import {sum} from 'src/shared/utils/sum';
@@ -133,11 +133,75 @@ export class OrdersService {
     return paymentURL;
   }
 
+  public async cancelOrder(cancelOrderDto: CancelOrderDto, userId: number) {
+    const {orderId, offerId} = cancelOrderDto;
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.startTransaction();
+
+    try {
+      const orderOffer = await this.orderOffersRepository.findOne({
+        where: {
+          order: {userId},
+          orderId,
+          offerId,
+        },
+        relations: {offer: true},
+      });
+
+      const {id: orderPaymentId} = await this.paymentRepository.findOne({
+        select: {id: true},
+        where: {orderId},
+      });
+
+      const cancelResponse = await this.kassaService.cancelPayment(
+        String(orderPaymentId),
+        orderOffer.offer.price * orderOffer.count * 100,
+      );
+
+      if (cancelResponse.Success) {
+        await this.orderOffersRepository.delete({
+          order: {userId},
+          orderId,
+          offerId,
+        });
+
+        // удаляем заказ, если у него была только одна группа или товар
+        if (
+          !(
+            (await this.orderOffersRepository.exist({where: {orderId}})) &&
+            (await this.orderGroupsRepository.exist({where: {orderId}}))
+          )
+        ) {
+          await this.ordersRepository.delete({id: orderId});
+        }
+      }
+
+      await queryRunner.commitTransaction();
+    } catch (e) {
+      console.log(e);
+
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException();
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  public getIsUserOrder(cancelOrderDto: CancelOrderDto, userId: number) {
+    return this.orderOffersRepository.exist({
+      where: {
+        order: {id: cancelOrderDto.orderId, userId},
+        offerId: cancelOrderDto.offerId,
+      },
+    });
+  }
+
   public async processNotification(notification: KassaNotification) {
     const isTokenValid = this.kassaService.checkToken(notification);
 
     if (isTokenValid) {
       if (notification.Success) {
+        console.log(notification);
         if (notification.Status === 'CONFIRMED') {
           await this.ordersRepository.update(
             {id: Number(notification.OrderId)},
