@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import {Order} from './Order';
 import {Group} from './Group';
+import {OrderStatus} from './enums';
 
 @Entity()
 export class OrderGroup {
@@ -30,4 +31,11 @@ export class OrderGroup {
 
   @Column()
   count: number;
+
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.CREATED,
+  })
+  status: OrderStatus;
 }

@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import {Order} from './Order';
 import {Offer} from './Offer';
+import {OrderStatus} from './enums';
 
 @Entity()
 export class OrderOffer {
@@ -30,4 +31,11 @@ export class OrderOffer {
 
   @Column()
   count: number;
+
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.CREATED,
+  })
+  status: OrderStatus;
 }

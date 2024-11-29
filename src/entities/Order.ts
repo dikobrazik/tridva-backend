@@ -13,13 +13,6 @@ import {PickupPoint} from './PickupPoint';
 import {OrderOffer} from './OrderOffer';
 import {OrderGroup} from './OrderGroup';
 
-export enum OrderStatus {
-  CREATED,
-  PAID,
-  IN_DELIVERY,
-  DELIVERED,
-}
-
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn()
@@ -44,13 +37,6 @@ export class Order {
 
   @Column()
   pickupPointId: number;
-
-  @Column({
-    type: 'enum',
-    enum: OrderStatus,
-    default: OrderStatus.CREATED,
-  })
-  status: OrderStatus;
 
   @CreateDateColumn()
   createdAt: Date;

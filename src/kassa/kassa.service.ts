@@ -152,7 +152,7 @@ export class KassaService {
       .post<InitResponse>('/Init', body)
       .then((r) => r.data);
 
-    console.log('Init response', response);
+    console.log('Init response', body, response);
 
     if (!response.Success) {
       throw new InternalServerErrorException();

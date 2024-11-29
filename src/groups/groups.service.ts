@@ -1,8 +1,9 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {BasketItem} from 'src/entities/BasketItem';
+import {OrderStatus} from 'src/entities/enums';
 import {Group} from 'src/entities/Group';
-import {Order, OrderStatus} from 'src/entities/Order';
+import {Order} from 'src/entities/Order';
 import {OrderGroup} from 'src/entities/OrderGroup';
 import {In, MoreThan, Raw, Repository} from 'typeorm';
 
@@ -45,7 +46,7 @@ export class GroupsService {
   public async getUserGroups(userId: number): Promise<Group[]> {
     const userOrders = await this.orderGroupsRepository.find({
       select: {groupId: true},
-      where: {order: {userId, status: OrderStatus.PAID}},
+      where: {status: OrderStatus.PAID, order: {userId}},
     });
 
     return this.groupRepository

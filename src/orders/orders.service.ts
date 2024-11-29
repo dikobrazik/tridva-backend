@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
-import {Order, OrderStatus} from 'src/entities/Order';
+import {Order} from 'src/entities/Order';
 import {DataSource, In, Repository} from 'typeorm';
 import {CancelOrderDto, CreateOrderDto} from './dtos';
 import {BasketItem} from 'src/entities/BasketItem';
@@ -16,6 +16,7 @@ import {OrderOffer} from 'src/entities/OrderOffer';
 import {KassaService} from 'src/kassa/kassa.service';
 import {Payment} from 'src/entities/Payment';
 import {KassaNotification} from 'src/kassa/types';
+import {OrderStatus} from 'src/entities/enums';
 
 @Injectable()
 export class OrdersService {
@@ -38,7 +39,7 @@ export class OrdersService {
 
   public async getUserOrders(userId: number) {
     return this.orderOffersRepository.find({
-      where: {order: {userId, status: OrderStatus.PAID}},
+      where: {status: OrderStatus.PAID, order: {userId}},
       relations: {offer: true, order: {pickupPoint: true}},
     });
   }
@@ -65,8 +66,6 @@ export class OrdersService {
       const order: QueryDeepPartialEntity<Order> = {
         pickupPointId: createOrderDto.pickupPointId,
         userId,
-        // TODO: пока нет кассы, далее - CREATED
-        status: OrderStatus.CREATED,
       };
 
       [{id: orderId}] = (await this.ordersRepository.insert(order)).identifiers;
@@ -94,7 +93,7 @@ export class OrdersService {
         selectedBasketItems.map((basketItem) => basketItem.id),
       );
 
-      const totalAmount =
+      const totalAmount = Math.floor(
         sum(
           ...selectedBasketItems.map((basketItem) => {
             const offerPrice =
@@ -104,7 +103,8 @@ export class OrdersService {
 
             return offerPrice * basketItem.count;
           }),
-        ) * 100;
+        ) * 100,
+      );
 
       const response = await this.kassaService.initPayment(
         orderId,
@@ -187,11 +187,12 @@ export class OrdersService {
     }
   }
 
-  public getIsUserOrder(cancelOrderDto: CancelOrderDto, userId: number) {
+  public getIsUserOrder({orderId, offerId}: CancelOrderDto, userId: number) {
     return this.orderOffersRepository.exist({
       where: {
-        order: {id: cancelOrderDto.orderId, userId},
-        offerId: cancelOrderDto.offerId,
+        order: {userId},
+        orderId,
+        offerId,
       },
     });
   }
@@ -203,13 +204,25 @@ export class OrdersService {
       if (notification.Success) {
         console.log(notification);
         if (notification.Status === 'CONFIRMED') {
-          await this.ordersRepository.update(
-            {id: Number(notification.OrderId)},
+          await this.orderGroupsRepository.update(
+            {orderId: Number(notification.OrderId)},
+            {status: OrderStatus.PAID},
+          );
+          await this.orderOffersRepository.update(
+            {orderId: Number(notification.OrderId)},
             {status: OrderStatus.PAID},
           );
         }
       } else {
         console.log(notification);
+        await this.orderGroupsRepository.update(
+          {orderId: Number(notification.OrderId)},
+          {status: OrderStatus.PAYMENT_ERROR},
+        );
+        await this.orderOffersRepository.update(
+          {orderId: Number(notification.OrderId)},
+          {status: OrderStatus.PAYMENT_ERROR},
+        );
       }
     } else {
       new BadRequestException();

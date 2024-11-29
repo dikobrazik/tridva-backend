@@ -434,7 +434,7 @@ export class PullerService {
           filteredOffers.map((offer) => {
             const discount = getRandomNumber(10, 30);
             // цена = цена у поставщика + скидка
-            const price = offer.price * (1 + discount / 100);
+            const price = Math.ceil(offer.price * (1 + discount / 100));
 
             const result = {
               simaid: offer.id,
@@ -445,17 +445,10 @@ export class PullerService {
               discount,
               price,
               categoryId: offer.category_id,
-              photos: null,
               minOrderQty: offer.minimum_order_quantity,
               qtyMultiplier: offer.qty_multiplier,
               ordersCount: getRandomNumber(100, 300),
             };
-
-            if (offer.agg_photos?.length) {
-              result.photos = offer.agg_photos.map(
-                (index) => `${offer.base_photo_url}${index}`,
-              );
-            }
 
             return result;
           }),
