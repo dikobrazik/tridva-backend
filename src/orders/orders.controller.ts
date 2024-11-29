@@ -68,6 +68,12 @@ export class OrdersController {
     return this.ordersService.getUserOrders(userId);
   }
 
+  @Get('count')
+  @UseGuards(AuthTokenGuard)
+  async getUserOrdersCount(@UserId() userId: number) {
+    return this.ordersService.getUserOrdersCount(userId);
+  }
+
   @Post('/notify')
   async notification(
     @Body() body: KassaNotification,

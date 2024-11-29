@@ -44,6 +44,12 @@ export class OrdersService {
     });
   }
 
+  public getUserOrdersCount(userId: number) {
+    return this.orderOffersRepository.count({
+      where: {status: OrderStatus.PAID, order: {userId}},
+    });
+  }
+
   public async createOrder(createOrderDto: CreateOrderDto, userId: number) {
     let orderId: number;
     let paymentURL: string;

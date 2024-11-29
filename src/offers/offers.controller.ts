@@ -63,6 +63,12 @@ export class OffersController {
       .then((offers) => offers.map((offer) => offer.id));
   }
 
+  @Get('favorite/count')
+  @UseGuards(AuthTokenGuard)
+  getFavoriteOffersCount(@UserId() userId: number) {
+    return this.favoriteOffersService.getFavoriteOffersCount(userId);
+  }
+
   @Get(':id')
   @Header('Cache-Control', 'max-age=20, public')
   async getOffer(@Param() params: SearchOfferDto) {

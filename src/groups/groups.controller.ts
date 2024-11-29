@@ -32,4 +32,10 @@ export class GroupsController {
   getUserGroups(@UserId() userId: number) {
     return this.groupsService.getUserGroups(userId);
   }
+
+  @Get('/count')
+  @UseGuards(AuthTokenGuard)
+  getUserGroupsCount(@UserId() userId: number) {
+    return this.groupsService.getUserGroups(userId);
+  }
 }

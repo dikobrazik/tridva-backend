@@ -59,6 +59,13 @@ export class GroupsService {
       .then(this.prepareGroups);
   }
 
+  public getUserGroupsCount(userId: number): Promise<number> {
+    return this.orderGroupsRepository.count({
+      select: {groupId: true},
+      where: {status: OrderStatus.PAID, order: {userId}},
+    });
+  }
+
   public getOfferGroups(offerId: number) {
     return this.groupRepository
       .find({

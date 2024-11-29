@@ -35,6 +35,14 @@ export class FavoriteOffersService {
       );
   }
 
+  getFavoriteOffersCount(userId: number) {
+    return this.favoriteOffersRepository.count({
+      where: {
+        userId,
+      },
+    });
+  }
+
   async moveFavoriteOffersFromUserToUser(fromUserId: number, toUserId: number) {
     return this.favoriteOffersRepository.update(
       {
