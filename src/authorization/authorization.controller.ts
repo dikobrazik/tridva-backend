@@ -53,6 +53,16 @@ export class AuthorizationController {
     return {isAnonymous: true, phone, profile};
   }
 
+  // todo: защититься от спама в ручку
+  @Post('/create-anonymous')
+  async createAnonymous(@Res({passthrough: true}) response: Response) {
+    response.statusCode = HttpStatus.OK;
+
+    const {access_token} = await this.authorizationService.createAnonymous();
+
+    return {token: access_token};
+  }
+
   @Post('/get-code')
   getCode(@Body() getCodeBody: GetCodeDto) {
     return this.authenticationService.sendCode(getCodeBody.phone);

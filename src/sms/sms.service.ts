@@ -14,7 +14,7 @@ export class SmsService {
   }
 
   public sendMessage(phone: string, text: string) {
-    return Promise.resolve();
-    return this.client.send(phone, text);
+    return Promise.resolve(`${phone} ${text}`);
+    // return this.client.send(phone, text);
   }
 }

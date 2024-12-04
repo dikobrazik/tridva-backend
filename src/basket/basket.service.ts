@@ -122,7 +122,7 @@ export class BasketService {
     return this.basketItemRepository
       .find({
         where: {userId},
-        relations: {group: {offer: true, owner: true}, offer: true},
+        relations: {group: {offer: true}, offer: true},
       })
       .then((basketItems) => {
         return basketItems.map((basketItem) => {
@@ -166,7 +166,13 @@ export class BasketService {
       id: basketItem.id,
       count: basketItem.count,
       group: undefined,
-      offer,
+      offer: {
+        id: offer.id,
+        title: offer.title,
+        price: offer.price,
+        discount: offer.discount,
+        photos: offer.photos,
+      },
     };
   }
 
@@ -180,11 +186,17 @@ export class BasketService {
       count: basketItem.count,
       group: {
         id: groupId,
-        owner: basketItem.group.owner.id === userId,
+        owner: basketItem.group.ownerId === userId,
         capacity: basketItem.group.capacity,
         filled: 'filled unknown',
       },
-      offer,
+      offer: {
+        id: offer.id,
+        title: offer.title,
+        price: offer.price,
+        discount: offer.discount,
+        photos: offer.photos,
+      },
     };
   }
 }
