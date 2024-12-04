@@ -21,7 +21,7 @@ export class AttributesService {
       .filter(
         (offerAttribute) =>
           offerAttribute.value !== 'Empty' &&
-          offerAttribute.attributeId !== 5935,
+          ![5935, 7868].includes(offerAttribute.attributeId),
       )
       .reduce((offerAttributes, offerAttribute) => {
         offerAttributes[offerAttribute.attribute.name] = (
