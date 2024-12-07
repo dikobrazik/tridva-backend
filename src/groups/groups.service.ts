@@ -5,7 +5,14 @@ import {OrderStatus} from 'src/entities/enums';
 import {Group} from 'src/entities/Group';
 import {Order} from 'src/entities/Order';
 import {OrderGroup} from 'src/entities/OrderGroup';
-import {In, MoreThan, Raw, Repository} from 'typeorm';
+import {In, MoreThan, Not, Repository} from 'typeorm';
+
+type OfferBestGroup = {
+  id: number;
+  leftCapacity: number;
+  ownerName: string;
+  createdAt: Date;
+};
 
 @Injectable()
 export class GroupsService {
@@ -43,7 +50,7 @@ export class GroupsService {
     );
   }
 
-  public async getUserGroups(userId: number): Promise<Group[]> {
+  public async getUserGroups(userId: number) {
     const userOrders = await this.orderGroupsRepository.find({
       select: {groupId: true},
       where: {status: OrderStatus.PAID, order: {userId}},
@@ -61,27 +68,74 @@ export class GroupsService {
 
   public getUserGroupsCount(userId: number): Promise<number> {
     return this.orderGroupsRepository.count({
-      select: {groupId: true},
       where: {status: OrderStatus.PAID, order: {userId}},
     });
   }
 
-  public getOfferGroups(offerId: number) {
-    return this.groupRepository
-      .find({
+  public getOfferGroup(
+    offerId: number,
+    userId: number,
+  ): Promise<OfferBestGroup | null> {
+    return this.orderGroupsRepository
+      .findOne({
         where: {
-          offer: {id: offerId},
-          participantsCount: Raw(
-            (alias) => `${alias} < capacity AND ${alias} >= 1`,
-          ),
-          capacity: MoreThan(1),
+          status: OrderStatus.PAID,
+          group: {
+            offerId,
+            ownerId: Not(userId),
+          },
         },
-        relations: {owner: {profile: true}},
+        relations: {group: {owner: true, offer: true}},
       })
-      .then(this.prepareGroups);
+      .then((orderGroup) => {
+        if (orderGroup) {
+          const {group} = orderGroup;
+
+          return {
+            id: group.id,
+            leftCapacity: group.capacity - group.participantsCount,
+            offer: group.offer,
+            ownerId: group.owner.id,
+            ownerName: group.owner.profile.name,
+            // по сути нужно брать время создания заказа
+            // а лучше время оплаты заказа
+            createdAt: group.createdAt,
+          };
+        }
+
+        return null;
+      });
   }
 
-  private prepareGroups(groups) {
+  public getOfferGroups(offerId: number, userId: number) {
+    return this.orderGroupsRepository
+      .find({
+        where: this.getOfferGroupsWhere(offerId, userId),
+        relations: {group: {owner: true, offer: false}},
+      })
+      .then((orderGroups) =>
+        this.prepareGroups(orderGroups.map((orderGroup) => orderGroup.group)),
+      );
+  }
+
+  public getOfferGroupsCount(offerId: number, userId: number) {
+    return this.orderGroupsRepository.count({
+      where: this.getOfferGroupsWhere(offerId, userId),
+    });
+  }
+
+  private getOfferGroupsWhere(offerId: number, userId: number) {
+    return {
+      status: OrderStatus.PAID,
+      group: {
+        ownerId: Not(userId),
+        offer: {id: offerId},
+        capacity: MoreThan(1),
+      },
+    };
+  }
+
+  private prepareGroups(groups: Group[]) {
     return groups.map(({owner, ...group}) => ({
       ...group,
       ownerId: owner.id,

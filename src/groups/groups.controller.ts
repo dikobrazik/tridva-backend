@@ -36,6 +36,6 @@ export class GroupsController {
   @Get('/count')
   @UseGuards(AuthTokenGuard)
   getUserGroupsCount(@UserId() userId: number) {
-    return this.groupsService.getUserGroups(userId);
+    return this.groupsService.getUserGroupsCount(userId);
   }
 }

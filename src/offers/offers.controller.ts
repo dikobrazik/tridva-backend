@@ -81,6 +81,19 @@ export class OffersController {
     return offer;
   }
 
+  @Get(':id/group')
+  @UseGuards(AuthTokenGuard)
+  @Header('Cache-Control', 'max-age=20, public')
+  async getGroup(@Param() params: SearchOfferDto, @UserId() userId: number) {
+    const group = await this.groupsService.getOfferGroup(params.id, userId);
+
+    if (group === null) {
+      throw new NotFoundException();
+    }
+
+    return group;
+  }
+
   @Get(':id/favorite')
   @UseGuards(AuthTokenGuard)
   getIsFavoriteOffer(
@@ -97,8 +110,18 @@ export class OffersController {
   }
 
   @Get(':id/groups')
-  getOfferGroups(@Param() params: SearchOfferDto) {
-    return this.groupsService.getOfferGroups(params.id);
+  @UseGuards(AuthTokenGuard)
+  getOfferGroups(@Param() params: SearchOfferDto, @UserId() userId: number) {
+    return this.groupsService.getOfferGroups(params.id, userId);
+  }
+
+  @Get(':id/groups/count')
+  @UseGuards(AuthTokenGuard)
+  getOfferGroupsCount(
+    @Param() params: SearchOfferDto,
+    @UserId() userId: number,
+  ) {
+    return this.groupsService.getOfferGroupsCount(params.id, userId);
   }
 
   @Get(':id/attributes')

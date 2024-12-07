@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Inject,
   Param,
   Post,
@@ -30,16 +31,20 @@ export class BasketController {
   private basketService: BasketService;
 
   @Get()
+  @UseGuards(AuthTokenGuard)
+  @Header('Cache-Control', 'max-age=5, public')
   public async getBasketItems(@UserId() userId: number) {
     return this.basketService.getUserBasket(userId);
   }
 
   @Get('count')
+  @UseGuards(AuthTokenGuard)
   public getBasketItemsCount(@UserId() userId: number) {
     return this.basketService.getUserBasketItemsCount(userId);
   }
 
   @Get('/:offerId')
+  @UseGuards(AuthTokenGuard)
   public getBasketItemByOfferId(
     @UserId() userId: number,
     @Param() params: GetBasketItemByOfferIdPayload,
@@ -51,6 +56,7 @@ export class BasketController {
   }
 
   @Post('/offer')
+  @UseGuards(AuthTokenGuard)
   public putOfferToBasket(
     @UserId() userId: number,
     @Body() body: PutOfferToBasketBody,
@@ -59,6 +65,7 @@ export class BasketController {
   }
 
   @Post('/group')
+  @UseGuards(AuthTokenGuard)
   public async putGroupToBasket(
     @UserId() userId: number,
     @Body() body: PutGroupToBasketBody,
@@ -67,6 +74,7 @@ export class BasketController {
   }
 
   @Get('/:offerId/count')
+  @UseGuards(AuthTokenGuard)
   public getBasketItemCount(
     @UserId() userId: number,
     @Param() params: OfferCountParams,
@@ -75,6 +83,7 @@ export class BasketController {
   }
 
   @Put('/:id/count')
+  @UseGuards(AuthTokenGuard)
   public async changeBasketItemCount(
     @UserId() userId: number,
     @Body() body: ChangeBasketItemCountBody,
@@ -88,6 +97,7 @@ export class BasketController {
   }
 
   @Delete(':id')
+  @UseGuards(AuthTokenGuard)
   public removeItemFromBasket(
     @UserId() userId: number,
     @Param() params: BasketItemParams,

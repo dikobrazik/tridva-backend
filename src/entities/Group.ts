@@ -16,8 +16,11 @@ export class Group {
   id: number;
 
   @ManyToOne(() => Offer, {eager: true})
-  @JoinColumn()
+  @JoinColumn({name: 'offerId'})
   offer: Offer;
+
+  @Column()
+  offerId: number;
 
   @VirtualColumn({
     query: (alias) =>
