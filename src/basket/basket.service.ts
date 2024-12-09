@@ -15,10 +15,16 @@ export class BasketService {
   private groupRepository: Repository<Group>;
 
   public async addGroupToBasket(userId: number, groupId: number) {
-    await this.basketItemRepository.insert({
+    const {
+      identifiers: [{id: basketItemId}],
+    } = await this.basketItemRepository.insert({
       user: {id: userId},
       group: {id: groupId},
     });
+
+    return this.basketItemRepository
+      .findOne({where: {id: basketItemId}})
+      .then((basketItem) => this.formatGroupBasketItem(basketItem, userId));
   }
 
   public async addOfferToBasket(userId: number, offerId: number) {

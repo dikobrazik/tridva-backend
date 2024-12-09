@@ -24,7 +24,7 @@ export class GroupsController {
   ) {
     const groupId = await this.groupsService.createGroup(body.offerId, userId);
 
-    await this.basketService.addGroupToBasket(userId, groupId);
+    return this.basketService.addGroupToBasket(userId, groupId);
   }
 
   @Get()

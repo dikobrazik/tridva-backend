@@ -70,7 +70,7 @@ export class BasketController {
     @UserId() userId: number,
     @Body() body: PutGroupToBasketBody,
   ) {
-    await this.basketService.addGroupToBasket(userId, body.groupId);
+    return this.basketService.addGroupToBasket(userId, body.groupId);
   }
 
   @Get('/:offerId/count')
