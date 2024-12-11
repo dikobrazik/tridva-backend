@@ -8,11 +8,26 @@ export class SearchOffersDto extends Paginable {
   @IsOptional()
   search?: string;
 
+  @ApiPropertyOptional()
   @IsOptional()
   @IsInt()
   @Min(1)
   @Type(() => Number)
   category?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  priceFrom?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  priceTo?: number;
 }
 
 export class OffersTotalDto {

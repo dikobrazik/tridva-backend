@@ -6,9 +6,10 @@ import {
   getPaginationFields,
 } from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
-import {In, Repository} from 'typeorm';
+import {And, In, LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {LIST_OFFER_VIEW} from 'src/entity-views/offer';
+import {SearchOffersDto} from './dto';
 
 @Injectable()
 export class OffersService {
@@ -33,12 +34,14 @@ export class OffersService {
       .then((offers) => offers.map((offer) => offer.id));
   }
 
-  async getRandomOffersList(page: number, pageSize: number) {
+  async getRandomOffersList({page, pageSize}: SearchOffersDto) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const offers = await this.offerRepository
       .find({
         select: LIST_OFFER_VIEW,
-        where: {id: In(this.randomOffersIds.slice(skip, skip + take))},
+        where: {
+          id: In(this.randomOffersIds.slice(skip, skip + take)),
+        },
       })
       .then((offers) =>
         this.randomOffersIds
@@ -50,9 +53,12 @@ export class OffersService {
     return this.prepareOffersListResponse(offers, count, pageSize);
   }
 
-  async getOffersListBySearch(search: string, page: number, pageSize: number) {
+  async getOffersListBySearch(
+    search: string,
+    {page, pageSize, priceFrom, priceTo}: SearchOffersDto,
+  ) {
     const {skip, take} = getPaginationFields(page, pageSize);
-    const [offers, count] = await this.offerRepository
+    const qb = this.offerRepository
       .createQueryBuilder('offer')
       .select(
         Object.keys(LIST_OFFER_VIEW).map((fieldName) => `offer.${fieldName}`),
@@ -64,28 +70,52 @@ export class OffersService {
       )
       .leftJoinAndSelect('offer.photos', 'offer_photo')
       .skip(skip)
-      .take(take)
-      .getManyAndCount();
+      .take(take);
+
+    if (priceFrom) {
+      qb.andWhere('offer.price >= :priceFrom', {priceFrom});
+    }
+    if (priceTo) {
+      qb.andWhere('offer.price <= :priceTo', {priceTo});
+    }
+
+    const [offers, count] = await qb.getManyAndCount();
 
     return this.prepareOffersListResponse(offers, count, pageSize);
   }
 
   async getOffersListByCategory(
     categoryId: string,
-    page: number,
-    pageSize: number,
+    {page, pageSize, priceFrom, priceTo}: SearchOffersDto,
   ) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const [offers, count] = await this.offerRepository.findAndCount({
       select: LIST_OFFER_VIEW,
       where: {
         categoryId: In(await this.getCategoryIds(categoryId)),
+        price: this.getPriceWhere(priceFrom, priceTo),
       },
       skip,
       take,
     });
 
     return this.prepareOffersListResponse(offers, count, pageSize);
+  }
+
+  private getPriceWhere(priceFrom?: number, priceTo?: number) {
+    if (priceFrom && priceTo) {
+      return And(MoreThanOrEqual(priceFrom), LessThanOrEqual(priceTo));
+    }
+
+    if (priceFrom) {
+      return MoreThanOrEqual(priceFrom);
+    }
+
+    if (priceTo) {
+      return LessThanOrEqual(priceTo);
+    }
+
+    return undefined;
   }
 
   private prepareOffersListResponse(
