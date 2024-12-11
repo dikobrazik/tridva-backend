@@ -128,7 +128,7 @@ export class OrdersService {
 
       await queryRunner.commitTransaction();
     } catch (e) {
-      console.log(e);
+      console.error(e);
 
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException();
@@ -184,7 +184,7 @@ export class OrdersService {
 
       await queryRunner.commitTransaction();
     } catch (e) {
-      console.log(e);
+      console.error(e);
 
       await queryRunner.rollbackTransaction();
       throw new InternalServerErrorException();
@@ -208,6 +208,7 @@ export class OrdersService {
 
     if (isTokenValid) {
       if (notification.Success) {
+        // eslint-disable-next-line no-console
         console.log(notification);
         if (notification.Status === 'CONFIRMED') {
           await this.orderGroupsRepository.update(
@@ -220,6 +221,7 @@ export class OrdersService {
           );
         }
       } else {
+        // eslint-disable-next-line no-console
         console.log(notification);
         await this.orderGroupsRepository.update(
           {orderId: Number(notification.OrderId)},

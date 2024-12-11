@@ -16,6 +16,5 @@ interface Response extends Body {
   /** [MDN Reference](https://developer.mozilla.org/docs/Web/API/Response/clone) */
   clone(): Response;
 
-  // eslint-disable-next-line no-unused-vars
   cookie(key: string, value: string): void;
 }

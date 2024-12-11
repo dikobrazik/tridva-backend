@@ -90,5 +90,6 @@ export const generateSiteMap = async (app: INestApplication<any>) => {
   await writeFile(`/var/tmp/shared-docker/sitemap.xml`, siteMapContent, {
     flag: 'w+',
   });
+  // eslint-disable-next-line no-console
   console.log(`Site map generated to /var/tmp/shared-docker/sitemap.xml`);
 };

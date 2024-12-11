@@ -39,6 +39,7 @@ import {KassaModule} from './kassa/kassa.module';
 import {OrderOffer} from './entities/OrderOffer';
 import {OrderGroup} from './entities/OrderGroup';
 import {Payment} from './entities/Payment';
+import {AdminModule} from './admin/admin.module';
 
 @Module({
   imports: [
@@ -108,6 +109,7 @@ import {Payment} from './entities/Payment';
     AttributesModule,
     SmsModule,
     KassaModule,
+    AdminModule,
   ],
   providers: [AuthenticationService],
 })

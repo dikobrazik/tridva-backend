@@ -1,19 +1,21 @@
-import {NestFactory} from '@nestjs/core';
-import {AppModule} from './app.module';
 import {ValidationPipe} from '@nestjs/common';
-import {setupSwagger} from './swagger';
-import {PullerService} from './puller/puller.service';
+import {ConfigService} from '@nestjs/config';
+import {NestFactory} from '@nestjs/core';
+import {NestExpressApplication} from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
-import {OffersService} from './offers/offers.service';
+import {DataSource} from 'typeorm';
+import {AppModule} from './app.module';
+import {CategoryService} from './category/category.service';
 import {GeoService} from './geo/geo.service';
 import {initializeIndices} from './indices';
-import {DataSource} from 'typeorm';
-import {ConfigService} from '@nestjs/config';
+import {initializeAdmin} from './initializeAdmin';
+import {OffersService} from './offers/offers.service';
+import {PullerService} from './puller/puller.service';
 import {generateSiteMap} from './sitemap';
-import {CategoryService} from './category/category.service';
+import {setupSwagger} from './swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const isDev = app.get(ConfigService).get('IS_DEV');
 
@@ -21,23 +23,21 @@ async function bootstrap() {
     initializeIndices(app.get(DataSource));
   }
 
-  app.setGlobalPrefix('api');
-
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
 
   setupSwagger(app);
 
-  app.get(PullerService).pull().catch(console.log);
+  app.get(PullerService).pull().catch(console.error);
 
-  generateSiteMap(app).catch(console.log);
+  generateSiteMap(app).catch(console.error);
 
-  await app.get(OffersService).preloadRandomOffersIds().catch(console.log);
+  await app.get(OffersService).preloadRandomOffersIds().catch(console.error);
   await app
     .get(CategoryService)
     .preparePopularCategoriesList()
-    .catch(console.log);
-  app.get(GeoService).initialize().catch(console.log);
+    .catch(console.error);
+  app.get(GeoService).initialize().catch(console.error);
 
   app.enableCors({
     origin: isDev
@@ -50,6 +50,10 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
+
+  if (isDev) {
+    initializeAdmin(app);
+  }
 
   await app.listen(80);
 }

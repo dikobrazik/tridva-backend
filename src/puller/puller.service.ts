@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import {Inject, Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import axios from 'axios';
@@ -73,6 +74,7 @@ class SimaApi implements ISimaApi {
 
   private entitiesLoader<E>(entity: string) {
     const load = (page: number): Promise<E[]> => {
+      // eslint-disable-next-line no-console
       if (page % 10000 === 0) console.log(`Loading ${entity} page ${page}...`);
 
       return this.client(`/${entity}?p=${page}`)
@@ -165,8 +167,8 @@ export class PullerService {
     await this.functionWorkTimeLogger(this.fillAttributes.bind(this));
     await this.functionWorkTimeLogger(this.fillModifiers.bind(this));
 
-    this.offersService.preloadRandomOffersIds().catch(console.log);
-    this.categoryService.preparePopularCategoriesList().catch(console.log);
+    this.offersService.preloadRandomOffersIds().catch(console.error);
+    this.categoryService.preparePopularCategoriesList().catch(console.error);
 
     if (!this.isDebug) {
       await this.pullHistoryRepository.update(
@@ -186,7 +188,7 @@ export class PullerService {
       },
     })
       .then((r) => r.data.token)
-      .catch(console.log);
+      .catch(console.error);
 
     this.client.defaults.headers.Authorization = token;
   }
@@ -471,8 +473,8 @@ export class PullerService {
           ['offerId'],
         );
       } catch (e) {
-        console.log(e);
-        console.log('something went wrong while loading offers');
+        console.error(e);
+        console.error('something went wrong while loading offers');
       }
     }
   }

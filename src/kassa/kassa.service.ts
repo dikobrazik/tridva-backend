@@ -34,7 +34,7 @@ export class KassaService {
       .post<GetQrResponse>('/Init', body)
       .then((r) => r.data);
 
-    console.log('GetQr response', response);
+    console.warn('GetQr response', response);
 
     if (!response.Success) {
       throw new InternalServerErrorException();
@@ -152,7 +152,7 @@ export class KassaService {
       .post<InitResponse>('/Init', body)
       .then((r) => r.data);
 
-    console.log('Init response', body, response);
+    console.warn('Init response', body, response);
 
     if (!response.Success) {
       throw new InternalServerErrorException();
@@ -254,7 +254,7 @@ export class KassaService {
       .post<CancelResponse>('/Cancel', body)
       .then((r) => r.data);
 
-    console.log('Cancel response', response);
+    console.warn('Cancel response', response);
 
     if (!response.Success) {
       throw new InternalServerErrorException();
