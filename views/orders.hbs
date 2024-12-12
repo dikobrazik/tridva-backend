@@ -1,0 +1,17 @@
+<h1>Orders</h1>
+<table>
+  <thead>
+    <tr>
+      <th>id</th>
+      <th>user id</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each orders}}
+    <tr>
+      <td class="clickable" onclick="window.location='/admin/orders/{{this.id}}';">{{this.id}}</td>
+      <td class="clickable" onclick="window.location='/admin/users/{{this.userId}}';">{{this.userId}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>

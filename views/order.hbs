@@ -1,0 +1,43 @@
+<h1>Order {{order.id}}</h1>
+
+{{#if groups.length}}
+<h2>Order groups</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Group id</th>
+      <th>Offer id</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each groups}}
+    <tr>
+      <td>{{this.groupId}}</td>
+      <td>{{this.group.offerId}}</td>
+      <td>{{this.status}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{/if}}
+
+{{#if offers.length}}
+<h2>Order offers</h2>
+<table>
+  <thead>
+    <tr>
+      <th>Offer id</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each offers}}
+    <tr>
+      <td>{{this.id}}</td>
+      <td>{{this.status}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+{{/if}}
