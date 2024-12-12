@@ -72,15 +72,18 @@ export class GroupsService {
     });
   }
 
-  public getOfferGroup(
+  public async getOfferGroup(
     offerId: number,
     userId: number,
   ): Promise<OfferBestGroup | null> {
+    const userAssignedGroupsIds = await this.getUserAssignedGroupsIds(userId);
+
     return this.orderGroupsRepository
       .findOne({
         where: {
           status: OrderStatus.PAID,
           group: {
+            id: Not(In(userAssignedGroupsIds)),
             offerId,
             ownerId: Not(userId),
           },
@@ -107,10 +110,10 @@ export class GroupsService {
       });
   }
 
-  public getOfferGroups(offerId: number, userId: number) {
+  public async getOfferGroups(offerId: number, userId: number) {
     return this.orderGroupsRepository
       .find({
-        where: this.getOfferGroupsWhere(offerId, userId),
+        where: await this.getOfferGroupsWhere(offerId, userId),
         relations: {group: {owner: true, offer: false}},
       })
       .then((orderGroups) =>
@@ -118,21 +121,45 @@ export class GroupsService {
       );
   }
 
-  public getOfferGroupsCount(offerId: number, userId: number) {
+  public async getOfferGroupsCount(offerId: number, userId: number) {
     return this.orderGroupsRepository.count({
-      where: this.getOfferGroupsWhere(offerId, userId),
+      where: await this.getOfferGroupsWhere(offerId, userId),
     });
   }
 
-  private getOfferGroupsWhere(offerId: number, userId: number) {
+  private async getOfferGroupsWhere(offerId: number, userId: number) {
     return {
       status: OrderStatus.PAID,
       group: {
+        id: Not(In(await this.getUserAssignedGroupsIds(userId))),
         ownerId: Not(userId),
         offer: {id: offerId},
         capacity: MoreThan(1),
       },
     };
+  }
+
+  private async getUserAssignedGroupsIds(userId: number) {
+    const [userBasketGroupIds, userOrderGroupsIds] = await Promise.all([
+      this.basketRepository
+        .find({
+          select: {groupId: true},
+          where: {userId},
+        })
+        .then((userBasketItems) =>
+          userBasketItems.map((basketItem) => basketItem.groupId),
+        ),
+      this.orderGroupsRepository
+        .find({
+          select: {groupId: true},
+          where: {order: {userId}},
+        })
+        .then((userOrderGroups) =>
+          userOrderGroups.map((orderGroup) => orderGroup.groupId),
+        ),
+    ]);
+
+    return userBasketGroupIds.concat(userOrderGroupsIds);
   }
 
   private prepareGroups(groups: Group[]) {

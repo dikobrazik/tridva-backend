@@ -76,7 +76,10 @@ export class OffersController {
   @Get(':id/group')
   @UseGuards(AuthTokenGuard)
   @Header('Cache-Control', 'max-age=20, public')
-  async getGroup(@Param() params: SearchOfferDto, @UserId() userId: number) {
+  async getBestGroup(
+    @Param() params: SearchOfferDto,
+    @UserId() userId: number,
+  ) {
     const group = await this.groupsService.getOfferGroup(params.id, userId);
 
     if (group === null) {
