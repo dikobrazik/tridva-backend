@@ -422,8 +422,15 @@ export class PullerService {
         // убираем товары которых нет в наличии
         const isExists = offer.balance !== '0';
 
+        const isDiscounted = offer.name.toLocaleLowerCase().includes('уценка');
+
         return (
-          withCategory && withPhotos && !isAdult && !isRemoteStore && isExists
+          withCategory &&
+          withPhotos &&
+          !isAdult &&
+          !isRemoteStore &&
+          isExists &&
+          !isDiscounted
         );
       });
 
