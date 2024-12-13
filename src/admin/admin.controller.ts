@@ -27,6 +27,7 @@ export class AdminController {
 
   @Get()
   @Render('index')
+  @UseGuards(AuthenticatedGuard)
   root() {
     return {message: 'Hello world!'};
   }
