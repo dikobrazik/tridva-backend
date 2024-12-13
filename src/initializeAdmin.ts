@@ -3,6 +3,7 @@ import {NestExpressApplication} from '@nestjs/platform-express';
 import passport from 'passport';
 import session from 'express-session';
 import {join} from 'path';
+import {ConfigService} from '@nestjs/config';
 
 export function initializeAdmin(app: NestExpressApplication) {
   app.setGlobalPrefix('api', {
@@ -21,7 +22,7 @@ export function initializeAdmin(app: NestExpressApplication) {
 
   app.use(
     session({
-      secret: 'nest cats',
+      secret: app.get(ConfigService).getOrThrow('ADMIN_SECRET'),
       resave: false,
       saveUninitialized: false,
     }),

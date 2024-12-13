@@ -51,9 +51,7 @@ async function bootstrap() {
     credentials: true,
   });
 
-  if (isDev) {
-    initializeAdmin(app);
-  }
+  initializeAdmin(app);
 
   await app.listen(80);
 }
