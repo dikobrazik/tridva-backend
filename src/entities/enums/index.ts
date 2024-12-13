@@ -7,9 +7,9 @@ export enum OrderStatus {
 }
 
 export const OrderStatusText = {
-  CREATED: OrderStatus.CREATED,
-  PAID: OrderStatus.PAID,
-  PAYMENT_ERROR: OrderStatus.PAYMENT_ERROR,
-  IN_DELIVERY: OrderStatus.IN_DELIVERY,
-  DELIVERED: OrderStatus.DELIVERED,
+  [OrderStatus.CREATED]: 'CREATED',
+  [OrderStatus.PAID]: 'PAID',
+  [OrderStatus.PAYMENT_ERROR]: 'PAYMENT_ERROR',
+  [OrderStatus.IN_DELIVERY]: 'IN_DELIVERY',
+  [OrderStatus.DELIVERED]: 'DELIVERED',
 };

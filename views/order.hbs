@@ -1,7 +1,8 @@
 <h1>Order {{order.id}}</h1>
+<h4 class="clickable" onclick="window.location = '/admin/users/{{order.userId}}';">user id - {{order.userId}}</h4>
 
 {{#if groups.length}}
-<h2>Order groups</h2>
+<h2>Group orders</h2>
 <table>
   <thead>
     <tr>
@@ -14,7 +15,11 @@
     {{#each groups}}
     <tr>
       <td>{{this.groupId}}</td>
-      <td>{{this.group.offerId}}</td>
+      <td>
+        <a href="https://tridva.store/offers/{{this.group.offerId}}">
+          {{this.group.offerId}} <box-icon name='link-external'></box-icon>
+        </a>
+      </td>
       <td>{{this.status}}</td>
     </tr>
     {{/each}}

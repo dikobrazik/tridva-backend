@@ -1,0 +1,23 @@
+<h1>Offer orders</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Order id</th>
+      <th>Offer id</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each orders}}
+    <tr>
+      <td>{{this.orderId}}</td>
+      <td>
+        <a href="https://tridva.store/offers/{{this.offerId}}">
+          {{this.offerId}} <box-icon name='link-external'></box-icon>
+        </a>
+      </td>
+      <td>{{this.statusText}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>

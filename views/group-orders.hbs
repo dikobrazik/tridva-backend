@@ -1,0 +1,25 @@
+<h1>Group orders</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Group id</th>
+      <th>Offer id</th>
+      <th>Count</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each orders}}
+    <tr>
+      <td>{{this.groupId}}</td>
+      <td>
+        <a href="https://tridva.store/offers/{{this.group.offerId}}">
+          {{this.group.offerId}} <box-icon name='link-external'></box-icon>
+        </a>
+      </td>
+      <td>{{this.count}}</td>
+      <td>{{this.statusText}}</td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>

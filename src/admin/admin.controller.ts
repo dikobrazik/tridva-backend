@@ -33,15 +33,31 @@ export class AdminController {
 
   @Get('/orders')
   @Render('orders')
-  // @UseGuards(AuthenticatedGuard)
+  @UseGuards(AuthenticatedGuard)
   async orders() {
     const orders = await this.adminService.getOrders();
     return {orders};
   }
 
+  @Get('/group-orders')
+  @Render('group-orders')
+  @UseGuards(AuthenticatedGuard)
+  async groupOrders() {
+    const orders = await this.adminService.getGroupOrders();
+    return {orders};
+  }
+
+  @Get('/offer-orders')
+  @Render('offer-orders')
+  @UseGuards(AuthenticatedGuard)
+  async offerOrders() {
+    const orders = await this.adminService.getOfferOrders();
+    return {orders};
+  }
+
   @Get('/orders/:id')
   @Render('order')
-  // @UseGuards(AuthenticatedGuard)
+  @UseGuards(AuthenticatedGuard)
   async order(@Param('id') orderId: string) {
     const {order, groups, offers} = await this.adminService.getOrder(orderId);
     return {order, groups, offers};
@@ -49,7 +65,7 @@ export class AdminController {
 
   @Get('/users')
   @Render('users')
-  // @UseGuards(AuthenticatedGuard)
+  @UseGuards(AuthenticatedGuard)
   async users() {
     const users = await this.adminService.getUsers();
     return {users};
@@ -57,7 +73,7 @@ export class AdminController {
 
   @Get('/users/:id')
   @Render('user')
-  // @UseGuards(AuthenticatedGuard)
+  @UseGuards(AuthenticatedGuard)
   async user(@Param('id') userId: string) {
     const user = await this.adminService.getUser(userId);
     return {user};
