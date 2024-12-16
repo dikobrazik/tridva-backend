@@ -3,6 +3,8 @@ import {InjectRepository} from '@nestjs/typeorm';
 import {Category} from 'src/entities/Category';
 import {In, Like, MoreThan, Repository} from 'typeorm';
 
+const SHORT_CATEGORY = {id: true, name: true};
+
 @Injectable()
 export class CategoryService {
   @InjectRepository(Category)
@@ -15,39 +17,47 @@ export class CategoryService {
   async preparePopularCategoriesList() {
     await Promise.all([
       this.categoryRepository.findOne({
-        select: {id: true, name: true},
+        select: SHORT_CATEGORY,
         where: {level: '1', name: 'Посуда'},
       }),
       this.categoryRepository.findOne({
-        select: {id: true, name: true},
-        where: {level: '1', name: 'Игрушки'},
+        select: SHORT_CATEGORY,
+        where: {offersCount: MoreThan(0), level: '1', name: 'Игрушки'},
       }),
       this.categoryRepository.findOne({
-        select: {id: true, name: true},
-        where: {level: '1', name: 'Бытовая техника и электроника'},
+        select: SHORT_CATEGORY,
+        where: {
+          offersCount: MoreThan(0),
+          level: '1',
+          name: 'Бытовая техника и электроника',
+        },
       }),
       this.categoryRepository.findOne({
-        select: {id: true, name: true},
-        where: {level: '1', name: 'Мебель'},
+        select: SHORT_CATEGORY,
+        where: {offersCount: MoreThan(0), level: '1', name: 'Мебель'},
       }),
       this.categoryRepository.findOne({
-        select: {id: true, name: true},
-        where: {level: '1', name: 'Хозтовары'},
+        select: SHORT_CATEGORY,
+        where: {offersCount: MoreThan(0), level: '1', name: 'Хозтовары'},
       }),
       this.categoryRepository.findOne({
-        select: {id: true, name: true},
-        where: {level: '1', name: 'Канцтовары'},
+        select: SHORT_CATEGORY,
+        where: {offersCount: MoreThan(0), level: '1', name: 'Канцтовары'},
       }),
       this.categoryRepository.findOne({
-        select: {id: true, name: true},
-        where: {level: '1', name: 'Творчество'},
+        select: SHORT_CATEGORY,
+        where: {offersCount: MoreThan(0), level: '1', name: 'Творчество'},
       }),
       this.categoryRepository.findOne({
-        select: {id: true, name: true},
-        where: {level: '4', name: 'Товары для красоты и здоровья'},
+        select: SHORT_CATEGORY,
+        where: {
+          offersCount: MoreThan(0),
+          level: '4',
+          name: 'Товары для красоты и здоровья',
+        },
       }),
     ]).then((popularCategoriesList) => {
-      this.popularCategoriesList = popularCategoriesList;
+      this.popularCategoriesList = popularCategoriesList.filter(Boolean);
     });
   }
 
