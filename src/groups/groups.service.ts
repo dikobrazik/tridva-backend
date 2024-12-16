@@ -114,7 +114,7 @@ export class GroupsService {
     return this.orderGroupsRepository
       .find({
         where: await this.getOfferGroupsWhere(offerId, userId),
-        relations: {group: {owner: true, offer: false}},
+        relations: {group: {owner: true, offer: true}},
       })
       .then((orderGroups) =>
         this.prepareGroups(orderGroups.map((orderGroup) => orderGroup.group)),

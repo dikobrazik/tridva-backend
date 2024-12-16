@@ -73,6 +73,21 @@ export class OffersController {
     return offer;
   }
 
+  @Get(':id/favorite')
+  @UseGuards(AuthTokenGuard)
+  getIsFavoriteOffer(
+    @Param() params: SearchOfferDto,
+    @UserId() userId: number,
+  ) {
+    return this.favoriteOffersService.getIsFavoriteOffer(params.id, userId);
+  }
+
+  @Post(':id/favorite')
+  @UseGuards(AuthTokenGuard)
+  addFavoriteOffer(@Param() params: SearchOfferDto, @UserId() userId: number) {
+    return this.favoriteOffersService.addFavoriteOffer(params.id, userId);
+  }
+
   @Get(':id/group')
   @UseGuards(AuthTokenGuard)
   @Header('Cache-Control', 'max-age=20, public')
@@ -87,21 +102,6 @@ export class OffersController {
     }
 
     return group;
-  }
-
-  @Get(':id/favorite')
-  @UseGuards(AuthTokenGuard)
-  getIsFavoriteOffer(
-    @Param() params: SearchOfferDto,
-    @UserId() userId: number,
-  ) {
-    return this.favoriteOffersService.getIsFavoriteOffer(params.id, userId);
-  }
-
-  @Post(':id/favorite')
-  @UseGuards(AuthTokenGuard)
-  addFavoriteOffer(@Param() params: SearchOfferDto, @UserId() userId: number) {
-    return this.favoriteOffersService.addFavoriteOffer(params.id, userId);
   }
 
   @Get(':id/groups')
