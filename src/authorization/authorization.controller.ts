@@ -48,7 +48,7 @@ export class AuthorizationController {
     const {access_token, phone, profile} =
       await this.authorizationService.createAnonymous();
 
-    response.cookie('token', access_token);
+    response.cookie('token', access_token, {httpOnly: true, secure: true});
 
     return {isAnonymous: true, phone, profile};
   }
@@ -80,7 +80,7 @@ export class AuthorizationController {
       payload,
     );
 
-    response.cookie('token', access_token);
+    response.cookie('token', access_token, {httpOnly: true, secure: true});
 
     return profile;
   }
