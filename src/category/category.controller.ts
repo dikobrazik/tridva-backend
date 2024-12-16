@@ -32,6 +32,14 @@ export class CategoryController {
     return category;
   }
 
+  @Get(':id/is-popular')
+  async getIsPopularCategory(@Param() params: FindOneParams) {
+    return this.categoryService
+      .getPopularCategoriesList()
+      .map((category) => category.id)
+      .includes(params.id);
+  }
+
   @Get(':id/ancestors')
   getCategoryAncestors(@Param() params: FindOneParams) {
     return this.categoryService.getCategoryAncestors(params.id);
