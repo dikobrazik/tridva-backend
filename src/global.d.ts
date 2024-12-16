@@ -18,3 +18,5 @@ interface Response extends Body {
 
   cookie(key: string, value: string): void;
 }
+
+type Values<T extends object> = T[keyof T];

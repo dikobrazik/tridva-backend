@@ -6,10 +6,19 @@ import {
   getPaginationFields,
 } from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
-import {And, In, LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
+import {
+  And,
+  FindOptionsOrder,
+  In,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+  SelectQueryBuilder,
+} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {LIST_OFFER_VIEW} from 'src/entity-views/offer';
 import {SearchOffersDto} from './dto';
+import {ORDER} from './constants';
 
 @Injectable()
 export class OffersService {
@@ -55,7 +64,7 @@ export class OffersService {
 
   async getOffersListBySearch(
     search: string,
-    {page, pageSize, priceFrom, priceTo}: SearchOffersDto,
+    {page, pageSize, priceFrom, priceTo, order}: SearchOffersDto,
   ) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const qb = this.offerRepository
@@ -79,6 +88,10 @@ export class OffersService {
       qb.andWhere('offer.price <= :priceTo', {priceTo});
     }
 
+    if (order) {
+      this.addOrderByToQueryBuilder(qb, order);
+    }
+
     const [offers, count] = await qb.getManyAndCount();
 
     return this.prepareOffersListResponse(offers, count, pageSize);
@@ -86,7 +99,7 @@ export class OffersService {
 
   async getOffersListByCategory(
     categoryId: string,
-    {page, pageSize, priceFrom, priceTo}: SearchOffersDto,
+    {page, pageSize, priceFrom, priceTo, order}: SearchOffersDto,
   ) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const [offers, count] = await this.offerRepository.findAndCount({
@@ -97,6 +110,7 @@ export class OffersService {
       },
       skip,
       take,
+      order: order ? this.getRepositoryOrderBy(order) : undefined,
     });
 
     return this.prepareOffersListResponse(offers, count, pageSize);
@@ -162,5 +176,45 @@ export class OffersService {
     }
 
     return undefined;
+  }
+
+  private getRepositoryOrderBy(
+    order: Values<typeof ORDER>,
+  ): FindOptionsOrder<Offer> {
+    switch (order) {
+      case ORDER.POPULAR:
+        return {ordersCount: 'DESC'};
+      case ORDER.PRICE_ASC:
+        return {price: 'ASC'};
+      case ORDER.PRICE_DESC:
+        return {price: 'DESC'};
+      case ORDER.DISCOUNT:
+        return {discount: 'DESC'};
+      case ORDER.RATING:
+        return {rating: 'DESC'};
+    }
+  }
+
+  private addOrderByToQueryBuilder(
+    qb: SelectQueryBuilder<Offer>,
+    order: Values<typeof ORDER>,
+  ) {
+    switch (order) {
+      case ORDER.POPULAR:
+        qb.addOrderBy('offer.ordersCount', 'DESC');
+        break;
+      case ORDER.PRICE_ASC:
+        qb.addOrderBy('offer.price', 'ASC');
+        break;
+      case ORDER.PRICE_DESC:
+        qb.addOrderBy('offer.price', 'DESC');
+        break;
+      case ORDER.DISCOUNT:
+        qb.addOrderBy('offer.discount', 'DESC');
+        break;
+      case ORDER.RATING:
+        qb.addOrderBy('offer.rating', 'DESC');
+        break;
+    }
   }
 }
