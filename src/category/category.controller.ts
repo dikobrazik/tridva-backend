@@ -37,7 +37,7 @@ export class CategoryController {
     return this.categoryService
       .getPopularCategoriesList()
       .map((category) => category.id)
-      .includes(params.id);
+      .includes(Number(params.id));
   }
 
   @Get(':id/ancestors')
