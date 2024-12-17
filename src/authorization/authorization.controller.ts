@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  Get,
   HttpStatus,
   Inject,
   Post,
@@ -24,13 +26,8 @@ export class AuthorizationController {
   @Inject(AuthenticationService)
   private authenticationService: AuthenticationService;
 
-  @Post('/check')
-  async checkUserToken(
-    @Token() token: string,
-    @Res({passthrough: true}) response: Response,
-  ) {
-    response.statusCode = HttpStatus.OK;
-
+  @Get('/user')
+  async getUser(@Token() token: string) {
     if (token) {
       const user = await this.authorizationService.getTokenUser(token);
 
@@ -45,12 +42,7 @@ export class AuthorizationController {
       }
     }
 
-    const {access_token, phone, profile} =
-      await this.authorizationService.createAnonymous();
-
-    response.cookie('token', access_token, {httpOnly: true, secure: true});
-
-    return {isAnonymous: true, phone, profile};
+    throw new BadRequestException();
   }
 
   // todo: защититься от спама в ручку
@@ -66,6 +58,15 @@ export class AuthorizationController {
   @Post('/get-code')
   getCode(@Body() getCodeBody: GetCodeDto) {
     return this.authenticationService.sendCode(getCodeBody.phone);
+  }
+
+  @Post('/logout')
+  async logout(@Res({passthrough: true}) response: Response) {
+    response.statusCode = HttpStatus.OK;
+
+    const {access_token} = await this.authorizationService.createAnonymous();
+
+    response.cookie('token', access_token, {httpOnly: true, secure: true});
   }
 
   @Post('/check-code')
