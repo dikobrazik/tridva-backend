@@ -1,4 +1,5 @@
 import {
+  AfterLoad,
   Column,
   Entity,
   JoinColumn,
@@ -8,7 +9,7 @@ import {
 } from 'typeorm';
 import {Order} from './Order';
 import {Offer} from './Offer';
-import {OrderStatus} from './enums';
+import {OrderStatus, OrderStatusText} from './enums';
 
 @Entity()
 export class OrderOffer {
@@ -38,4 +39,11 @@ export class OrderOffer {
     default: OrderStatus.CREATED,
   })
   status: OrderStatus;
+
+  @AfterLoad()
+  setStatusText() {
+    this.statusText = OrderStatusText[this.status];
+  }
+
+  statusText: Values<typeof OrderStatusText>;
 }

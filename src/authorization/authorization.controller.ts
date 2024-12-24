@@ -66,7 +66,11 @@ export class AuthorizationController {
 
     const {access_token} = await this.authorizationService.createAnonymous();
 
-    response.cookie('token', access_token, {httpOnly: true, secure: true});
+    response.cookie('token', access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
   }
 
   @Post('/check-code')
@@ -81,7 +85,11 @@ export class AuthorizationController {
       payload,
     );
 
-    response.cookie('token', access_token, {httpOnly: true, secure: true});
+    response.cookie('token', access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
 
     return profile;
   }
