@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {Order} from 'src/entities/Order';
-import {DataSource, In, Repository} from 'typeorm';
+import {DataSource, FindOptionsSelect, In, Not, Repository} from 'typeorm';
 import {CancelOrderDto, CreateOrderDto} from './dtos';
 import {BasketItem} from 'src/entities/BasketItem';
 import {QueryDeepPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
@@ -16,7 +16,8 @@ import {OrderOffer} from 'src/entities/OrderOffer';
 import {KassaService} from 'src/kassa/kassa.service';
 import {Payment} from 'src/entities/Payment';
 import {KassaNotification} from 'src/kassa/types';
-import {OrderStatus} from 'src/entities/enums';
+import {OrderStatus, PaymentStatus} from 'src/entities/enums';
+import {Offer} from 'src/entities/Offer';
 
 @Injectable()
 export class OrdersService {
@@ -38,10 +39,69 @@ export class OrdersService {
   private dataSource: DataSource;
 
   public async getUserOrders(userId: number) {
-    return this.orderOffersRepository.find({
-      where: {status: OrderStatus.PAID, order: {userId}},
-      relations: {offer: true, order: {pickupPoint: true}},
-    });
+    const offerSelect: FindOptionsSelect<Offer> = {
+      id: true,
+      title: true,
+      discount: true,
+      price: true,
+    };
+
+    return this.ordersRepository
+      .find({
+        select: {
+          id: true,
+          offers: {status: true, count: true, offer: offerSelect},
+          groups: {
+            status: true,
+            count: true,
+            group: {id: true, offer: offerSelect},
+          },
+          createdAt: true,
+          updatedAt: true,
+        },
+        where: [
+          {
+            userId,
+            offers: {
+              status: Not(In([OrderStatus.CANCELED, OrderStatus.CREATED])),
+            },
+          },
+          {
+            userId,
+            groups: {
+              status: Not(In([OrderStatus.CANCELED, OrderStatus.CREATED])),
+            },
+          },
+        ],
+        relations: {
+          offers: {offer: true},
+          groups: {group: {offer: true}},
+          pickupPoint: true,
+        },
+        order: {updatedAt: 'DESC'},
+      })
+      .then((orders) => {
+        return orders.map(({offers, groups, ...order}) => {
+          const items = offers
+            .map((orderOffer) => ({
+              offer: orderOffer.offer,
+              status: orderOffer.status,
+              count: orderOffer.count,
+            }))
+            .concat(
+              groups.map((group) => ({
+                offer: group.group.offer,
+                status: group.status,
+                count: group.count,
+              })),
+            );
+
+          return {
+            ...order,
+            items,
+          };
+        });
+      });
   }
 
   public getUserOrdersCount(userId: number) {
@@ -122,6 +182,7 @@ export class OrdersService {
       if (response.Success) {
         await this.paymentRepository.insert({
           id: response.PaymentId,
+          amount: totalAmount,
           orderId,
         });
       }
@@ -139,47 +200,43 @@ export class OrdersService {
     return paymentURL;
   }
 
-  public async cancelOrder(cancelOrderDto: CancelOrderDto, userId: number) {
-    const {orderId, offerId} = cancelOrderDto;
+  public async cancelOrder(orderId: Order['id']) {
     const queryRunner = this.dataSource.createQueryRunner();
+
     await queryRunner.startTransaction();
 
     try {
-      const orderOffer = await this.orderOffersRepository.findOne({
-        where: {
-          order: {userId},
-          orderId,
-          offerId,
+      const {id: orderPaymentId, amount} = await this.paymentRepository.findOne(
+        {
+          select: {id: true, amount: true},
+          where: {orderId},
         },
-        relations: {offer: true},
-      });
-
-      const {id: orderPaymentId} = await this.paymentRepository.findOne({
-        select: {id: true},
-        where: {orderId},
-      });
+      );
 
       const cancelResponse = await this.kassaService.cancelPayment(
         String(orderPaymentId),
-        orderOffer.offer.price * orderOffer.count * 100,
+        amount,
       );
 
       if (cancelResponse.Success) {
-        await this.orderOffersRepository.delete({
-          order: {userId},
-          orderId,
-          offerId,
-        });
-
-        // удаляем заказ, если у него была только одна группа или товар
-        if (
-          !(
-            (await this.orderOffersRepository.exist({where: {orderId}})) &&
-            (await this.orderGroupsRepository.exist({where: {orderId}}))
-          )
-        ) {
-          await this.ordersRepository.delete({id: orderId});
-        }
+        await Promise.all([
+          this.paymentRepository.update(
+            {orderId},
+            {status: PaymentStatus.RETURNED},
+          ),
+          this.orderOffersRepository.update(
+            {
+              orderId,
+            },
+            {status: OrderStatus.CANCELED},
+          ),
+          this.orderGroupsRepository.update(
+            {
+              orderId,
+            },
+            {status: OrderStatus.CANCELED},
+          ),
+        ]);
       }
 
       await queryRunner.commitTransaction();
@@ -193,12 +250,11 @@ export class OrdersService {
     }
   }
 
-  public getIsUserOrder({orderId, offerId}: CancelOrderDto, userId: number) {
-    return this.orderOffersRepository.exist({
+  public getIsUserOrder({orderId}: CancelOrderDto, userId: number) {
+    return this.ordersRepository.exist({
       where: {
-        order: {userId},
-        orderId,
-        offerId,
+        id: orderId,
+        userId,
       },
     });
   }
@@ -207,30 +263,39 @@ export class OrdersService {
     const isTokenValid = this.kassaService.checkToken(notification);
 
     if (isTokenValid) {
+      // eslint-disable-next-line no-console
+      console.log(notification);
+      const orderId = Number(notification.OrderId);
       if (notification.Success) {
-        // eslint-disable-next-line no-console
-        console.log(notification);
         if (notification.Status === 'CONFIRMED') {
-          await this.orderGroupsRepository.update(
-            {orderId: Number(notification.OrderId)},
-            {status: OrderStatus.PAID},
-          );
-          await this.orderOffersRepository.update(
-            {orderId: Number(notification.OrderId)},
-            {status: OrderStatus.PAID},
-          );
+          await Promise.all([
+            this.paymentRepository.update(
+              {
+                orderId,
+              },
+              {status: PaymentStatus.RECEIVED},
+            ),
+            this.orderGroupsRepository.update(
+              {orderId},
+              {status: OrderStatus.PAID},
+            ),
+            this.orderOffersRepository.update(
+              {orderId},
+              {status: OrderStatus.PAID},
+            ),
+          ]);
         }
       } else {
-        // eslint-disable-next-line no-console
-        console.log(notification);
-        await this.orderGroupsRepository.update(
-          {orderId: Number(notification.OrderId)},
-          {status: OrderStatus.PAYMENT_ERROR},
-        );
-        await this.orderOffersRepository.update(
-          {orderId: Number(notification.OrderId)},
-          {status: OrderStatus.PAYMENT_ERROR},
-        );
+        await Promise.all([
+          this.orderGroupsRepository.update(
+            {orderId},
+            {status: OrderStatus.PAYMENT_ERROR},
+          ),
+          this.orderOffersRepository.update(
+            {orderId},
+            {status: OrderStatus.PAYMENT_ERROR},
+          ),
+        ]);
       }
     } else {
       new BadRequestException();

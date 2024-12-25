@@ -7,6 +7,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import {Order} from './Order';
+import {PaymentStatus} from './enums';
 
 @Entity()
 export class Payment {
@@ -19,6 +20,16 @@ export class Payment {
 
   @Column()
   orderId: number;
+
+  @Column({nullable: true})
+  amount: number;
+
+  @Column({
+    enum: PaymentStatus,
+    default: PaymentStatus.CREATED,
+    nullable: true,
+  })
+  status: PaymentStatus;
 
   @CreateDateColumn()
   createdAt: Date;

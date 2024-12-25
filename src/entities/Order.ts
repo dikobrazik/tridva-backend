@@ -18,10 +18,14 @@ export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToMany(() => OrderGroup, (orderGroup) => orderGroup.order)
+  @OneToMany(() => OrderGroup, (orderGroup) => orderGroup.order, {
+    onDelete: 'CASCADE',
+  })
   groups: OrderGroup[];
 
-  @OneToMany(() => OrderOffer, (orderOffer) => orderOffer.order)
+  @OneToMany(() => OrderOffer, (orderOffer) => orderOffer.order, {
+    onDelete: 'CASCADE',
+  })
   offers: OrderOffer[];
 
   @ManyToOne(() => User)

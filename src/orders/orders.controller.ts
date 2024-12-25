@@ -59,7 +59,7 @@ export class OrdersController {
       throw new BadRequestException('User has no orders with given parameters');
     }
 
-    return this.ordersService.cancelOrder(cancelOrderBody, userId);
+    return this.ordersService.cancelOrder(cancelOrderBody.orderId);
   }
 
   @Get()

@@ -1,6 +1,5 @@
 import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
-import {OrderStatusText} from 'src/entities/enums';
 import {Order} from 'src/entities/Order';
 import {OrderGroup} from 'src/entities/OrderGroup';
 import {OrderOffer} from 'src/entities/OrderOffer';
@@ -24,15 +23,11 @@ export class AdminService {
   }
 
   public getGroupOrders() {
-    return this.orderGroupRepository
-      .find({relations: {group: true}})
-      .then(this.addStatusText);
+    return this.orderGroupRepository.find({relations: {group: true}});
   }
 
   public getOfferOrders() {
-    return this.orderOfferRepository
-      .find({relations: {offer: true}})
-      .then(this.addStatusText);
+    return this.orderOfferRepository.find({relations: {offer: true}});
   }
 
   public async getOrder(orderId: string) {
@@ -56,14 +51,5 @@ export class AdminService {
 
   public getUsers() {
     return this.userRepository.find({where: {phone: Not(IsNull())}});
-  }
-
-  private addStatusText<T extends {status: number}>(
-    withStatus: T[],
-  ): Array<T & {statusText: string}> {
-    return withStatus.map((item) => ({
-      ...item,
-      statusText: OrderStatusText[item.status],
-    }));
   }
 }

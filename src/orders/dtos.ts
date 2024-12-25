@@ -15,8 +15,4 @@ export class CancelOrderDto {
   @Min(1)
   @Type(() => Number)
   orderId: number;
-
-  @Min(1)
-  @Type(() => Number)
-  offerId: number;
 }
