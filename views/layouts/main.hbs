@@ -15,10 +15,34 @@
     .clickable {
       cursor: pointer;
     }
+
+    nav {
+      margin-bottom: 0;
+    }
+
+    footer,
+    header,
+    main {
+      padding: 1rem 1rem;
+    }
+
+    button {
+      padding: 0.5rem 2rem;
+    }
   </style>
 </head>
 
 <body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="/admin/orders">Заказы</a></li>
+        <li><a href="/admin/offer-orders">Оплаченные группы</a></li>
+        <li><a href="/admin/group-orders">Оплаченные товары</a></li>
+        <li><a href="/admin/users">Пользователи</a></li>
+      </ul>
+    </nav>
+  </header>
   {{{body}}}
 </body>
 

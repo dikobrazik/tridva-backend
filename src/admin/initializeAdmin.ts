@@ -1,20 +1,13 @@
-import {RequestMethod} from '@nestjs/common';
 import {NestExpressApplication} from '@nestjs/platform-express';
 import passport from 'passport';
 import session from 'express-session';
 import {join} from 'path';
 import {ConfigService} from '@nestjs/config';
+import './hbs-helpers';
 
 export function initializeAdmin(app: NestExpressApplication) {
-  app.setGlobalPrefix('api', {
-    exclude: [
-      {path: 'admin/(.*)', method: RequestMethod.GET},
-      {path: 'admin/login', method: RequestMethod.POST},
-    ],
-  });
-
-  app.useStaticAssets(join(__dirname, '..', 'public'));
-  app.setBaseViewsDir(join(__dirname, '..', 'views'));
+  app.useStaticAssets(join(__dirname, '..', '..', 'public'));
+  app.setBaseViewsDir(join(__dirname, '..', '..', 'views'));
   app.setViewEngine('hbs');
 
   app.setLocal('view options', {layout: 'main'});

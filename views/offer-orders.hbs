@@ -1,21 +1,33 @@
-<h1>Offer orders</h1>
+<h1>Заказанные товары</h1>
 <table>
   <thead>
     <tr>
-      <th>Order id</th>
-      <th>Offer id</th>
-      <th>Status</th>
+      <th>Заказ</th>
+      <th>Товар</th>
+      <th>Товар в симе</th>
+      <th>Количество</th>
+      <th>Статус</th>
     </tr>
   </thead>
   <tbody>
     {{#each orders}}
     <tr>
-      <td>{{this.orderId}}</td>
+      <td>
+        <a href="/admin/orders/{{this.orderId}}">
+          {{this.orderId}}
+        </a>
+      </td>
       <td>
         <a href="https://tridva.store/offers/{{this.offerId}}">
           {{this.offerId}} <box-icon name='link-external'></box-icon>
         </a>
       </td>
+      <td>
+        <a target="_blank" href="https://sima-land.ru/{{this.offer.sid}}">
+          {{this.offer.sid}} <box-icon name='link-external'></box-icon>
+        </a>
+      </td>
+      <td>{{this.count}}</td>
       <td>{{this.status}}</td>
     </tr>
     {{/each}}

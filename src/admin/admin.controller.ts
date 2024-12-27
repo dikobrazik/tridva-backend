@@ -10,14 +10,12 @@ import {
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
-import {LoginDto} from './dtos';
+import {LoginDto, OrderDto} from './dtos';
 import {Response} from 'express';
 import {LoginGuard} from './auth/guards/login.guard';
 import {AuthenticatedGuard} from './auth/guards/auth.guard';
 import {AuthExceptionFilter} from './auth/filters/auth.filter';
 import {AdminService} from './admin.service';
-
-AuthenticatedGuard;
 
 @Controller('admin')
 @UseFilters(AuthExceptionFilter)
@@ -60,8 +58,10 @@ export class AdminController {
   @Render('order')
   @UseGuards(AuthenticatedGuard)
   async order(@Param('id') orderId: string) {
-    const {order, groups, offers} = await this.adminService.getOrder(orderId);
-    return {order, groups, offers};
+    const {order, payment, groups, offers} = await this.adminService.getOrder(
+      orderId,
+    );
+    return {order, payment, groups, offers};
   }
 
   @Get('/users')
@@ -90,5 +90,17 @@ export class AdminController {
   @UseGuards(LoginGuard)
   loginUser(@Body() body: LoginDto, @Res() res: Response) {
     res.redirect('/admin');
+  }
+
+  @Post('/group-orders/change-status')
+  @UseGuards(AuthenticatedGuard)
+  async changeGroupOrderStatus(@Body() body: OrderDto) {
+    await this.adminService.changeGroupOrderStatus(body);
+  }
+
+  @Post('/offer-orders/change-status')
+  @UseGuards(AuthenticatedGuard)
+  async changeOfferOrderStatus(@Body() body: OrderDto) {
+    await this.adminService.changeOfferOrderStatus(body);
   }
 }

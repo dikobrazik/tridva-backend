@@ -1,11 +1,12 @@
-<h1>Group orders</h1>
+<h1>Оплаченные группы</h1>
 <table>
   <thead>
     <tr>
-      <th>Group id</th>
-      <th>Offer id</th>
-      <th>Count</th>
-      <th>Status</th>
+      <th>Группа</th>
+      <th>Товар</th>
+      <th>Товар в симе</th>
+      <th>Количество</th>
+      <th>Статус</th>
     </tr>
   </thead>
   <tbody>
@@ -15,6 +16,11 @@
       <td>
         <a href="https://tridva.store/offers/{{this.group.offerId}}">
           {{this.group.offerId}} <box-icon name='link-external'></box-icon>
+        </a>
+      </td>
+      <td>
+        <a target="_blank" href="https://sima-land.ru/{{this.group.offer.sid}}">
+          {{this.group.offer.sid}} <box-icon name='link-external'></box-icon>
         </a>
       </td>
       <td>{{this.count}}</td>

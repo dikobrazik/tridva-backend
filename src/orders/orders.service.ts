@@ -84,12 +84,14 @@ export class OrdersService {
         return orders.map(({offers, groups, ...order}) => {
           const items = offers
             .map((orderOffer) => ({
+              isGroupItem: false,
               offer: orderOffer.offer,
               status: orderOffer.status,
               count: orderOffer.count,
             }))
             .concat(
               groups.map((group) => ({
+                isGroupItem: true,
                 offer: group.group.offer,
                 status: group.status,
                 count: group.count,

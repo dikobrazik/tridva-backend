@@ -1,48 +1,92 @@
-<h1>Order {{order.id}}</h1>
-<h4 class="clickable" onclick="window.location = '/admin/users/{{order.userId}}';">user id - {{order.userId}}</h4>
+<main>
+  <h1>Заказ {{order.id}}</h1>
+  <h4 class="clickable" onclick="window.location = '/admin/users/{{order.userId}}';">Пользователь - {{order.userId}}
+  </h4>
 
-{{#if groups.length}}
-<h2>Group orders</h2>
-<table>
-  <thead>
-    <tr>
-      <th>Group id</th>
-      <th>Offer id</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each groups}}
-    <tr>
-      <td>{{this.groupId}}</td>
-      <td>
-        <a href="https://tridva.store/offers/{{this.group.offerId}}">
-          {{this.group.offerId}} <box-icon name='link-external'></box-icon>
-        </a>
-      </td>
-      <td>{{this.status}}</td>
-    </tr>
-    {{/each}}
-  </tbody>
-</table>
-{{/if}}
 
-{{#if offers.length}}
-<h2>Order offers</h2>
-<table>
-  <thead>
-    <tr>
-      <th>Offer id</th>
-      <th>Status</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each offers}}
-    <tr>
-      <td>{{this.id}}</td>
-      <td>{{this.status}}</td>
-    </tr>
-    {{/each}}
-  </tbody>
-</table>
-{{/if}}
+
+  <h2>Платеж</h2>
+  <ul>
+    <li>transaction - {{payment.id}}</li>
+    <li>amount (сумма в копейках) - {{payment.amount}}</li>
+    <li>status - {{payment.status}}</li>
+  </ul>
+
+  {{#if groups.length}}
+  <h2>Группы заказа</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Группа</th>
+        <th>Товар</th>
+        <th>Товар в симе</th>
+        <th>Количество</th>
+        <th>Статус</th>
+        <th>Действие</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each groups}}
+      <tr>
+        <td>{{this.groupId}}</td>
+        <td>
+          <a target="_blank" href="https://tridva.store/offers/{{this.group.offerId}}">
+            {{this.group.offerId}} <box-icon name='link-external'></box-icon>
+          </a>
+        </td>
+        <td>
+          <a target="_blank" href="https://sima-land.ru/{{this.group.offer.sid}}">
+            {{this.group.offer.sid}} <box-icon name='link-external'></box-icon>
+          </a>
+        </td>
+        <td>{{this.count}}</td>
+        <td>{{this.status}}</td>
+        <td>
+          <button onclick="{{on-change-group-order-status this}}">
+            {{transitionName this.status}}
+          </button>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+
+  {{#if offers.length}}
+  <h2>Товары заказа</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Товар</th>
+        <th>Товар в симе</th>
+        <th>Количество</th>
+        <th>Статус</th>
+        <th>Действие</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each offers}}
+      <tr>
+        <td>
+          <a target="_blank" href="https://tridva.store/offers/{{this.offer.id}}">
+            {{this.offer.id}} <box-icon name='link-external'></box-icon>
+          </a>
+        </td>
+        <td>
+          <a target="_blank" href="https://sima-land.ru/{{this.offer.sid}}">
+            {{this.offer.sid}} <box-icon name='link-external'></box-icon>
+          </a>
+        </td>
+        <td>{{this.count}}</td>
+        <td>{{this.status}}</td>
+        <td>
+          <button onclick="{{on-change-offer-order-status this}}">
+            {{transitionName this.status}}
+          </button>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+</main>

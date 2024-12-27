@@ -10,11 +10,19 @@ import {User} from 'src/entities/User';
 import {Profile} from 'src/entities/Profile';
 import {OrderGroup} from 'src/entities/OrderGroup';
 import {OrderOffer} from 'src/entities/OrderOffer';
+import {Payment} from 'src/entities/Payment';
 
 @Module({
   imports: [
     PassportModule,
-    TypeOrmModule.forFeature([Order, OrderGroup, OrderOffer, User, Profile]),
+    TypeOrmModule.forFeature([
+      Order,
+      OrderGroup,
+      OrderOffer,
+      User,
+      Payment,
+      Profile,
+    ]),
   ],
   controllers: [AdminController],
   providers: [AdminLocalStrategy, SessionSerializer, AdminService],

@@ -1,4 +1,4 @@
-import {ValidationPipe} from '@nestjs/common';
+import {RequestMethod, ValidationPipe} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {NestFactory} from '@nestjs/core';
 import {NestExpressApplication} from '@nestjs/platform-express';
@@ -8,7 +8,7 @@ import {AppModule} from './app.module';
 import {CategoryService} from './category/category.service';
 import {GeoService} from './geo/geo.service';
 import {initializeIndices} from './indices';
-import {initializeAdmin} from './initializeAdmin';
+import {initializeAdmin} from './admin/initializeAdmin';
 import {OffersService} from './offers/offers.service';
 import {PullerService} from './puller/puller.service';
 import {generateSiteMap} from './sitemap';
@@ -22,6 +22,13 @@ async function bootstrap() {
   if (app.get(ConfigService).get('DROP_SCHEMA') === 'true') {
     initializeIndices(app.get(DataSource));
   }
+
+  app.setGlobalPrefix('api', {
+    exclude: [
+      {path: 'admin/(.*)', method: RequestMethod.GET},
+      {path: 'admin/(.*)', method: RequestMethod.POST},
+    ],
+  });
 
   app.useGlobalPipes(new ValidationPipe());
   app.use(cookieParser());
@@ -42,6 +49,7 @@ async function bootstrap() {
   app.enableCors({
     origin: isDev
       ? [
+          'http://localhost',
           'http://localhost:3000',
           'http://158.160.12.140',
           'https://tridva.store',
