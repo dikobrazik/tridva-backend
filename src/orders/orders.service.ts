@@ -10,7 +10,6 @@ import {DataSource, FindOptionsSelect, In, Not, Repository} from 'typeorm';
 import {CancelOrderDto, CreateOrderDto} from './dtos';
 import {BasketItem} from 'src/entities/BasketItem';
 import {QueryDeepPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
-import {sum} from 'src/shared/utils/sum';
 import {OrderGroup} from 'src/entities/OrderGroup';
 import {OrderOffer} from 'src/entities/OrderOffer';
 import {KassaService} from 'src/kassa/kassa.service';
@@ -18,6 +17,7 @@ import {Payment} from 'src/entities/Payment';
 import {KassaNotification} from 'src/kassa/types';
 import {OrderStatus, PaymentStatus} from 'src/entities/enums';
 import {Offer} from 'src/entities/Offer';
+import {getOffersTotalAmount} from './utils';
 
 @Injectable()
 export class OrdersService {
@@ -162,16 +162,7 @@ export class OrdersService {
       );
 
       const totalAmount = Math.floor(
-        sum(
-          ...selectedBasketItems.map((basketItem) => {
-            const offerPrice =
-              basketItem.groupId !== null
-                ? basketItem.group.offer.price
-                : basketItem.offer.price;
-
-            return offerPrice * basketItem.count;
-          }),
-        ) * 100,
+        getOffersTotalAmount(basketGroupItems, basketOfferItems) * 100,
       );
 
       const response = await this.kassaService.initPayment(
