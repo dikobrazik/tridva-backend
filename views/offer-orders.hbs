@@ -7,6 +7,7 @@
       <th>Товар в симе</th>
       <th>Количество</th>
       <th>Статус</th>
+      <th>Действие</th>
     </tr>
   </thead>
   <tbody>
@@ -29,6 +30,11 @@
       </td>
       <td>{{this.count}}</td>
       <td>{{this.status}}</td>
+      <td>
+        <button onclick="{{on-change-offer-order-status this}}">
+          {{transitionName this.status}}
+        </button>
+      </td>
     </tr>
     {{/each}}
   </tbody>
