@@ -18,6 +18,22 @@ import {KassaNotification} from 'src/kassa/types';
 import {OrderStatus, PaymentStatus} from 'src/entities/enums';
 import {Offer} from 'src/entities/Offer';
 import {getOffersTotalAmount} from './utils';
+import {User} from 'src/entities/User';
+
+const getOrdersWhere = (userId: User['id']) => [
+  {
+    userId,
+    offers: {
+      status: Not(In([OrderStatus.CANCELED, OrderStatus.CREATED])),
+    },
+  },
+  {
+    userId,
+    groups: {
+      status: Not(In([OrderStatus.CANCELED, OrderStatus.CREATED])),
+    },
+  },
+];
 
 @Injectable()
 export class OrdersService {
@@ -59,20 +75,7 @@ export class OrdersService {
           createdAt: true,
           updatedAt: true,
         },
-        where: [
-          {
-            userId,
-            offers: {
-              status: Not(In([OrderStatus.CANCELED, OrderStatus.CREATED])),
-            },
-          },
-          {
-            userId,
-            groups: {
-              status: Not(In([OrderStatus.CANCELED, OrderStatus.CREATED])),
-            },
-          },
-        ],
+        where: getOrdersWhere(userId),
         relations: {
           offers: {offer: true},
           groups: {group: {offer: true}},
@@ -107,8 +110,8 @@ export class OrdersService {
   }
 
   public getUserOrdersCount(userId: number) {
-    return this.orderOffersRepository.count({
-      where: {status: OrderStatus.PAID, order: {userId}},
+    return this.ordersRepository.count({
+      where: getOrdersWhere(userId),
     });
   }
 
