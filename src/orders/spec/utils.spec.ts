@@ -4,20 +4,20 @@ import {BasketItem} from 'src/entities/BasketItem';
 
 describe('getOffersTotalAmount', () => {
   it.each([
-    [[{price: 100, discount: 25, count: 1}], [], 75],
+    [[{price: 125, discount: 25, count: 1}], [], 100],
     [[], [{price: 100, discount: 25, count: 1}], 100],
     [
       [{price: 50, discount: 25, count: 5}],
       [{price: 100, discount: 25, count: 1}],
-      100 + 187.5,
+      200 + 100,
     ],
     [
       [
         {price: 50, discount: 25, count: 5},
-        {price: 100, discount: 20, count: 2},
+        {price: 125, discount: 25, count: 2},
       ],
       [{price: 100, discount: 25, count: 1}],
-      100 + 160 + 187.5,
+      400 + 100,
     ],
   ])(
     'должен правильно посчитать сумму товаров',

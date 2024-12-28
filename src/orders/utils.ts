@@ -9,7 +9,7 @@ export const getOffersTotalAmount = (
     ...basketGroups.map((basketItem) => {
       const offer = basketItem.group.offer;
 
-      const offerPrice = Number(offer.price) * (1 - offer.discount / 100);
+      const offerPrice = Number(offer.price) / (1 + offer.discount / 100);
 
       return offerPrice * basketItem.count;
     }),
