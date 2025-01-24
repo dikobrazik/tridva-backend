@@ -140,5 +140,7 @@ db.pem
 models/
 
 # sitemap
-
 sitemap.xml
+
+# macos files
+.DS_Store
