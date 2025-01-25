@@ -43,15 +43,6 @@ export class FavoriteOffersService {
     });
   }
 
-  async moveFavoriteOffersFromUserToUser(fromUserId: number, toUserId: number) {
-    return this.favoriteOffersRepository.update(
-      {
-        userId: fromUserId,
-      },
-      {userId: toUserId},
-    );
-  }
-
   async addFavoriteOffer(offerId: Offer['id'], userId: number) {
     const isOfferExists = await this.offerRepository.exist({
       where: {

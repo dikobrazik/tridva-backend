@@ -3,9 +3,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import {PickupPoint} from './PickupPoint';
+import {User} from './User';
 
 @Entity()
 export class Profile {
@@ -30,4 +32,7 @@ export class Profile {
 
   @Column({nullable: true})
   lastSelectedPickupPointId: string;
+
+  @OneToOne(() => User, {onDelete: 'CASCADE'})
+  user: User;
 }

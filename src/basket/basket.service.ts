@@ -2,6 +2,7 @@ import {Injectable} from '@nestjs/common';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
 import {BasketItem} from 'src/entities/BasketItem';
 import {Group} from 'src/entities/Group';
+import {BasketMapper} from 'src/mappers/basket';
 import {DataSource, Repository} from 'typeorm';
 
 @Injectable()
@@ -24,7 +25,7 @@ export class BasketService {
 
     return this.basketItemRepository
       .findOne({where: {id: basketItemId}})
-      .then((basketItem) => this.formatGroupBasketItem(basketItem, userId));
+      .then(new BasketMapper().mapBasketItemToModel);
   }
 
   public async addOfferToBasket(userId: number, offerId: number) {
@@ -37,7 +38,7 @@ export class BasketService {
 
     return this.basketItemRepository
       .findOne({where: {id: basketItemId}})
-      .then((basketItem) => this.formatSingleOfferBasketItem(basketItem));
+      .then(new BasketMapper().mapBasketItemToModel);
   }
 
   public async changeBasketItemCount(
@@ -131,15 +132,7 @@ export class BasketService {
         relations: {group: {offer: true}, offer: true},
       })
       .then((basketItems) => {
-        return basketItems.map((basketItem) => {
-          const isGroupItem = Boolean(basketItem.group.id);
-
-          if (isGroupItem) {
-            return this.formatGroupBasketItem(basketItem, userId);
-          }
-
-          return this.formatSingleOfferBasketItem(basketItem);
-        });
+        return basketItems.map(new BasketMapper().mapBasketItemToModel);
       });
   }
 
@@ -148,61 +141,5 @@ export class BasketService {
       where: {userId},
       loadEagerRelations: false,
     });
-  }
-
-  public moveItemsFromUserToUser(fromUserId: number, toUserId: number) {
-    return this.basketItemRepository.update(
-      {userId: fromUserId},
-      {
-        userId: toUserId,
-      },
-    );
-  }
-
-  private getBasketItemOffer(basketItem: BasketItem) {
-    const isGroupItem = Boolean(basketItem.group.id);
-
-    return isGroupItem ? basketItem.group.offer : basketItem.offer;
-  }
-
-  private formatSingleOfferBasketItem(basketItem: BasketItem) {
-    const offer = this.getBasketItemOffer(basketItem);
-
-    return {
-      id: basketItem.id,
-      count: basketItem.count,
-      group: undefined,
-      offer: {
-        id: offer.id,
-        title: offer.title,
-        price: offer.price,
-        discount: offer.discount,
-        photos: offer.photos,
-      },
-    };
-  }
-
-  private formatGroupBasketItem(basketItem: BasketItem, userId: number) {
-    const offer = this.getBasketItemOffer(basketItem);
-
-    const groupId = basketItem.group.id;
-
-    return {
-      id: basketItem.id,
-      count: basketItem.count,
-      group: {
-        id: groupId,
-        owner: basketItem.group.ownerId === userId,
-        capacity: basketItem.group.capacity,
-        filled: 'filled unknown',
-      },
-      offer: {
-        id: offer.id,
-        title: offer.title,
-        price: offer.price,
-        discount: offer.discount,
-        photos: offer.photos,
-      },
-    };
   }
 }

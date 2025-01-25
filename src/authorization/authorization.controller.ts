@@ -38,7 +38,7 @@ export class AuthorizationController {
 
         const {phone, profile} = user;
 
-        return {isAnonymous, phone, profile};
+        return {isAnonymous, id: user.id, phone, profile};
       }
     }
 
