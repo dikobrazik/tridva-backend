@@ -31,8 +31,9 @@ export class CategoryController {
   getCategoriesList(
     @Query('level') level: number,
     @Query('name') name: string,
+    @Query('parentId') parentId: string,
   ) {
-    return this.categoryService.getCategoriesList(level, name);
+    return this.categoryService.getCategoriesList(level, name, parentId);
   }
 
   @Get('popular')

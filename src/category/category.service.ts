@@ -2,6 +2,8 @@ import {Injectable} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Category} from 'src/entities/Category';
 import {In, Like, MoreThan, Repository} from 'typeorm';
+import {buildPathForChildren} from './utils';
+import {isNumber} from 'src/shared/utils/validators/isNumber';
 
 const SHORT_CATEGORY = {id: true, name: true};
 
@@ -65,13 +67,21 @@ export class CategoryService {
     return this.popularCategoriesList;
   }
 
-  getCategoriesList(level: number, name: string) {
+  getCategoriesList(level: number, name: string, parentId: string) {
     const queryBuilder = this.categoryRepository.createQueryBuilder();
 
     queryBuilder.take(30);
 
     if (level) {
       queryBuilder.where('level = :level', {level: String(level)});
+    }
+
+    queryBuilder.andWhere({offersCount: MoreThan(1)});
+
+    if (isNumber(parentId)) {
+      queryBuilder.andWhere(
+        `path like '${buildPathForChildren(+parentId, +level)}'`,
+      );
     }
 
     if (name) {
@@ -81,8 +91,6 @@ export class CategoryService {
           .join(' & ')}')`,
       );
     }
-
-    queryBuilder.andWhere({offersCount: MoreThan(1)});
 
     return queryBuilder.getMany();
   }
