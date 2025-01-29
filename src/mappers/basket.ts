@@ -10,7 +10,7 @@ export class BasketMapper {
     return this.formatSingleOfferBasketItem(basketItem);
   }
 
-  private isGroupItem(basketItem) {
+  private isGroupItem(basketItem: BasketItem) {
     return Boolean(basketItem.group.id);
   }
 

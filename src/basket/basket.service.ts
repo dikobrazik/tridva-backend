@@ -25,7 +25,9 @@ export class BasketService {
 
     return this.basketItemRepository
       .findOne({where: {id: basketItemId}})
-      .then(new BasketMapper().mapBasketItemToModel);
+      .then((basketItem) =>
+        new BasketMapper().mapBasketItemToModel(basketItem),
+      );
   }
 
   public async addOfferToBasket(userId: number, offerId: number) {
@@ -38,7 +40,9 @@ export class BasketService {
 
     return this.basketItemRepository
       .findOne({where: {id: basketItemId}})
-      .then(new BasketMapper().mapBasketItemToModel);
+      .then((basketItem) =>
+        new BasketMapper().mapBasketItemToModel(basketItem),
+      );
   }
 
   public async changeBasketItemCount(
@@ -132,7 +136,9 @@ export class BasketService {
         relations: {group: {offer: true}, offer: true},
       })
       .then((basketItems) => {
-        return basketItems.map(new BasketMapper().mapBasketItemToModel);
+        return basketItems.map((basketItem) =>
+          new BasketMapper().mapBasketItemToModel(basketItem),
+        );
       });
   }
 
