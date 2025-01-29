@@ -2,7 +2,7 @@ import {ApiPropertyOptional} from '@nestjs/swagger';
 import {Type} from 'class-transformer';
 import {IsOptional, Min, IsInt, IsEnum} from 'class-validator';
 import {Paginable} from 'src/shared/dto/pagination';
-import {ORDER} from './constants';
+import {SORT} from './constants';
 
 export class SearchOffersDto extends Paginable {
   @ApiPropertyOptional()
@@ -32,8 +32,8 @@ export class SearchOffersDto extends Paginable {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsEnum(ORDER)
-  order?: Values<typeof ORDER>;
+  @IsEnum(SORT)
+  order?: Values<typeof SORT>;
 }
 
 export class OffersTotalDto {
@@ -53,3 +53,5 @@ export class SearchOfferDto {
   @Type(() => Number)
   id: number;
 }
+
+export class ToggleOfferFavoriteDto extends SearchOfferDto {}

@@ -6,19 +6,11 @@ import {
   getPaginationFields,
 } from 'src/shared/utils/pagination';
 import {Offer} from 'src/entities/Offer';
-import {
-  And,
-  FindOptionsOrder,
-  In,
-  LessThanOrEqual,
-  MoreThanOrEqual,
-  Repository,
-  SelectQueryBuilder,
-} from 'typeorm';
+import {And, In, LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
 import {LIST_OFFER_VIEW} from 'src/entity-views/offer';
 import {SearchOffersDto} from './dto';
-import {ORDER} from './constants';
+import {SORT} from './constants';
 
 @Injectable()
 export class OffersService {
@@ -64,7 +56,7 @@ export class OffersService {
 
   async getOffersListBySearch(
     search: string,
-    {page, pageSize, priceFrom, priceTo, order}: SearchOffersDto,
+    {page, pageSize, priceFrom, priceTo, order: sort}: SearchOffersDto,
   ) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const qb = this.offerRepository
@@ -88,8 +80,10 @@ export class OffersService {
       qb.andWhere('offer.price <= :priceTo', {priceTo});
     }
 
-    if (order) {
-      this.addOrderByToQueryBuilder(qb, order);
+    if (sort) {
+      const order = this.getOrderForSort(sort);
+
+      qb.orderBy(order);
     }
 
     const [offers, count] = await qb.getManyAndCount();
@@ -99,7 +93,7 @@ export class OffersService {
 
   async getOffersListByCategory(
     categoryId: string,
-    {page, pageSize, priceFrom, priceTo, order}: SearchOffersDto,
+    {page, pageSize, priceFrom, priceTo, order: sort}: SearchOffersDto,
   ) {
     const {skip, take} = getPaginationFields(page, pageSize);
     const [offers, count] = await this.offerRepository.findAndCount({
@@ -110,7 +104,7 @@ export class OffersService {
       },
       skip,
       take,
-      order: order ? this.getRepositoryOrderBy(order) : undefined,
+      order: sort ? this.getOrderForSort(sort) : undefined,
     });
 
     return this.prepareOffersListResponse(offers, count, pageSize);
@@ -138,30 +132,19 @@ export class OffersService {
     pageSize: number,
   ) {
     return {
-      offers: offers.map(this.prepareOffer),
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
+      offers: offers.map(({description, ...offer}) => offer),
       total: count,
       pagesCount: Math.ceil(count / (pageSize ?? DEFAULT_PAGE_SIZE)),
     };
   }
 
   async getOfferById(offerId: Offer['id']): Promise<Offer | null> {
-    const offer = await this.offerRepository.findOne({
+    return this.offerRepository.findOne({
       where: {
         id: offerId,
       },
     });
-
-    return offer;
-  }
-
-  private prepareOffer(offer: Offer) {
-    if (offer) {
-      return {
-        ...offer,
-        description: undefined,
-      };
-    }
-    return offer;
   }
 
   private async getCategoryIds(
@@ -178,43 +161,20 @@ export class OffersService {
     return undefined;
   }
 
-  private getRepositoryOrderBy(
-    order: Values<typeof ORDER>,
-  ): FindOptionsOrder<Offer> {
-    switch (order) {
-      case ORDER.POPULAR:
+  private getOrderForSort(sort: Values<typeof SORT>): {
+    [Key in keyof Offer]?: 'ASC' | 'DESC';
+  } {
+    switch (sort) {
+      case SORT.POPULAR:
         return {ordersCount: 'DESC'};
-      case ORDER.PRICE_ASC:
+      case SORT.PRICE_ASC:
         return {price: 'ASC'};
-      case ORDER.PRICE_DESC:
+      case SORT.PRICE_DESC:
         return {price: 'DESC'};
-      case ORDER.DISCOUNT:
+      case SORT.DISCOUNT:
         return {discount: 'DESC'};
-      case ORDER.RATING:
+      case SORT.RATING:
         return {rating: 'DESC'};
-    }
-  }
-
-  private addOrderByToQueryBuilder(
-    qb: SelectQueryBuilder<Offer>,
-    order: Values<typeof ORDER>,
-  ) {
-    switch (order) {
-      case ORDER.POPULAR:
-        qb.addOrderBy('offer.ordersCount', 'DESC');
-        break;
-      case ORDER.PRICE_ASC:
-        qb.addOrderBy('offer.price', 'ASC');
-        break;
-      case ORDER.PRICE_DESC:
-        qb.addOrderBy('offer.price', 'DESC');
-        break;
-      case ORDER.DISCOUNT:
-        qb.addOrderBy('offer.discount', 'DESC');
-        break;
-      case ORDER.RATING:
-        qb.addOrderBy('offer.rating', 'DESC');
-        break;
     }
   }
 }

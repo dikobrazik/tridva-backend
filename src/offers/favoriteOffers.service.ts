@@ -43,7 +43,7 @@ export class FavoriteOffersService {
     });
   }
 
-  async addFavoriteOffer(offerId: Offer['id'], userId: number) {
+  async toggleOfferFavorite(offerId: Offer['id'], userId: number) {
     const isOfferExists = await this.offerRepository.exist({
       where: {
         id: offerId,

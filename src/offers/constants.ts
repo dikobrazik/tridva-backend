@@ -1,4 +1,4 @@
-export const ORDER = {
+export const SORT = {
   POPULAR: 'p',
   NEW: 'n',
   PRICE_ASC: 'asc',

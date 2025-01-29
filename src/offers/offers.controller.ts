@@ -84,8 +84,11 @@ export class OffersController {
 
   @Post(':id/favorite')
   @UseGuards(AuthTokenGuard)
-  addFavoriteOffer(@Param() params: SearchOfferDto, @UserId() userId: number) {
-    return this.favoriteOffersService.addFavoriteOffer(params.id, userId);
+  toggleOfferFavorite(
+    @Param() params: SearchOfferDto,
+    @UserId() userId: number,
+  ) {
+    return this.favoriteOffersService.toggleOfferFavorite(params.id, userId);
   }
 
   @Get(':id/group')
