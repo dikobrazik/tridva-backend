@@ -4,8 +4,7 @@ import {BasketItem} from 'src/entities/BasketItem';
 import {FavoriteOffer} from 'src/entities/FavoriteOffer';
 import {Group} from 'src/entities/Group';
 import {User} from 'src/entities/User';
-import {QueryRunner, Repository} from 'typeorm';
-import {DataSource} from 'typeorm/browser';
+import {DataSource, QueryRunner, Repository} from 'typeorm';
 
 @Injectable()
 export class CarrierService {
