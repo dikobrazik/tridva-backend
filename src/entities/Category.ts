@@ -8,8 +8,8 @@ export class Category {
   @Column()
   name: string;
 
-  @Column()
-  level: string;
+  @Column({type: 'int', nullable: true})
+  level: number;
 
   @Column({nullable: true})
   path: string;

@@ -211,7 +211,7 @@ export class PullerService {
         categories.map((category) => ({
           id: category.id,
           name: category.name,
-          level: String(category.level),
+          level: category.level,
           path: category.path,
           isAdult: category.is_adult,
           isLeaf: category.is_leaf,
@@ -232,7 +232,7 @@ export class PullerService {
       .select('level')
       .orderBy('level', 'DESC')
       .groupBy('level')
-      .getRawMany();
+      .getRawMany<{level: number}>();
 
     await this.categoryRepository
       .createQueryBuilder()

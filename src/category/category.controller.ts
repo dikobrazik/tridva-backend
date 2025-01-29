@@ -12,6 +12,7 @@ import {ApiTags} from '@nestjs/swagger';
 import {FindOneParams} from 'src/dtos/category';
 import {createReadStream, existsSync} from 'fs';
 import {join} from 'path';
+import {CategoriesListQuery} from './validation';
 
 const MONTH_IN_SECONDS = 60 * 60 * 24 * 30;
 
@@ -28,12 +29,12 @@ export class CategoryController {
   constructor(private categoryService: CategoryService) {}
 
   @Get()
-  getCategoriesList(
-    @Query('level') level: number,
-    @Query('name') name: string,
-    @Query('parentId') parentId: string,
-  ) {
-    return this.categoryService.getCategoriesList(level, name, parentId);
+  getCategoriesList(@Query() query: CategoriesListQuery) {
+    return this.categoryService.getCategoriesList(
+      query.level ?? 1,
+      query.name,
+      query.parentId,
+    );
   }
 
   @Get('popular')

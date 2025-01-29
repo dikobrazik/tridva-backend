@@ -3,7 +3,6 @@ import {InjectRepository} from '@nestjs/typeorm';
 import {Category} from 'src/entities/Category';
 import {In, Like, MoreThan, Repository} from 'typeorm';
 import {buildPathForChildren} from './utils';
-import {isNumber} from 'src/shared/utils/validators/isNumber';
 
 const SHORT_CATEGORY = {id: true, name: true};
 
@@ -20,41 +19,41 @@ export class CategoryService {
     await Promise.all([
       this.categoryRepository.findOne({
         select: SHORT_CATEGORY,
-        where: {level: '1', name: 'Посуда'},
+        where: {level: 1, name: 'Посуда'},
       }),
       this.categoryRepository.findOne({
         select: SHORT_CATEGORY,
-        where: {offersCount: MoreThan(0), level: '1', name: 'Игрушки'},
+        where: {offersCount: MoreThan(0), level: 1, name: 'Игрушки'},
       }),
       this.categoryRepository.findOne({
         select: SHORT_CATEGORY,
         where: {
           offersCount: MoreThan(0),
-          level: '1',
+          level: 1,
           name: 'Бытовая техника и электроника',
         },
       }),
       this.categoryRepository.findOne({
         select: SHORT_CATEGORY,
-        where: {offersCount: MoreThan(0), level: '1', name: 'Мебель'},
+        where: {offersCount: MoreThan(0), level: 1, name: 'Мебель'},
       }),
       this.categoryRepository.findOne({
         select: SHORT_CATEGORY,
-        where: {offersCount: MoreThan(0), level: '1', name: 'Хозтовары'},
+        where: {offersCount: MoreThan(0), level: 1, name: 'Хозтовары'},
       }),
       this.categoryRepository.findOne({
         select: SHORT_CATEGORY,
-        where: {offersCount: MoreThan(0), level: '1', name: 'Канцтовары'},
+        where: {offersCount: MoreThan(0), level: 1, name: 'Канцтовары'},
       }),
       this.categoryRepository.findOne({
         select: SHORT_CATEGORY,
-        where: {offersCount: MoreThan(0), level: '1', name: 'Творчество'},
+        where: {offersCount: MoreThan(0), level: 1, name: 'Творчество'},
       }),
       this.categoryRepository.findOne({
         select: SHORT_CATEGORY,
         where: {
           offersCount: MoreThan(0),
-          level: '4',
+          level: 4,
           name: 'Товары для красоты и здоровья',
         },
       }),
@@ -67,20 +66,20 @@ export class CategoryService {
     return this.popularCategoriesList;
   }
 
-  getCategoriesList(level: number, name: string, parentId: string) {
+  getCategoriesList(level: number, name: string, parentId: number) {
     const queryBuilder = this.categoryRepository.createQueryBuilder();
 
     queryBuilder.take(30);
 
     if (level) {
-      queryBuilder.where('level = :level', {level: String(level)});
+      queryBuilder.where('level = :level', {level});
     }
 
     queryBuilder.andWhere({offersCount: MoreThan(1)});
 
-    if (isNumber(parentId)) {
+    if (parentId) {
       queryBuilder.andWhere(
-        `path like '${buildPathForChildren(+parentId, +level)}'`,
+        `path like '${buildPathForChildren(parentId, level)}'`,
       );
     }
 
@@ -106,7 +105,7 @@ export class CategoryService {
 
     const categoryAncestorsIds = category.path.split('.').slice(0, -1);
 
-    if (categoryAncestorsIds.length > 1) {
+    if (categoryAncestorsIds.length >= 1) {
       return this.categoryRepository
         .find({
           where: {id: In(categoryAncestorsIds)},
