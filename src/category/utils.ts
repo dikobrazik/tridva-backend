@@ -1,5 +1,5 @@
 export const buildPathForChildren = (
-  parentId: number,
+  parentId: string | number,
   childrenLevel: number,
 ) => {
   if (childrenLevel < 2) throw Error('Children level should me more than 2');

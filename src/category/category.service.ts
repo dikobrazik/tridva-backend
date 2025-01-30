@@ -67,15 +67,28 @@ export class CategoryService {
   }
 
   getCategoriesList(level: number, name: string, parentId: number) {
-    const queryBuilder = this.categoryRepository.createQueryBuilder();
+    const queryBuilder = this.categoryRepository.createQueryBuilder('category');
 
-    queryBuilder.take(30);
+    queryBuilder.select().addSelect(
+      (qb) =>
+        qb
+          .subQuery()
+          .select('count(*)')
+          .from(Category, 'sub_category')
+          .where(
+            `path like '${buildPathForChildren(
+              `' || category.id || '`,
+              level + 1,
+            )}'`,
+          ),
+      'category_childrenCount',
+    );
+
+    queryBuilder.where({offersCount: MoreThan(1)});
 
     if (level) {
-      queryBuilder.where('level = :level', {level});
+      queryBuilder.andWhere('level = :level', {level});
     }
-
-    queryBuilder.andWhere({offersCount: MoreThan(1)});
 
     if (parentId) {
       queryBuilder.andWhere(
@@ -90,6 +103,8 @@ export class CategoryService {
           .join(' & ')}')`,
       );
     }
+
+    queryBuilder.take(30);
 
     return queryBuilder.getMany();
   }

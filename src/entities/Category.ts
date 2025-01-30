@@ -25,4 +25,7 @@ export class Category {
 
   @Column({nullable: true})
   icon: string;
+
+  @Column('int', {nullable: true, select: false})
+  childrenCount: number;
 }

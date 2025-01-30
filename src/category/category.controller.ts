@@ -31,7 +31,7 @@ export class CategoryController {
   @Get()
   getCategoriesList(@Query() query: CategoriesListQuery) {
     return this.categoryService.getCategoriesList(
-      query.level ?? 1,
+      query.level,
       query.name,
       query.parentId,
     );
