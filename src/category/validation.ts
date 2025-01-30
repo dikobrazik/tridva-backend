@@ -2,16 +2,15 @@ import {Type} from 'class-transformer';
 import {IsOptional, Max, Min, MinLength} from 'class-validator';
 
 export class CategoriesListQuery {
-  @Type(() => Number)
   @Max(10)
   @Min(1)
   @IsOptional()
+  @Type(() => Number)
   level: number;
 
-  @Type(() => Number)
-  @Max(10)
   @Min(1)
   @IsOptional()
+  @Type(() => Number)
   parentId: number;
 
   @MinLength(1)

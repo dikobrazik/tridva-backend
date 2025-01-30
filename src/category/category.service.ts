@@ -84,7 +84,7 @@ export class CategoryService {
     }
 
     if (name) {
-      queryBuilder.orWhere(
+      queryBuilder.andWhere(
         `to_tsvector('russian', name) @@ to_tsquery('russian', '${name
           .split(' ')
           .join(' & ')}')`,
