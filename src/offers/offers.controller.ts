@@ -115,11 +115,8 @@ export class OffersController {
 
   @Get(':id/groups/count')
   @UseGuards(AuthTokenGuard)
-  getOfferGroupsCount(
-    @Param() params: SearchOfferDto,
-    @UserId() userId: number,
-  ) {
-    return this.groupsService.getOfferGroupsCount(params.id, userId);
+  getOfferGroupsCount(@Param() params: SearchOfferDto) {
+    return this.groupsService.getOfferGroupsCount(params.id);
   }
 
   @Get(':id/attributes')

@@ -9,6 +9,13 @@ import {
 } from 'typeorm';
 import {Offer} from './Offer';
 import {User} from './User';
+import {OrderStatus} from './enums';
+
+const NOT_PAYED_STATUSES = [
+  OrderStatus.CANCELED,
+  OrderStatus.CREATED,
+  OrderStatus.PAYMENT_ERROR,
+];
 
 @Entity()
 export class Group {
@@ -24,7 +31,12 @@ export class Group {
 
   @VirtualColumn({
     query: (alias) =>
-      `SELECT COUNT(*) FROM "order_group" WHERE "groupId" = ${alias}.id`,
+      `SELECT COUNT(*)\
+    FROM "order_group"\
+    WHERE "groupId" = ${alias}.id AND\
+    "order_group"."status" NOT IN(${NOT_PAYED_STATUSES.map(
+      (status) => `'${status}'`,
+    ).join(', ')})`,
   })
   participantsCount: number;
 

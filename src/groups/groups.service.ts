@@ -5,14 +5,9 @@ import {OrderStatus} from 'src/entities/enums';
 import {Group} from 'src/entities/Group';
 import {Order} from 'src/entities/Order';
 import {OrderGroup} from 'src/entities/OrderGroup';
-import {In, MoreThan, Not, Repository} from 'typeorm';
-
-type OfferBestGroup = {
-  id: number;
-  leftCapacity: number;
-  ownerName: string;
-  createdAt: Date;
-};
+import {FindOptionsWhere, In, MoreThan, Not, Repository} from 'typeorm';
+import {GroupMapper} from './mapper';
+import {GroupModel, UserRelation} from './types';
 
 @Injectable()
 export class GroupsService {
@@ -38,20 +33,16 @@ export class GroupsService {
     return groupId;
   }
 
-  public async getUserGroups(userId: number) {
-    const userOrders = await this.orderGroupsRepository.find({
+  public async getUserGroups(userId: number): Promise<GroupModel[]> {
+    const groupOrders = await this.orderGroupsRepository.find({
       select: {groupId: true},
       where: {status: OrderStatus.PAID, order: {userId}},
+      relations: {group: {owner: {profile: true}, offer: true}},
     });
 
-    return this.groupRepository
-      .find({
-        where: {
-          id: In(userOrders.map((order) => order.groupId)),
-        },
-        relations: {owner: {profile: true}},
-      })
-      .then(this.prepareGroups);
+    return groupOrders.map((groupOrder) =>
+      new GroupMapper().mapGroupOrderEntityToModel(groupOrder, userId),
+    );
   }
 
   public getUserGroupsCount(userId: number): Promise<number> {
@@ -63,8 +54,11 @@ export class GroupsService {
   public async getOfferGroup(
     offerId: number,
     userId: number,
-  ): Promise<OfferBestGroup | null> {
-    const userAssignedGroupsIds = await this.getUserAssignedGroupsIds(userId);
+  ): Promise<GroupModel | null> {
+    const userAssignedGroupsIds = await this.getUserAssignedGroupsIds(
+      offerId,
+      userId,
+    );
 
     return this.orderGroupsRepository
       .findOne({
@@ -74,87 +68,117 @@ export class GroupsService {
             id: Not(In(userAssignedGroupsIds)),
             offerId,
             ownerId: Not(userId),
+            participantsCount: 1,
           },
         },
         relations: {group: {owner: true, offer: true}},
       })
       .then((orderGroup) => {
         if (orderGroup) {
-          const {group} = orderGroup;
-
-          return {
-            id: group.id,
-            leftCapacity: group.capacity - group.participantsCount,
-            offer: group.offer,
-            ownerId: group.owner.id,
-            ownerName: group.owner.profile.name,
-            // по сути нужно брать время создания заказа
-            // а лучше время оплаты заказа
-            createdAt: group.createdAt,
-          };
+          return new GroupMapper().mapGroupOrderEntityToModel(
+            orderGroup,
+            userId,
+          );
         }
 
         return null;
       });
   }
 
-  public async getOfferGroups(offerId: number, userId: number) {
+  public async getOfferGroups(
+    offerId: number,
+    userId: number,
+  ): Promise<GroupModel[]> {
     return this.orderGroupsRepository
       .find({
-        where: await this.getOfferGroupsWhere(offerId, userId),
-        relations: {group: {owner: true, offer: true}},
+        where: this.getOfferGroupsWhere(offerId),
+        relations: {group: {owner: {profile: true}}},
+        // dont load group offers
+        loadEagerRelations: false,
       })
       .then((orderGroups) =>
-        this.prepareGroups(orderGroups.map((orderGroup) => orderGroup.group)),
+        Promise.all(
+          orderGroups.map(async (orderGroup) => {
+            const groupModel = new GroupMapper().mapGroupOrderEntityToModel(
+              orderGroup,
+              userId,
+            );
+
+            groupModel.relation = await this.getUserRelation(
+              offerId,
+              orderGroup.group,
+              userId,
+            );
+
+            return groupModel;
+          }),
+        ),
       );
   }
 
-  public async getOfferGroupsCount(offerId: number, userId: number) {
+  public getOfferGroupsCount(offerId: number) {
     return this.orderGroupsRepository.count({
-      where: await this.getOfferGroupsWhere(offerId, userId),
+      where: this.getOfferGroupsWhere(offerId),
     });
   }
 
-  private async getOfferGroupsWhere(offerId: number, userId: number) {
+  private getOfferGroupsWhere(offerId: number): FindOptionsWhere<OrderGroup> {
     return {
       status: OrderStatus.PAID,
       group: {
-        id: Not(In(await this.getUserAssignedGroupsIds(userId))),
-        ownerId: Not(userId),
         offer: {id: offerId},
         capacity: MoreThan(1),
+        // TODO: переделать с группами вместимостью > 2 человек
+        participantsCount: 1,
       },
     };
   }
 
-  private async getUserAssignedGroupsIds(userId: number) {
+  private async getUserAssignedGroupsIds(offerId: number, userId: number) {
     const [userBasketGroupIds, userOrderGroupsIds] = await Promise.all([
-      this.basketRepository
-        .find({
-          select: {groupId: true},
-          where: {userId},
-        })
-        .then((userBasketItems) =>
-          userBasketItems.map((basketItem) => basketItem.groupId),
-        ),
-      this.orderGroupsRepository
-        .find({
-          select: {groupId: true},
-          where: {order: {userId}},
-        })
-        .then((userOrderGroups) =>
-          userOrderGroups.map((orderGroup) => orderGroup.groupId),
-        ),
+      this.getUserBasketGroupsIds(offerId, userId),
+      this.getUserPaidGroupsIds(offerId, userId),
     ]);
 
     return userBasketGroupIds.concat(userOrderGroupsIds);
   }
 
-  private prepareGroups(groups: Group[]) {
-    return groups.map(({owner, ...group}) => ({
-      ...group,
-      ownerId: owner.id,
-      ownerName: owner.profile.name,
-    }));
+  private getUserBasketGroupsIds(offerId: number, userId: number) {
+    return this.basketRepository
+      .find({
+        select: {groupId: true},
+        where: {userId, offerId},
+      })
+      .then((userBasketItems) =>
+        userBasketItems.map((basketItem) => basketItem.groupId),
+      );
+  }
+
+  private getUserPaidGroupsIds(offerId: number, userId: number) {
+    return this.orderGroupsRepository
+      .find({
+        select: {groupId: true},
+        where: {order: {userId}, group: {offerId}},
+      })
+      .then((userOrderGroups) =>
+        userOrderGroups.map((orderGroup) => orderGroup.groupId),
+      );
+  }
+
+  private async getUserRelation(offerId: number, group: Group, userId: number) {
+    const [userBasketGroupIds, userOrderGroupsIds] = await Promise.all([
+      this.getUserBasketGroupsIds(offerId, userId),
+      this.getUserPaidGroupsIds(offerId, userId),
+    ]);
+
+    if (group.ownerId === userId) {
+      return UserRelation.OWNER;
+    } else if (userBasketGroupIds.includes(group.id)) {
+      return UserRelation.BASKET;
+    } else if (userOrderGroupsIds.includes(group.id)) {
+      return UserRelation.PAID;
+    } else {
+      return UserRelation.NONE;
+    }
   }
 }

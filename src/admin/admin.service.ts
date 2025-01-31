@@ -34,7 +34,9 @@ export class AdminService {
   }
 
   public getGroupOrders() {
-    return this.orderGroupRepository.find({relations: {group: {offer: true}}});
+    return this.orderGroupRepository.find({
+      relations: {group: {offer: true}, order: {user: true}},
+    });
   }
 
   public getOfferOrders() {

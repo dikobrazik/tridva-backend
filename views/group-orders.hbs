@@ -5,6 +5,9 @@
       <th>Группа</th>
       <th>Товар</th>
       <th>Товар в симе</th>
+      <th>Покупатель</th>
+      <th>Вместимость</th>
+      <th>Количество участников</th>
       <th>Количество</th>
       <th>Статус</th>
       <th>Действие</th>
@@ -24,6 +27,16 @@
           {{this.group.offer.sid}} <box-icon name='link-external'></box-icon>
         </a>
       </td>
+      <td>
+        <a href="/admin/users/{{this.order.userId}}">
+          <div>
+            <p>UserId = {{this.order.userId}}</p>
+            <p>+7{{this.order.user.phone}}</p>
+          </div>
+        </a>
+      </td>
+      <td>{{this.group.capacity}}</td>
+      <td>{{this.group.participantsCount}}</td>
       <td>{{this.count}}</td>
       <td>{{this.status}}</td>
       <td>
