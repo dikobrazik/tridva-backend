@@ -26,6 +26,14 @@ export class CreateGroupOrderDto {
   offerId: number;
 }
 
+export class ExitGroupOrderDto {
+  @ApiProperty()
+  @IsInt()
+  @Min(1)
+  @Type(() => Number)
+  groupId: number;
+}
+
 export class JoinGroupParamsDto {
   @ApiProperty()
   @IsInt()

@@ -17,7 +17,7 @@ import {Payment} from 'src/entities/Payment';
 import {KassaNotification} from 'src/kassa/types';
 import {OrderStatus, PaymentStatus} from 'src/entities/enums';
 import {Offer} from 'src/entities/Offer';
-import {getOffersTotalAmount} from './utils';
+import {convertRublesToKopecks, getOffersTotalAmount} from './utils';
 import {User} from 'src/entities/User';
 
 const getOrdersWhere = (userId: User['id']) => [
@@ -164,8 +164,17 @@ export class OrdersService {
         selectedBasketItems.map((basketItem) => basketItem.id),
       );
 
-      const totalAmount = Math.floor(
-        getOffersTotalAmount(basketGroupItems, basketOfferItems) * 100,
+      const totalAmount = convertRublesToKopecks(
+        getOffersTotalAmount(
+          basketGroupItems.map((basketItem) => ({
+            offer: basketItem.group.offer,
+            count: basketItem.count,
+          })),
+          basketOfferItems.map((basketItem) => ({
+            offer: basketItem.offer,
+            count: basketItem.count,
+          })),
+        ),
       );
 
       const response = await this.kassaService.initPayment(
@@ -243,6 +252,68 @@ export class OrdersService {
       throw new InternalServerErrorException();
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  public async cancelGroupOrder(groupOrderId: OrderGroup['id']) {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    const groupOrder = await this.orderGroupsRepository.findOne({
+      where: {id: groupOrderId},
+      relations: {order: true, group: {offer: true}},
+    });
+
+    const {orderId} = groupOrder;
+
+    if (!groupOrder)
+      throw new BadRequestException('There is no order with this group');
+
+    const {id: orderPaymentId, amount} = await this.paymentRepository.findOne({
+      select: {id: true, amount: true},
+      where: {orderId},
+    });
+
+    const groupAmount = convertRublesToKopecks(
+      getOffersTotalAmount([
+        {offer: groupOrder.group.offer, count: groupOrder.count},
+      ]),
+    );
+
+    if (groupAmount === amount) {
+      return this.cancelOrder(orderId);
+    } else {
+      await queryRunner.startTransaction();
+
+      try {
+        const cancelResponse = await this.kassaService.cancelPayment(
+          String(orderPaymentId),
+          amount,
+        );
+
+        if (cancelResponse.Success) {
+          await Promise.all([
+            this.paymentRepository.update(
+              {orderId},
+              {amount: amount - groupAmount},
+            ),
+            this.orderGroupsRepository.update(
+              {
+                orderId,
+              },
+              {status: OrderStatus.CANCELED},
+            ),
+          ]);
+        }
+
+        await queryRunner.commitTransaction();
+      } catch (e) {
+        console.error(e);
+
+        await queryRunner.rollbackTransaction();
+        throw e;
+      } finally {
+        await queryRunner.release();
+      }
     }
   }
 

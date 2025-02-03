@@ -8,10 +8,12 @@ import {BasketModule} from 'src/basket/basket.module';
 import {Order} from 'src/entities/Order';
 import {OrderOffer} from 'src/entities/OrderOffer';
 import {OrderGroup} from 'src/entities/OrderGroup';
+import {OrdersModule} from 'src/orders/orders.module';
 
 @Module({
   imports: [
     BasketModule,
+    OrdersModule,
     TypeOrmModule.forFeature([
       Order,
       OrderOffer,

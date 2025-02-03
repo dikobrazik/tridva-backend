@@ -1,22 +1,26 @@
-import {BasketItem} from 'src/entities/BasketItem';
+import {Offer} from 'src/entities/Offer';
 import {sum} from 'src/shared/utils/sum';
 
-export const getOffersTotalAmount = (
-  basketGroups: BasketItem[],
-  basketOffers: BasketItem[],
-) => {
-  return sum(
-    ...basketGroups.map((basketItem) => {
-      const offer = basketItem.group.offer;
+type Item = {
+  offer: Offer;
+  count: number;
+};
 
+export const getOffersTotalAmount = (groups: Item[], offers: Item[] = []) => {
+  return sum(
+    ...groups.map(({offer, count}) => {
       const offerPrice = Number(offer.price) / (1 + offer.discount / 100);
 
-      return offerPrice * basketItem.count;
+      return offerPrice * count;
     }),
-    ...basketOffers.map((basketItem) => {
-      const offerPrice = basketItem.offer.price;
+    ...offers.map(({offer, count}) => {
+      const offerPrice = offer.price;
 
-      return offerPrice * basketItem.count;
+      return offerPrice * count;
     }),
   );
 };
+
+export const convertRublesToKopecks = (rub: number) => Math.floor(rub * 100);
+
+export const convertKopecksToRubles = (rub: number) => rub / 100;

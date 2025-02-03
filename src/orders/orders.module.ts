@@ -24,5 +24,6 @@ import {Payment} from 'src/entities/Payment';
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
+  exports: [OrdersService],
 })
 export class OrdersModule {}

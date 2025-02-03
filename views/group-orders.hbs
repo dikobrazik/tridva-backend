@@ -2,6 +2,7 @@
 <table>
   <thead>
     <tr>
+      <th>Заказ</th>
       <th>Группа</th>
       <th>Товар</th>
       <th>Товар в симе</th>
@@ -16,6 +17,11 @@
   <tbody>
     {{#each orders}}
     <tr>
+      <td>
+        <a href="/admin/orders/{{this.order.id}}">
+          {{this.order.id}}
+        </a>
+      </td>
       <td>{{this.groupId}}</td>
       <td>
         <a href="https://tridva.store/offers/{{this.group.offerId}}">

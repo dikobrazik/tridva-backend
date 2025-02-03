@@ -37,6 +37,7 @@ export class GroupsService {
     const groupOrders = await this.orderGroupsRepository.find({
       select: {groupId: true},
       where: {status: OrderStatus.PAID, order: {userId}},
+      order: {order: {createdAt: 'DESC'}},
       relations: {group: {owner: {profile: true}, offer: true}},
     });
 
@@ -48,6 +49,16 @@ export class GroupsService {
   public getUserGroupsCount(userId: number): Promise<number> {
     return this.orderGroupsRepository.count({
       where: {status: OrderStatus.PAID, order: {userId}},
+    });
+  }
+
+  public getUserGroupOrderByGroupId(
+    groupId: Group['id'],
+    userId: number,
+  ): Promise<OrderGroup> {
+    return this.orderGroupsRepository.findOne({
+      select: {id: true},
+      where: {status: OrderStatus.PAID, groupId, order: {userId}},
     });
   }
 

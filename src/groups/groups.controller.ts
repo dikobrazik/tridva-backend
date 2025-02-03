@@ -1,10 +1,20 @@
-import {Body, Controller, Get, Inject, Post, UseGuards} from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import {ApiTags} from '@nestjs/swagger';
 import {AuthTokenGuard} from 'src/guards/auth/token.guard';
-import {CreateGroupOrderDto} from './dto';
+import {CreateGroupOrderDto, ExitGroupOrderDto} from './dto';
 import {GroupsService} from './groups.service';
 import {BasketService} from 'src/basket/basket.service';
 import {UserId} from 'src/shared/decorators/UserId';
+import {OrdersService} from 'src/orders/orders.service';
 
 @UseGuards(AuthTokenGuard)
 @ApiTags('groups')
@@ -12,6 +22,8 @@ import {UserId} from 'src/shared/decorators/UserId';
 export class GroupsController {
   @Inject(GroupsService)
   private groupsService: GroupsService;
+  @Inject(OrdersService)
+  private ordersService: OrdersService;
 
   @Inject(BasketService)
   private basketService: BasketService;
@@ -25,6 +37,24 @@ export class GroupsController {
     const groupId = await this.groupsService.createGroup(body.offerId, userId);
 
     return this.basketService.addGroupToBasket(userId, groupId);
+  }
+
+  @Post('/:groupId/cancel')
+  @UseGuards(AuthTokenGuard)
+  async cancelGroup(
+    @UserId() userId: number,
+    @Param() param: ExitGroupOrderDto,
+  ) {
+    const groupOrder = await this.groupsService.getUserGroupOrderByGroupId(
+      param.groupId,
+      userId,
+    );
+
+    if (!groupOrder) {
+      throw new BadRequestException('User has no orders with given parameters');
+    }
+
+    await this.ordersService.cancelGroupOrder(groupOrder.id);
   }
 
   @Get()
