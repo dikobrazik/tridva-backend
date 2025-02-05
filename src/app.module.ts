@@ -40,10 +40,14 @@ import {OrderOffer} from './entities/OrderOffer';
 import {OrderGroup} from './entities/OrderGroup';
 import {Payment} from './entities/Payment';
 import {AdminModule} from './admin/admin.module';
+import {AuthorizationTasksModule} from './authorization/tasks/authorization.module';
+import {ScheduleModule} from '@nestjs/schedule';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     AuthorizationModule,
+    AuthorizationTasksModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
