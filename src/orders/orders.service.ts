@@ -42,10 +42,6 @@ export class OrdersService {
   private ordersRepository: Repository<Order>;
   @InjectRepository(Payment)
   private paymentRepository: Repository<Payment>;
-  @InjectRepository(OrderGroup)
-  private orderGroupsRepository: Repository<OrderGroup>;
-  @InjectRepository(OrderOffer)
-  private orderOffersRepository: Repository<OrderOffer>;
   @InjectRepository(BasketItem)
   private basketItemRepository: Repository<BasketItem>;
 

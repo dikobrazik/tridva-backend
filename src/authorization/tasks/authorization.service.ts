@@ -14,7 +14,7 @@ export class AuthorizationTasksService {
   @InjectDataSource()
   private dataSource: DataSource;
 
-  @Cron('* * 20 * * *')
+  @Cron('0 0 * * *')
   async cleanupUsers() {
     const qb = this.dataSource.createQueryBuilder();
 

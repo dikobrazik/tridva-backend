@@ -11,9 +11,11 @@ import {OrderGroup} from 'src/entities/OrderGroup';
 import {Payment} from 'src/entities/Payment';
 import {OrdersCancelService} from './orders-cancel.service';
 import {OrdersPaymentNotificationService} from './orders-payment-notification.service';
+import {OrderTasksModule} from './tasks/order-tasks.module';
 
 @Module({
   imports: [
+    OrderTasksModule,
     GeoModule,
     KassaModule,
     TypeOrmModule.forFeature([

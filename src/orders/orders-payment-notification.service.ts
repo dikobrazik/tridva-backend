@@ -7,6 +7,7 @@ import {Payment} from 'src/entities/Payment';
 import {KassaService} from 'src/kassa/kassa.service';
 import {KassaNotification} from 'src/kassa/types';
 import {Repository} from 'typeorm';
+import {OrderTasksService} from './tasks/order-tasks.service';
 
 @Injectable()
 export class OrdersPaymentNotificationService {
@@ -20,6 +21,9 @@ export class OrdersPaymentNotificationService {
   @Inject(KassaService)
   private kassaService: KassaService;
 
+  @Inject(OrderTasksService)
+  private orderTasksService: OrderTasksService;
+
   public async processNotification(notification: KassaNotification) {
     const isTokenValid = this.kassaService.checkToken(notification);
 
@@ -29,6 +33,8 @@ export class OrdersPaymentNotificationService {
       const orderId = Number(notification.OrderId);
       if (notification.Success) {
         if (notification.Status === 'CONFIRMED') {
+          this.orderTasksService.removeCancelationTask(orderId);
+
           await Promise.all([
             this.paymentRepository.update(
               {
@@ -47,6 +53,8 @@ export class OrdersPaymentNotificationService {
           ]);
         }
       } else {
+        this.orderTasksService.addCancelationTask(orderId);
+
         await Promise.all([
           this.orderGroupsRepository.update(
             {orderId},
