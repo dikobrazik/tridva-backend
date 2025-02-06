@@ -235,4 +235,17 @@ export class OrdersService {
       },
     });
   }
+
+  public getOrderPaymentUrl({orderId}: CancelOrderDto, userId: number) {
+    return this.paymentRepository
+      .findOne({
+        where: {
+          order: {
+            id: orderId,
+            userId,
+          },
+        },
+      })
+      .then((payment) => payment.url);
+  }
 }

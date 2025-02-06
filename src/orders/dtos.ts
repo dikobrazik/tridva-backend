@@ -16,3 +16,9 @@ export class CancelOrderDto {
   @Type(() => Number)
   orderId: number;
 }
+
+export class PaymentDto {
+  @Min(1)
+  @Type(() => Number)
+  orderId: number;
+}

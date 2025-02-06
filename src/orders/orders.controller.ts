@@ -6,10 +6,12 @@ import {
   HttpStatus,
   Inject,
   Post,
+  Query,
+  Redirect,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import {CancelOrderDto, CreateOrderDto} from './dtos';
+import {CancelOrderDto, CreateOrderDto, PaymentDto} from './dtos';
 import {OrdersService} from './orders.service';
 import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {UserId} from 'src/shared/decorators/UserId';
@@ -75,6 +77,21 @@ export class OrdersController {
   @UseGuards(AuthTokenGuard)
   async getUserOrdersCount(@UserId() userId: number) {
     return this.ordersService.getUserOrdersCount(userId);
+  }
+
+  @Get('payment')
+  @Redirect()
+  @UseGuards(AuthTokenGuard)
+  async payment(@Query() paymentDto: PaymentDto, @UserId() userId: number) {
+    const paymentUrl = await this.ordersService.getOrderPaymentUrl(
+      paymentDto,
+      userId,
+    );
+
+    if (!paymentUrl)
+      throw new BadRequestException('User has not order with given id');
+
+    return {url: paymentUrl};
   }
 
   @Post('/notify')
