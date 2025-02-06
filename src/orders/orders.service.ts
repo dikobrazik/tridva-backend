@@ -1,24 +1,25 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import {Inject, Injectable, InternalServerErrorException} from '@nestjs/common';
 import {InjectDataSource, InjectRepository} from '@nestjs/typeorm';
-import {Order} from 'src/entities/Order';
-import {DataSource, FindOptionsSelect, In, Not, Repository} from 'typeorm';
-import {CancelOrderDto, CreateOrderDto} from './dtos';
 import {BasketItem} from 'src/entities/BasketItem';
-import {QueryDeepPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
+import {OrderStatus} from 'src/entities/enums';
+import {Offer} from 'src/entities/Offer';
+import {Order} from 'src/entities/Order';
 import {OrderGroup} from 'src/entities/OrderGroup';
 import {OrderOffer} from 'src/entities/OrderOffer';
-import {KassaService} from 'src/kassa/kassa.service';
 import {Payment} from 'src/entities/Payment';
-import {KassaNotification} from 'src/kassa/types';
-import {OrderStatus, PaymentStatus} from 'src/entities/enums';
-import {Offer} from 'src/entities/Offer';
-import {convertRublesToKopecks, getOffersTotalAmount} from './utils';
 import {User} from 'src/entities/User';
+import {KassaService} from 'src/kassa/kassa.service';
+import {
+  DataSource,
+  FindOptionsSelect,
+  In,
+  Not,
+  QueryRunner,
+  Repository,
+} from 'typeorm';
+import {QueryDeepPartialEntity} from 'typeorm/query-builder/QueryPartialEntity';
+import {CancelOrderDto, CreateOrderDto} from './dtos';
+import {convertRublesToKopecks, getOffersTotalAmount} from './utils';
 
 const getOrdersWhere = (userId: User['id']) => [
   {
@@ -116,9 +117,6 @@ export class OrdersService {
   }
 
   public async createOrder(createOrderDto: CreateOrderDto, userId: number) {
-    let orderId: number;
-    let paymentURL: string;
-
     const selectedBasketItems = await this.basketItemRepository.find({
       where: {id: In(createOrderDto.basketItemsIds), userId},
     });
@@ -127,50 +125,30 @@ export class OrdersService {
     await queryRunner.startTransaction();
 
     try {
-      const basketOfferItems = selectedBasketItems.filter(
-        (basketItem) => basketItem.offerId !== null,
-      );
-      const basketGroupItems = selectedBasketItems.filter(
-        (basketItem) => basketItem.groupId !== null,
-      );
-
       const order: QueryDeepPartialEntity<Order> = {
         pickupPointId: createOrderDto.pickupPointId,
         userId,
       };
 
-      [{id: orderId}] = (await this.ordersRepository.insert(order)).identifiers;
+      const [{id: orderId}] = (await queryRunner.manager.insert(Order, order))
+        .identifiers;
 
-      if (basketOfferItems.length) {
-        await this.orderOffersRepository.insert(
-          basketOfferItems.map((basketItem) => ({
-            count: basketItem.count,
-            offerId: basketItem.offerId,
-            orderId,
-          })),
-        );
-      }
-      if (basketGroupItems.length) {
-        await this.orderGroupsRepository.insert(
-          basketGroupItems.map((basketItem) => ({
-            count: basketItem.count,
-            groupId: basketItem.groupId,
-            orderId,
-          })),
-        );
-      }
-
-      await this.basketItemRepository.delete(
-        selectedBasketItems.map((basketItem) => basketItem.id),
+      await this.moveBasketItemsToOrder(
+        queryRunner,
+        selectedBasketItems,
+        orderId,
       );
+
+      const {offerItems, groupItems} =
+        this.groupBasketItems(selectedBasketItems);
 
       const totalAmount = convertRublesToKopecks(
         getOffersTotalAmount(
-          basketGroupItems.map((basketItem) => ({
+          groupItems.map((basketItem) => ({
             offer: basketItem.group.offer,
             count: basketItem.count,
           })),
-          basketOfferItems.map((basketItem) => ({
+          offerItems.map((basketItem) => ({
             offer: basketItem.offer,
             count: basketItem.count,
           })),
@@ -182,69 +160,18 @@ export class OrdersService {
         totalAmount,
       );
 
-      paymentURL = response.PaymentURL;
-
       if (response.Success) {
-        await this.paymentRepository.insert({
+        await queryRunner.manager.insert(Payment, {
           id: response.PaymentId,
           amount: totalAmount,
           orderId,
+          url: response.PaymentURL,
         });
       }
 
       await queryRunner.commitTransaction();
-    } catch (e) {
-      console.error(e);
 
-      await queryRunner.rollbackTransaction();
-      throw new InternalServerErrorException();
-    } finally {
-      await queryRunner.release();
-    }
-
-    return paymentURL;
-  }
-
-  public async cancelOrder(orderId: Order['id']) {
-    const queryRunner = this.dataSource.createQueryRunner();
-
-    await queryRunner.startTransaction();
-
-    try {
-      const {id: orderPaymentId, amount} = await this.paymentRepository.findOne(
-        {
-          select: {id: true, amount: true},
-          where: {orderId},
-        },
-      );
-
-      const cancelResponse = await this.kassaService.cancelPayment(
-        String(orderPaymentId),
-        amount,
-      );
-
-      if (cancelResponse.Success) {
-        await Promise.all([
-          this.paymentRepository.update(
-            {orderId},
-            {status: PaymentStatus.RETURNED},
-          ),
-          this.orderOffersRepository.update(
-            {
-              orderId,
-            },
-            {status: OrderStatus.CANCELED},
-          ),
-          this.orderGroupsRepository.update(
-            {
-              orderId,
-            },
-            {status: OrderStatus.CANCELED},
-          ),
-        ]);
-      }
-
-      await queryRunner.commitTransaction();
+      return response.PaymentURL;
     } catch (e) {
       console.error(e);
 
@@ -255,66 +182,49 @@ export class OrdersService {
     }
   }
 
-  public async cancelGroupOrder(groupOrderId: OrderGroup['id']) {
-    const queryRunner = this.dataSource.createQueryRunner();
+  private groupBasketItems(basketItems: BasketItem[]) {
+    return {
+      offerItems: basketItems.filter(
+        (basketItem) => basketItem.offerId !== null,
+      ),
+      groupItems: basketItems.filter(
+        (basketItem) => basketItem.groupId !== null,
+      ),
+    };
+  }
 
-    const groupOrder = await this.orderGroupsRepository.findOne({
-      where: {id: groupOrderId},
-      relations: {order: true, group: {offer: true}},
-    });
+  private async moveBasketItemsToOrder(
+    queryRunner: QueryRunner,
+    basketItems: BasketItem[],
+    orderId: number,
+  ) {
+    const {offerItems, groupItems} = this.groupBasketItems(basketItems);
 
-    const {orderId} = groupOrder;
+    if (offerItems.length) {
+      await queryRunner.manager.insert(
+        OrderOffer,
+        offerItems.map((basketItem) => ({
+          count: basketItem.count,
+          offerId: basketItem.offerId,
+          orderId,
+        })),
+      );
+    }
+    if (groupItems.length) {
+      await queryRunner.manager.insert(
+        OrderGroup,
+        groupItems.map((basketItem) => ({
+          count: basketItem.count,
+          groupId: basketItem.groupId,
+          orderId,
+        })),
+      );
+    }
 
-    if (!groupOrder)
-      throw new BadRequestException('There is no order with this group');
-
-    const {id: orderPaymentId, amount} = await this.paymentRepository.findOne({
-      select: {id: true, amount: true},
-      where: {orderId},
-    });
-
-    const groupAmount = convertRublesToKopecks(
-      getOffersTotalAmount([
-        {offer: groupOrder.group.offer, count: groupOrder.count},
-      ]),
+    await queryRunner.manager.delete(
+      BasketItem,
+      basketItems.map((basketItem) => basketItem.id),
     );
-
-    if (groupAmount === amount) {
-      return this.cancelOrder(orderId);
-    } else {
-      await queryRunner.startTransaction();
-
-      try {
-        const cancelResponse = await this.kassaService.cancelPayment(
-          String(orderPaymentId),
-          amount,
-        );
-
-        if (cancelResponse.Success) {
-          await Promise.all([
-            this.paymentRepository.update(
-              {orderId},
-              {amount: amount - groupAmount},
-            ),
-            this.orderGroupsRepository.update(
-              {
-                orderId,
-              },
-              {status: OrderStatus.CANCELED},
-            ),
-          ]);
-        }
-
-        await queryRunner.commitTransaction();
-      } catch (e) {
-        console.error(e);
-
-        await queryRunner.rollbackTransaction();
-        throw e;
-      } finally {
-        await queryRunner.release();
-      }
-    }
   }
 
   public getIsUserOrder({orderId}: CancelOrderDto, userId: number) {
@@ -324,48 +234,5 @@ export class OrdersService {
         userId,
       },
     });
-  }
-
-  public async processNotification(notification: KassaNotification) {
-    const isTokenValid = this.kassaService.checkToken(notification);
-
-    if (isTokenValid) {
-      // eslint-disable-next-line no-console
-      console.log(notification);
-      const orderId = Number(notification.OrderId);
-      if (notification.Success) {
-        if (notification.Status === 'CONFIRMED') {
-          await Promise.all([
-            this.paymentRepository.update(
-              {
-                orderId,
-              },
-              {status: PaymentStatus.RECEIVED},
-            ),
-            this.orderGroupsRepository.update(
-              {orderId},
-              {status: OrderStatus.PAID},
-            ),
-            this.orderOffersRepository.update(
-              {orderId},
-              {status: OrderStatus.PAID},
-            ),
-          ]);
-        }
-      } else {
-        await Promise.all([
-          this.orderGroupsRepository.update(
-            {orderId},
-            {status: OrderStatus.PAYMENT_ERROR},
-          ),
-          this.orderOffersRepository.update(
-            {orderId},
-            {status: OrderStatus.PAYMENT_ERROR},
-          ),
-        ]);
-      }
-    } else {
-      new BadRequestException();
-    }
   }
 }

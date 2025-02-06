@@ -14,18 +14,21 @@ import {OrdersService} from './orders.service';
 import {AuthTokenGuard} from 'src/guards/auth/token.guard';
 import {UserId} from 'src/shared/decorators/UserId';
 import {GeoService} from 'src/geo/geo.service';
-import {KassaService} from 'src/kassa/kassa.service';
 import {KassaNotification} from 'src/kassa/types';
 import {Response} from 'express';
+import {OrdersCancelService} from './orders-cancel.service';
+import {OrdersPaymentNotificationService} from './orders-payment-notification.service';
 
 @Controller('orders')
 export class OrdersController {
   @Inject(OrdersService)
   private ordersService: OrdersService;
+  @Inject(OrdersCancelService)
+  private ordersCancelService: OrdersCancelService;
+  @Inject(OrdersPaymentNotificationService)
+  private ordersPaymentNotificationService: OrdersPaymentNotificationService;
   @Inject(GeoService)
   private geoService: GeoService;
-  @Inject(KassaService)
-  private kassaService: KassaService;
 
   @Post()
   @UseGuards(AuthTokenGuard)
@@ -59,7 +62,7 @@ export class OrdersController {
       throw new BadRequestException('User has no orders with given parameters');
     }
 
-    return this.ordersService.cancelOrder(cancelOrderBody.orderId);
+    return this.ordersCancelService.cancelOrder(cancelOrderBody.orderId);
   }
 
   @Get()
@@ -81,6 +84,6 @@ export class OrdersController {
   ) {
     response.statusCode = HttpStatus.OK;
 
-    await this.ordersService.processNotification(body);
+    await this.ordersPaymentNotificationService.processNotification(body);
   }
 }

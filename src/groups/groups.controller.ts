@@ -14,7 +14,7 @@ import {CreateGroupOrderDto, ExitGroupOrderDto} from './dto';
 import {GroupsService} from './groups.service';
 import {BasketService} from 'src/basket/basket.service';
 import {UserId} from 'src/shared/decorators/UserId';
-import {OrdersService} from 'src/orders/orders.service';
+import {OrdersCancelService} from 'src/orders/orders-cancel.service';
 
 @UseGuards(AuthTokenGuard)
 @ApiTags('groups')
@@ -22,8 +22,8 @@ import {OrdersService} from 'src/orders/orders.service';
 export class GroupsController {
   @Inject(GroupsService)
   private groupsService: GroupsService;
-  @Inject(OrdersService)
-  private ordersService: OrdersService;
+  @Inject(OrdersCancelService)
+  private ordersCancelService: OrdersCancelService;
 
   @Inject(BasketService)
   private basketService: BasketService;
@@ -54,7 +54,7 @@ export class GroupsController {
       throw new BadRequestException('User has no orders with given parameters');
     }
 
-    await this.ordersService.cancelGroupOrder(groupOrder.id);
+    return this.ordersCancelService.cancelGroupOrder(groupOrder.id);
   }
 
   @Get()

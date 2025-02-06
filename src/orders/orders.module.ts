@@ -9,6 +9,8 @@ import {KassaModule} from 'src/kassa/kassa.module';
 import {OrderOffer} from 'src/entities/OrderOffer';
 import {OrderGroup} from 'src/entities/OrderGroup';
 import {Payment} from 'src/entities/Payment';
+import {OrdersCancelService} from './orders-cancel.service';
+import {OrdersPaymentNotificationService} from './orders-payment-notification.service';
 
 @Module({
   imports: [
@@ -23,7 +25,11 @@ import {Payment} from 'src/entities/Payment';
     ]),
   ],
   controllers: [OrdersController],
-  providers: [OrdersService],
-  exports: [OrdersService],
+  providers: [
+    OrdersService,
+    OrdersCancelService,
+    OrdersPaymentNotificationService,
+  ],
+  exports: [OrdersService, OrdersCancelService],
 })
 export class OrdersModule {}

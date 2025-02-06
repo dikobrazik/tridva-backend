@@ -47,4 +47,8 @@ export class BasketItem {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  get isGroupBasketItem() {
+    return this.groupId !== null;
+  }
 }

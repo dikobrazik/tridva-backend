@@ -59,9 +59,14 @@ export class BasketService {
     }
   }
 
-  public getBasketItemCount(userId: number, basketItemId: number) {
+  public getBasketItemCount(userId: number, offerId: number) {
     return this.basketItemRepository
-      .findOne({where: {offer: {id: basketItemId}, user: {id: userId}}})
+      .findOne({
+        where: [
+          {offerId, userId},
+          {group: {offerId}, userId},
+        ],
+      })
       .then((basketItem) => basketItem.count)
       .catch(() => 0);
   }
@@ -71,49 +76,49 @@ export class BasketService {
   }
 
   // оставил на случай, если при удалении группы из корзины - будем удалять всю группу
-  public async removeGroupFromAllBaskets(userId: number, basketItemId: number) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.startTransaction();
+  // public async removeGroupFromAllBaskets(userId: number, basketItemId: number) {
+  //   const queryRunner = this.dataSource.createQueryRunner();
+  //   await queryRunner.startTransaction();
 
-    try {
-      const basketItem = await this.basketItemRepository.findOne({
-        select: {group: {id: true, ownerId: true}},
-        where: {id: basketItemId, userId},
-        relations: {group: true},
-        loadEagerRelations: false,
-      });
+  //   try {
+  //     const basketItem = await this.basketItemRepository.findOne({
+  //       select: {group: {id: true, ownerId: true}},
+  //       where: {id: basketItemId, userId},
+  //       relations: {group: true},
+  //       loadEagerRelations: false,
+  //     });
 
-      if (basketItem) {
-        await this.basketItemRepository.remove(basketItem);
-      }
+  //     if (basketItem) {
+  //       await this.basketItemRepository.delete(basketItem);
+  //     }
 
-      const {id: groupId, ownerId} = basketItem.group;
+  //     const {id: groupId, ownerId} = basketItem.group;
 
-      const isGroupOwner = ownerId === userId;
+  //     const isGroupOwner = ownerId === userId;
 
-      if (groupId && isGroupOwner) {
-        await this.basketItemRepository.delete({
-          groupId,
-        });
+  //     if (groupId && isGroupOwner) {
+  //       await this.basketItemRepository.delete({
+  //         groupId,
+  //       });
 
-        await this.groupRepository.delete({
-          id: groupId,
-          ownerId: userId,
-        });
-      }
+  //       await this.groupRepository.delete({
+  //         id: groupId,
+  //         ownerId: userId,
+  //       });
+  //     }
 
-      await queryRunner.commitTransaction();
-    } catch {
-      await queryRunner.rollbackTransaction();
-    } finally {
-      await queryRunner.release();
-    }
-  }
+  //     await queryRunner.commitTransaction();
+  //   } catch {
+  //     await queryRunner.rollbackTransaction();
+  //   } finally {
+  //     await queryRunner.release();
+  //   }
+  // }
 
   public getUserBasketItemByOfferId(userId: number, offerId: number) {
     return this.basketItemRepository
       .findOne({
-        where: {user: {id: userId}, offer: {id: offerId}},
+        where: {userId, offerId},
       })
       .catch(() => null);
   }

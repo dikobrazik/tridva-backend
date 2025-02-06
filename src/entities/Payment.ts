@@ -24,6 +24,9 @@ export class Payment {
   @Column({nullable: true})
   amount: number;
 
+  @Column({nullable: true})
+  url: string;
+
   @Column({
     enum: PaymentStatus,
     default: PaymentStatus.CREATED,

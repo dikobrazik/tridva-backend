@@ -6,19 +6,13 @@ type Item = {
   count: number;
 };
 
+export const getGroupAmount = ({offer, count}: Item) =>
+  (Number(offer.price) / (1 + offer.discount / 100)) * count;
+
+export const getOfferAmount = ({offer, count}: Item) => offer.price * count;
+
 export const getOffersTotalAmount = (groups: Item[], offers: Item[] = []) => {
-  return sum(
-    ...groups.map(({offer, count}) => {
-      const offerPrice = Number(offer.price) / (1 + offer.discount / 100);
-
-      return offerPrice * count;
-    }),
-    ...offers.map(({offer, count}) => {
-      const offerPrice = offer.price;
-
-      return offerPrice * count;
-    }),
-  );
+  return sum(...groups.map(getGroupAmount), ...offers.map(getOfferAmount));
 };
 
 export const convertRublesToKopecks = (rub: number) => Math.floor(rub * 100);
