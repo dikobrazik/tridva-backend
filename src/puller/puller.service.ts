@@ -5,17 +5,6 @@ import axios from 'axios';
 import {Category} from 'src/entities/Category';
 import {In, Repository} from 'typeorm';
 import {ConfigService} from '@nestjs/config';
-import {
-  SimaAttribute,
-  SimaItemAttribute,
-  SimaCategory,
-  SimaOffer,
-  SimaOfferCategory,
-  SimaOption,
-  SimaDataType,
-  SimaItemModifier,
-  SimaModifier,
-} from './types';
 import {Offer} from 'src/entities/Offer';
 import {OfferAttribute} from 'src/entities/OfferAttribute';
 import {Attribute} from 'src/entities/Attribute';
@@ -27,78 +16,8 @@ import {CategoryService} from 'src/category/category.service';
 import {Modifier} from 'src/entities/Modifier';
 import {OfferModifier} from 'src/entities/OfferModifier';
 import {AxiosInstance} from 'axios';
-
-interface ISimaApi {
-  loadAttribute: (id: number) => Promise<SimaAttribute>;
-  loadOption: (id: number) => Promise<SimaOption>;
-  loadModifier: (id: number) => Promise<SimaModifier>;
-  loadDataType: (id: number) => Promise<SimaDataType>;
-
-  loadAttributes: (page: number) => Promise<SimaAttribute[]>;
-  loadItemModifiers: (page: number) => Promise<SimaItemModifier[]>;
-  loadItemAttributes: (page: number) => Promise<SimaItemAttribute[]>;
-  loadOffers: (page: number) => Promise<SimaOffer[]>;
-  loadCategories: (page: number) => Promise<SimaCategory[]>;
-  loadOffersCategories: (page: number) => Promise<SimaOfferCategory[]>;
-}
-
-class SimaApi implements ISimaApi {
-  public loadOption: ISimaApi['loadOption'];
-  public loadModifier: ISimaApi['loadModifier'];
-  public loadAttribute: ISimaApi['loadAttribute'];
-  public loadDataType: ISimaApi['loadDataType'];
-
-  public loadItemAttributes: ISimaApi['loadItemAttributes'];
-  public loadItemModifiers: ISimaApi['loadItemModifiers'];
-  public loadAttributes: ISimaApi['loadAttributes'];
-  public loadOffers: ISimaApi['loadOffers'];
-  public loadCategories: ISimaApi['loadCategories'];
-  public loadOffersCategories: ISimaApi['loadOffersCategories'];
-
-  constructor(private client: AxiosInstance) {
-    this.loadAttribute = this.entityLoader<SimaAttribute>('attribute');
-    this.loadOption = this.entityLoader<SimaAttribute>('option');
-    this.loadModifier = this.entityLoader<SimaModifier>('modifier');
-    this.loadDataType = this.entityLoader<SimaDataType>('data-type');
-
-    this.loadItemModifiers =
-      this.entitiesLoader<SimaItemModifier>('item-modifier');
-    this.loadAttributes = this.entitiesLoader<SimaAttribute>('attribute');
-    this.loadItemAttributes =
-      this.entitiesLoader<SimaItemAttribute>('item-attribute');
-    this.loadOffers = this.entitiesLoader<SimaOffer>('item');
-    this.loadCategories = this.entitiesLoader<SimaCategory>('category');
-    this.loadOffersCategories =
-      this.entitiesLoader<SimaOfferCategory>('item-category');
-  }
-
-  private entitiesLoader<E>(entity: string) {
-    const load = (page: number): Promise<E[]> => {
-      // eslint-disable-next-line no-console
-      if (page % 10000 === 0) console.log(`Loading ${entity} page ${page}...`);
-
-      return this.client(`/${entity}?p=${page}`)
-        .then((r) => r.data)
-        .catch(() =>
-          new Promise((r) => setTimeout(r, 10_000)).then(() => load(page)),
-        );
-    };
-
-    return load;
-  }
-
-  private entityLoader<E>(entity: string) {
-    const load = (id: number): Promise<E> => {
-      return this.client(`/${entity}/${id}`)
-        .then((r) => r.data)
-        .catch(() =>
-          new Promise((r) => setTimeout(r, 10_000)).then(() => load(id)),
-        );
-    };
-
-    return load;
-  }
-}
+import {SimaApi} from './api/SimaApi';
+import {ReviewsPullerService} from './reviews-puller.service';
 
 const MS_IN_DAY = 1000 * 60 * 60 * 24; // 1 day trigger 2
 
@@ -118,7 +37,6 @@ export class PullerService {
   private modifierRepository: Repository<Modifier>;
   @InjectRepository(OfferModifier)
   private offerModifierRepository: Repository<OfferModifier>;
-
   @InjectRepository(PullHistory)
   private pullHistoryRepository: Repository<PullHistory>;
 
@@ -126,15 +44,17 @@ export class PullerService {
   private offersService: OffersService;
   @Inject(CategoryService)
   private categoryService: CategoryService;
+  @Inject(ReviewsPullerService)
+  private reviewsPullerService: ReviewsPullerService;
 
   private simaApi: SimaApi;
-  private client: AxiosInstance;
+  private simaApiClient: AxiosInstance;
 
   constructor(private configService: ConfigService) {
-    this.client = axios.create({
+    this.simaApiClient = axios.create({
       baseURL: this.configService.getOrThrow('SIMA_URL'),
     });
-    this.simaApi = new SimaApi(this.client);
+    this.simaApi = new SimaApi(this.simaApiClient);
   }
 
   private async functionWorkTimeLogger(fn: () => Promise<any>) {
@@ -179,7 +99,7 @@ export class PullerService {
   }
 
   async signIn() {
-    const token = await this.client('/signin', {
+    const token = await this.simaApiClient('/signin', {
       method: 'POST',
       data: {
         phone: this.configService.getOrThrow('SIMA_PHONE'),
@@ -190,7 +110,7 @@ export class PullerService {
       .then((r) => r.data.token)
       .catch(console.error);
 
-    this.client.defaults.headers.Authorization = token;
+    this.simaApiClient.defaults.headers.Authorization = token;
   }
 
   async fillCategories() {

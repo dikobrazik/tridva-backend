@@ -37,7 +37,7 @@ export class ReviewsService {
       .then((reviews) =>
         reviews.map(({author, ...review}) => ({
           ...review,
-          authorName: author.profile.name,
+          authorName: author?.profile.name,
         })),
       );
   }

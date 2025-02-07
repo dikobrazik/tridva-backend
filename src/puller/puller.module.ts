@@ -12,6 +12,9 @@ import {OffersModule} from 'src/offers/offers.module';
 import {CategoryModule} from 'src/category/category.module';
 import {Modifier} from 'src/entities/Modifier';
 import {OfferModifier} from 'src/entities/OfferModifier';
+import {Review} from 'src/entities/Review';
+import {ReviewsPullerService} from './reviews-puller.service';
+import {ReviewPhoto} from 'src/entities/ReviewPhoto';
 
 @Module({
   imports: [
@@ -24,11 +27,13 @@ import {OfferModifier} from 'src/entities/OfferModifier';
       Modifier,
       OfferModifier,
       PullHistory,
+      Review,
+      ReviewPhoto,
     ]),
     ConfigModule,
     OffersModule,
     CategoryModule,
   ],
-  providers: [PullerService],
+  providers: [PullerService, ReviewsPullerService],
 })
 export class PullerModule {}

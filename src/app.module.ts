@@ -42,6 +42,7 @@ import {Payment} from './entities/Payment';
 import {AdminModule} from './admin/admin.module';
 import {AuthorizationTasksModule} from './authorization/tasks/authorization.module';
 import {ScheduleModule} from '@nestjs/schedule';
+import {ReviewPhoto} from './entities/ReviewPhoto';
 
 @Module({
   imports: [
@@ -93,6 +94,7 @@ import {ScheduleModule} from '@nestjs/schedule';
           OfferModifier,
           PickupPoint,
           PullHistory,
+          ReviewPhoto,
         ],
         subscribers: [],
         migrations: [],
