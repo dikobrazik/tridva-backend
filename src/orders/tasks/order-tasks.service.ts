@@ -16,37 +16,39 @@ export class OrderTasksService {
   private schedulerRegistry: SchedulerRegistry;
 
   addCancelationTask(orderId: number) {
-    const callback = () => {
-      const queryRunner = this.dataSource.createQueryRunner();
+    if (
+      !this.schedulerRegistry.doesExist('timeout', this.getTaskName(orderId))
+    ) {
+      const callback = () => {
+        const queryRunner = this.dataSource.createQueryRunner();
 
-      Promise.all([
-        queryRunner.manager.update(
-          Payment,
-          {orderId},
-          {
-            status: PaymentStatus.CANCELED,
-          },
-        ),
-        queryRunner.manager.update(
-          OrderGroup,
-          {orderId},
-          {
-            status: OrderStatus.CANCELED,
-          },
-        ),
-        queryRunner.manager.update(
-          OrderOffer,
-          {orderId},
-          {
-            status: OrderStatus.CANCELED,
-          },
-        ),
-      ]);
-    };
-
-    const timeoutId = setTimeout(callback, 60 * 1000);
-
-    this.schedulerRegistry.addTimeout(this.getTaskName(orderId), timeoutId);
+        Promise.all([
+          queryRunner.manager.update(
+            Payment,
+            {orderId},
+            {
+              status: PaymentStatus.CANCELED,
+            },
+          ),
+          queryRunner.manager.update(
+            OrderGroup,
+            {orderId},
+            {
+              status: OrderStatus.CANCELED,
+            },
+          ),
+          queryRunner.manager.update(
+            OrderOffer,
+            {orderId},
+            {
+              status: OrderStatus.CANCELED,
+            },
+          ),
+        ]);
+      };
+      const timeoutId = setTimeout(callback, 60 * 1000);
+      this.schedulerRegistry.addTimeout(this.getTaskName(orderId), timeoutId);
+    }
   }
 
   removeCancelationTask(orderId: number) {
