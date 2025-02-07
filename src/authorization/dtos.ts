@@ -14,5 +14,5 @@ export class CheckCodeDto {
   @Min(100000)
   @IsInt()
   @Type(() => Number)
-  code: string;
+  code: number;
 }

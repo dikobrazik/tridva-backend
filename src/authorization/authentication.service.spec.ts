@@ -92,13 +92,13 @@ describe('AuthenticationService', () => {
 
     describe('if code right', () => {
       it('should return true', async () => {
-        expect(service.checkCode('89393803616', '111111')).toEqual(true);
+        expect(service.checkCode('89393803616', 111111)).toEqual(true);
       });
     });
 
     describe('if code incorrect', () => {
       it('should throw an error', async () => {
-        expect(() => service.checkCode('89393803616', '199999')).toThrowError(
+        expect(() => service.checkCode('89393803616', 199999)).toThrowError(
           new BadRequestException(
             `Неверный код для номера 89393803616. Осталось попыток: 2`,
           ),
@@ -109,18 +109,18 @@ describe('AuthenticationService', () => {
     describe('if max retries count reached', () => {
       beforeEach(async () => {
         try {
-          service.checkCode('89393803616', '199999');
+          service.checkCode('89393803616', 199999);
         } catch {}
         try {
-          service.checkCode('89393803616', '199399');
+          service.checkCode('89393803616', 199399);
         } catch {}
         try {
-          service.checkCode('89393803616', '199599');
+          service.checkCode('89393803616', 199599);
         } catch {}
       });
 
       it('should throw an error', async () => {
-        expect(() => service.checkCode('89393803616', '149999')).toThrowError(
+        expect(() => service.checkCode('89393803616', 149999)).toThrowError(
           new BadRequestException(`Вы истратили все попытки`),
         );
       });

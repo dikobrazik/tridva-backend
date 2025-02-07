@@ -10,11 +10,11 @@ export class AuthenticationService {
   private smsService: SmsService;
 
   private lastSend: Record<string, number> = {};
-  private codes: Record<string, string> = {};
+  private codes: Record<string, number> = {};
   private leftAttempts: Record<string, number> = {};
 
   public async sendCode(phone: string) {
-    const code = '111111'; // String(getRandomNumber(100000, 999999));
+    const code = 111111; // String(getRandomNumber(100000, 999999));
     const canResendCode = this.getCanResendCode(phone);
 
     if (!canResendCode) {
@@ -34,7 +34,7 @@ export class AuthenticationService {
     );
   }
 
-  public checkCode(phone: string, code: string): boolean {
+  public checkCode(phone: string, code: number): boolean {
     if (this.leftAttempts[phone] === 0) {
       throw new BadRequestException(`Вы истратили все попытки`);
     }
