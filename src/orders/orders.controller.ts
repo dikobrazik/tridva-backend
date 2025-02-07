@@ -102,5 +102,7 @@ export class OrdersController {
     response.statusCode = HttpStatus.OK;
 
     await this.ordersPaymentNotificationService.processNotification(body);
+
+    return 'OK';
   }
 }
