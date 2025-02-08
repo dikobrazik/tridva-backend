@@ -6,13 +6,13 @@ import cookieParser from 'cookie-parser';
 import {DataSource} from 'typeorm';
 import {AppModule} from './app.module';
 import {CategoryService} from './category/category.service';
-import {GeoService} from './geo/geo.service';
 import {initializeIndices} from './indices';
 import {initializeAdmin} from './admin/initializeAdmin';
 import {OffersService} from './offers/offers.service';
 import {PullerService} from './puller/puller.service';
 import {generateSiteMap} from './sitemap';
 import {setupSwagger} from './swagger';
+import {GeoPullerService} from './geo/geo-puller.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -46,7 +46,7 @@ async function bootstrap() {
     .get(CategoryService)
     .preparePopularCategoriesList()
     .catch(console.error);
-  app.get(GeoService).initialize().catch(console.error);
+  app.get(GeoPullerService).initialize().catch(console.error);
 
   app.enableCors({
     origin: isDev

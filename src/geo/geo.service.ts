@@ -12,32 +12,6 @@ export class GeoService {
   @InjectRepository(PickupPoint)
   private pickupPointRepository: Repository<PickupPoint>;
 
-  public async initialize() {
-    const {
-      identifiers: [{id}],
-    } = await this.cityRepository.upsert([{name: 'Самара'}], ['name']);
-
-    await this.pickupPointRepository.upsert(
-      [
-        {
-          latitude: 53.219601,
-          longitude: 50.206111,
-          address: 'ул. Советской Армии, 167',
-          city: {id},
-          phone: '89392312321',
-        },
-        {
-          latitude: 53.216874640417615,
-          longitude: 50.191077364990484,
-          address: 'пр. Карла Маркса, 196',
-          city: {id},
-          phone: '89212353213',
-        },
-      ],
-      ['latitude', 'longitude'],
-    );
-  }
-
   getAllCities() {
     return this.cityRepository.find();
   }
