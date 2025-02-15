@@ -1,7 +1,7 @@
 import {ExecutionContext, Injectable, CanActivate} from '@nestjs/common';
 
 @Injectable()
-export class AuthenticatedGuard implements CanActivate {
+export class AdminAuthenticatedGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     if (process.env.IS_DEV === 'true') {
       return true;

@@ -43,6 +43,7 @@ import {AdminModule} from './admin/admin.module';
 import {AuthorizationTasksModule} from './authorization/tasks/authorization.module';
 import {ScheduleModule} from '@nestjs/schedule';
 import {ReviewPhoto} from './entities/ReviewPhoto';
+import {ObjectStorageModule} from './object-storage/object-storage.module';
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import {ReviewPhoto} from './entities/ReviewPhoto';
     SmsModule,
     KassaModule,
     AdminModule,
+    ObjectStorageModule,
   ],
   providers: [AuthenticationService],
 })

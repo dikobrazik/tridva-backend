@@ -29,8 +29,4 @@ export class ProfileService {
   getProfile(userId: number): Promise<Profile> {
     return this.profileRepository.findOne({where: {id: userId}});
   }
-
-  async setProfileHasAvatar(userId: number, hasAvatar: boolean): Promise<void> {
-    await this.profileRepository.update({id: userId}, {hasAvatar});
-  }
 }

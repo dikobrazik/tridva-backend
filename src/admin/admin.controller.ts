@@ -13,7 +13,7 @@ import {
 import {LoginDto, OrderDto} from './dtos';
 import {Response} from 'express';
 import {LoginGuard} from './auth/guards/login.guard';
-import {AuthenticatedGuard} from './auth/guards/auth.guard';
+import {AdminAuthenticatedGuard} from './auth/guards/auth.guard';
 import {AuthExceptionFilter} from './auth/filters/auth.filter';
 import {AdminService} from './admin.service';
 
@@ -25,14 +25,14 @@ export class AdminController {
 
   @Get()
   @Render('index')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   root() {
     return {message: 'Hello world!'};
   }
 
   @Get('/orders')
   @Render('orders')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   async orders() {
     const orders = await this.adminService.getOrders();
     return {orders};
@@ -40,7 +40,7 @@ export class AdminController {
 
   @Get('/group-orders')
   @Render('group-orders')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   async groupOrders() {
     const orders = await this.adminService.getGroupOrders();
     return {orders};
@@ -48,7 +48,7 @@ export class AdminController {
 
   @Get('/offer-orders')
   @Render('offer-orders')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   async offerOrders() {
     const orders = await this.adminService.getOfferOrders();
     return {orders};
@@ -56,7 +56,7 @@ export class AdminController {
 
   @Get('/orders/:id')
   @Render('order')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   async order(@Param('id') orderId: string) {
     const {order, payment, groups, offers} = await this.adminService.getOrder(
       orderId,
@@ -66,7 +66,7 @@ export class AdminController {
 
   @Get('/users')
   @Render('users')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   async users() {
     const users = await this.adminService.getUsers();
     return {users};
@@ -74,7 +74,7 @@ export class AdminController {
 
   @Get('/users/:id')
   @Render('user')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   async user(@Param('id') userId: string) {
     const user = await this.adminService.getUser(userId);
     return {user};
@@ -93,13 +93,13 @@ export class AdminController {
   }
 
   @Post('/group-orders/change-status')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   async changeGroupOrderStatus(@Body() body: OrderDto) {
     await this.adminService.changeGroupOrderStatus(body);
   }
 
   @Post('/offer-orders/change-status')
-  @UseGuards(AuthenticatedGuard)
+  @UseGuards(AdminAuthenticatedGuard)
   async changeOfferOrderStatus(@Body() body: OrderDto) {
     await this.adminService.changeOfferOrderStatus(body);
   }

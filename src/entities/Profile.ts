@@ -33,8 +33,8 @@ export class Profile {
   @Column({nullable: true})
   lastSelectedPickupPointId: string;
 
-  @Column({nullable: true, default: false})
-  hasAvatar: boolean;
+  @Column({nullable: true})
+  avatarHash: string;
 
   @OneToOne(() => User, {onDelete: 'CASCADE'})
   user: User;
