@@ -5,7 +5,6 @@ import {InjectRepository} from '@nestjs/typeorm';
 import {Profile} from 'src/entities/Profile';
 import {User} from 'src/entities/User';
 import {SignatureContent} from 'src/shared/types';
-import {getRandomName} from 'src/shared/utils/getRandomName';
 import {Repository} from 'typeorm';
 import {AuthenticationService} from './authentication.service';
 import {CarrierService} from './carrier.service';
@@ -43,10 +42,9 @@ export class AuthorizationService {
   }
 
   async createAnonymous() {
-    const name = getRandomName();
     const {
       identifiers: [{id: profileId}],
-    } = await this.profileRepository.insert({name});
+    } = await this.profileRepository.insert({});
     const {
       identifiers: [{id: userId}],
     } = await this.userRepository.insert({profile: {id: profileId}});
@@ -54,7 +52,7 @@ export class AuthorizationService {
     return {
       userId,
       phone: null,
-      profile: {id: profileId, name},
+      profile: {id: profileId},
       access_token: await this.generateAccessToken(userId),
     };
   }

@@ -23,7 +23,7 @@ export class ProfileAvatarService {
     }
 
     const {avatarHash} = await this.profileRepository.findOne({
-      select: {avatarHash: true},
+      select: {id: true, avatarHash: true},
       where: {id: userId},
     });
 

@@ -1,7 +1,10 @@
 import {Type} from 'class-transformer';
-import {Min} from 'class-validator';
+import {Min, MinLength} from 'class-validator';
 
 export class CreateOrderDto {
+  @MinLength(2)
+  name: string;
+
   @Min(1)
   @Type(() => Number)
   pickupPointId: number;

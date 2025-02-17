@@ -7,6 +7,7 @@ import {Order} from 'src/entities/Order';
 import {OrderGroup} from 'src/entities/OrderGroup';
 import {OrderOffer} from 'src/entities/OrderOffer';
 import {Payment} from 'src/entities/Payment';
+import {Profile} from 'src/entities/Profile';
 import {User} from 'src/entities/User';
 import {KassaService} from 'src/kassa/kassa.service';
 import {
@@ -126,8 +127,13 @@ export class OrdersService {
         userId,
       };
 
-      const [{id: orderId}] = (await queryRunner.manager.insert(Order, order))
-        .identifiers;
+      const orderId = await queryRunner.manager
+        .insert(Order, order)
+        .then((result) => result.identifiers[0].id);
+
+      await queryRunner.manager.update(Profile, userId, {
+        name: createOrderDto.name,
+      });
 
       await this.moveBasketItemsToOrder(
         queryRunner,

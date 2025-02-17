@@ -21,7 +21,6 @@ export class ProfileService {
       profile: {id: profileId},
     } = await this.userRepository.findOne({
       where: {id: userId},
-      relations: {profile: true},
     });
     await this.profileRepository.update({id: profileId}, profile);
   }
