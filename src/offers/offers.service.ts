@@ -133,7 +133,10 @@ export class OffersService {
   ) {
     return {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-unused-vars
-      offers: offers.map(({description, ...offer}) => offer),
+      offers: offers.map(({description, groupsOwnersIds, ...offer}) => ({
+        ...offer,
+        groupsOwnersIds: (groupsOwnersIds ?? []).slice(0, 3),
+      })),
       total: count,
       pagesCount: Math.ceil(count / (pageSize ?? DEFAULT_PAGE_SIZE)),
     };

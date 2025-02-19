@@ -9,4 +9,5 @@ export const LIST_OFFER_VIEW: FindOptionsSelect<Offer> = {
   ordersCount: true,
   reviewsCount: true,
   rating: true,
+  groupsOwnersIds: true,
 };

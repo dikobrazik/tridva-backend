@@ -87,4 +87,10 @@ export class Offer {
       `SELECT AVG(rating) FROM "review" WHERE "offerId" = ${alias}.id`,
   })
   rating: number;
+
+  @VirtualColumn({
+    query: (alias) =>
+      `select array_agg("group"."ownerId") from order_group join "group" on "group".id = order_group."groupId" where "group"."offerId" = ${alias}.id`,
+  })
+  groupsOwnersIds: number[];
 }
