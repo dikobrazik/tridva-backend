@@ -158,7 +158,7 @@ export class GroupsService {
     return this.basketRepository
       .find({
         select: {groupId: true},
-        where: {userId, offerId},
+        where: {userId, group: {offerId}},
       })
       .then((userBasketItems) =>
         userBasketItems.map((basketItem) => basketItem.groupId),
